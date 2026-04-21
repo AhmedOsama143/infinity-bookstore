@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - جميع الكتب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--accent:#e3af64;--accent-dark:#da9035;--text:#161618;--bg-light:#f2f2f7;--bg-white:#f9f9fb;--shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);--radius:12px;--radius-sm:8px}
+body{font-family:'Cairo','Tajawal',sans-serif;color:var(--text);background:linear-gradient(135deg,#f9f9fb 0%,#f0ece4 100%);line-height:1.7}
+a{text-decoration:none;color:inherit}ul{list-style:none}img{max-width:100%;display:block}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.header{position:sticky;top:0;background:#fff;z-index:1000;height:70px;display:flex;align-items:center;box-shadow:var(--shadow)}
+.header .container{display:flex;align-items:center;justify-content:space-between;width:100%}
+.logo{font-family:'Cairo',sans-serif;font-size:1.4rem;font-weight:800;color:var(--primary-dark)}.logo span{color:var(--accent);font-weight:700}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-links a{font-family:'Tajawal',sans-serif;font-weight:500;font-size:.95rem;color:var(--text);transition:color .3s;position:relative}
+.nav-links a:hover,.nav-links a.active{color:var(--primary)}
+.nav-links a.active::after{content:'';position:absolute;bottom:-4px;right:0;width:100%;height:2px;background:var(--primary)}
+.btn{display:inline-block;border:none;cursor:pointer;border-radius:50px;font-family:'Cairo',sans-serif;font-weight:600;transition:all .3s}
+.btn-primary{background:var(--accent);color:#fff;padding:10px 28px;font-size:.95rem}.btn-primary:hover{background:var(--accent-dark);transform:translateY(-2px)}
+.btn-outline{border:2px solid var(--primary);color:var(--primary);padding:8px 24px;background:transparent}.btn-outline:hover{background:var(--primary);color:#fff}
+.hamburger{display:none;background:none;border:none;font-size:1.5rem;color:var(--text);cursor:pointer}
+.mobile-overlay{display:none;position:fixed;top:0;right:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:2000}
+.mobile-menu{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:2001;padding:30px 20px;transition:right .3s;overflow-y:auto}
+.mobile-menu.open{right:0}.mobile-menu .close-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;margin-bottom:20px;color:var(--text)}
+.mobile-menu ul{display:flex;flex-direction:column;gap:16px}.mobile-menu ul a{font-size:1.1rem;font-weight:600;display:block;padding:8px 0;border-bottom:1px solid var(--bg-light)}
+.section{padding:80px 0}.section-title{text-align:center;font-size:2rem;font-weight:800;color:var(--primary-dark);margin-bottom:12px}
+.section-subtitle{text-align:center;color:#666;font-size:1.05rem;margin-bottom:48px}
+.page-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:50px 0;text-align:center}
+.page-header h1{font-size:2.2rem;font-weight:800;margin-bottom:8px}
+.page-header p{opacity:.85;font-size:1rem}
+.filter-bar{background:#fff;padding:20px;border-radius:var(--radius);box-shadow:var(--shadow);margin-top:-30px;position:relative;z-index:10;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{padding:10px 16px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:.9rem;background:#fff;flex:1;min-width:150px}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--primary);outline:none}
+.books-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:32px}
+.book-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:transform .3s,box-shadow .3s;position:relative}
+.book-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.book-card .badge{position:absolute;top:12px;right:12px;background:var(--accent);color:#fff;padding:4px 12px;border-radius:50px;font-size:.75rem;font-weight:700;z-index:1}
+.book-card .badge.bestseller{background:#e74c3c}
+.book-card .wishlist-btn{position:absolute;top:12px;left:12px;background:#fff;border:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);z-index:1;color:#ccc;font-size:1rem;transition:color .3s}
+.book-card .wishlist-btn.active,.book-card .wishlist-btn:hover{color:#e74c3c}
+.book-card .cover{width:100%;height:260px;object-fit:cover}
+.book-card .info{padding:16px}
+.book-card .info h3{font-size:1rem;font-weight:700;margin-bottom:4px;line-height:1.5}
+.book-card .info .author{color:#888;font-size:.85rem;margin-bottom:8px}
+.book-card .info .subject-tag{display:inline-block;background:var(--primary-light);color:var(--primary-dark);padding:2px 10px;border-radius:50px;font-size:.75rem;font-weight:600;margin-bottom:8px}
+.book-card .info .price{font-size:1.15rem;font-weight:800;color:var(--accent-dark)}
+.book-card .actions{padding:0 16px 16px;display:flex;gap:8px}
+.book-card .actions .btn{flex:1;text-align:center;font-size:.82rem;padding:8px 0}
+.lang-toggle{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.3s;margin-right:10px;}
+.lang-toggle:hover{background:var(--accent-dark);}
+.footer{background:var(--primary-dark);color:#fff;padding:60px 0 0}
+.footer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-bottom:40px}
+.footer h4{font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--accent)}
+.footer p,.footer li,.footer a{font-size:.9rem;color:rgba(255,255,255,.8);line-height:2}.footer a:hover{color:var(--accent)}
+.footer .social{display:flex;gap:12px;margin-top:12px}
+.footer .social a{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#fff;transition:background .3s}
+.footer .social a:hover{background:var(--accent)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:20px 0;text-align:center;font-size:.85rem;color:rgba(255,255,255,.6)}
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:var(--shadow-lg);z-index:999;transition:transform .3s}.whatsapp-float:hover{transform:scale(1.1)}
+@media(max-width:992px){.books-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.nav-links{display:none}.hamburger{display:block}.books-grid{grid-template-columns:1fr 1fr}.filter-bar{flex-direction:column}.section{padding:50px 0}.footer-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.books-grid{grid-template-columns:1fr}}
+.bubbles-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;bottom:-80px;border-radius:50%;opacity:0;animation:floatBubble linear infinite}
+@keyframes floatBubble{0%{transform:translateX(0) scale(0.5);opacity:0;bottom:-80px}10%{opacity:1}90%{opacity:1}100%{transform:translateX(100px) scale(1);opacity:0;bottom:110vh}}
+.books-bg-icons{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.bg-icon{position:absolute;font-size:24px;opacity:0.12;transform:scale(0.4);transition:transform 0.15s ease-out;will-change:transform}
+.bg-icon.large{font-size:40px}.bg-icon.xlarge{font-size:56px}.bg-icon.small{font-size:16px}
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.header{position:sticky;z-index:1000}
+.section,.page-header,.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="bubbles-bg">
+  <div class="bubble" style="width:20px;height:20px;left:5%;background:rgba(87,142,126,0.08);animation-duration:12s;animation-delay:0s;"></div>
+  <div class="bubble" style="width:40px;height:40px;left:15%;background:rgba(227,175,100,0.06);animation-duration:15s;animation-delay:2s;"></div>
+  <div class="bubble" style="width:15px;height:15px;left:25%;background:rgba(87,142,126,0.07);animation-duration:10s;animation-delay:4s;"></div>
+  <div class="bubble" style="width:50px;height:50px;left:40%;background:rgba(227,175,100,0.05);animation-duration:18s;animation-delay:1s;"></div>
+  <div class="bubble" style="width:25px;height:25px;left:55%;background:rgba(87,142,126,0.08);animation-duration:14s;animation-delay:3s;"></div>
+  <div class="bubble" style="width:35px;height:35px;left:70%;background:rgba(227,175,100,0.06);animation-duration:16s;animation-delay:5s;"></div>
+  <div class="bubble" style="width:18px;height:18px;left:80%;background:rgba(87,142,126,0.07);animation-duration:11s;animation-delay:2.5s;"></div>
+  <div class="bubble" style="width:45px;height:45px;left:90%;background:rgba(227,175,100,0.05);animation-duration:17s;animation-delay:4.5s;"></div>
+</div>
+
+<div class="books-bg-icons">
+  <i class="fas fa-book bg-icon" style="left:3%;top:8%;color:#578e7e;opacity:0.14;animation-duration:12s;animation-delay:0s" data-speed="0.2"></i>
+  <i class="fas fa-book-open bg-icon large" style="left:15%;top:25%;color:#e3af64;opacity:0.12;animation-duration:18s;animation-delay:2s" data-speed="0.35"></i>
+  <i class="fas fa-bookmark bg-icon small" style="left:8%;top:55%;color:#578e7e;opacity:0.16;animation-duration:10s;animation-delay:1s" data-speed="0.15"></i>
+  <i class="fas fa-graduation-cap bg-icon xlarge" style="left:25%;top:10%;color:#e3af64;opacity:0.10;animation-duration:22s;animation-delay:3s" data-speed="0.4"></i>
+  <i class="fas fa-pen bg-icon" style="left:35%;top:40%;color:#578e7e;opacity:0.14;animation-duration:14s;animation-delay:5s" data-speed="0.25"></i>
+  <i class="fas fa-pencil bg-icon small" style="left:45%;top:70%;color:#e3af64;opacity:0.16;animation-duration:9s;animation-delay:0.5s" data-speed="0.3"></i>
+  <i class="fas fa-highlighter bg-icon large" style="left:55%;top:15%;color:#578e7e;opacity:0.12;animation-duration:20s;animation-delay:4s" data-speed="0.45"></i>
+  <i class="fas fa-glasses bg-icon" style="left:65%;top:50%;color:#e3af64;opacity:0.14;animation-duration:16s;animation-delay:2.5s" data-speed="0.2"></i>
+  <i class="fas fa-book-reader bg-icon xlarge" style="left:75%;top:85%;color:#578e7e;opacity:0.10;animation-duration:25s;animation-delay:6s" data-speed="0.5"></i>
+  <i class="fas fa-scroll bg-icon small" style="left:85%;top:30%;color:#e3af64;opacity:0.18;animation-duration:11s;animation-delay:1.5s" data-speed="0.15"></i>
+  <i class="fas fa-feather bg-icon" style="left:92%;top:60%;color:#578e7e;opacity:0.14;animation-duration:15s;animation-delay:3.5s" data-speed="0.3"></i>
+  <i class="fas fa-star bg-icon small" style="left:20%;top:90%;color:#e3af64;opacity:0.16;animation-duration:8s;animation-delay:7s" data-speed="0.25"></i>
+  <i class="fas fa-book bg-icon large" style="left:50%;top:120%;color:#578e7e;opacity:0.12;animation-duration:19s;animation-delay:0s" data-speed="0.35"></i>
+  <i class="fas fa-book-open bg-icon" style="left:70%;top:140%;color:#e3af64;opacity:0.14;animation-duration:13s;animation-delay:8s" data-speed="0.4"></i>
+  <i class="fas fa-bookmark bg-icon xlarge" style="left:10%;top:160%;color:#578e7e;opacity:0.10;animation-duration:24s;animation-delay:4.5s" data-speed="0.5"></i>
+  <i class="fas fa-graduation-cap bg-icon" style="left:40%;top:180%;color:#e3af64;opacity:0.14;animation-duration:17s;animation-delay:9s" data-speed="0.2"></i>
+  <i class="fas fa-pen bg-icon large" style="left:60%;top:200%;color:#578e7e;opacity:0.12;animation-duration:21s;animation-delay:1s" data-speed="0.45"></i>
+  <i class="fas fa-glasses bg-icon small" style="left:30%;top:130%;color:#e3af64;opacity:0.18;animation-duration:10s;animation-delay:5.5s" data-speed="0.1"></i>
+  <i class="fas fa-feather bg-icon" style="left:80%;top:170%;color:#578e7e;opacity:0.14;animation-duration:14s;animation-delay:2s" data-speed="0.3"></i>
+  <i class="fas fa-scroll bg-icon large" style="left:95%;top:100%;color:#e3af64;opacity:0.12;animation-duration:23s;animation-delay:6.5s" data-speed="0.35"></i>
+  <i class="fas fa-star bg-icon" style="left:5%;top:150%;color:#578e7e;opacity:0.16;animation-duration:12s;animation-delay:3s" data-speed="0.2"></i>
+  <i class="fas fa-book-reader bg-icon small" style="left:48%;top:5%;color:#e3af64;opacity:0.14;animation-duration:16s;animation-delay:10s" data-speed="0.15"></i>
+  <i class="fas fa-highlighter bg-icon" style="left:88%;top:45%;color:#578e7e;opacity:0.12;animation-duration:18s;animation-delay:7.5s" data-speed="0.4"></i>
+</div>
+
+<header class="header">
+  <div class="container">
+    <a href="index.html" class="logo">مكتبة إنفينيتي <span>| Infinity</span></a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html" data-i18n="home">الرئيسية</a></li>
+        <li><a href="about.html" data-i18n="about">من نحن</a></li>
+        <li><a href="books.html" class="active" data-i18n="books">الكتب</a></li>
+        <li><a href="teachers.html" data-i18n="teachers">المدرسين</a></li>
+        <li><a href="stationery.html" data-i18n="stationery">الأدوات</a></li>
+        <li><a href="search.html" data-i18n="search">البحث</a></li>
+        <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">السلة</span></a></li>
+        <li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li>
+        <li><button class="lang-toggle" id="langToggleBtn" onclick="toggleLang()">EN</button></li>
+        <li><a href="login.html" class="btn btn-primary" style="padding:8px 20px;font-size:0.85rem;" data-i18n="login">تسجيل الدخول</a></li>
+      </ul>
+    </nav>
+    <button class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></button>
+  </div>
+</header>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobile()"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-btn" onclick="toggleMobile()"><i class="fas fa-times"></i></button>
+  <button class="lang-toggle" id="langToggleBtnMobile" onclick="toggleLang()" style="margin-bottom:16px;">EN</button>
+  <ul>
+    <li><a href="index.html" data-i18n="home">الرئيسية</a></li>
+    <li><a href="about.html" data-i18n="about">من نحن</a></li>
+    <li><a href="books.html" data-i18n="books">الكتب</a></li>
+    <li><a href="teachers.html" data-i18n="teachers">المدرسين</a></li>
+    <li><a href="stationery.html" data-i18n="stationery">الأدوات</a></li>
+    <li><a href="search.html" data-i18n="search">البحث</a></li>
+    <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">السلة</span></a></li>
+    <li><a href="wishlist.html"><i class="fas fa-heart"></i> <span data-i18n="wishlistNav">قائمة الأمنيات</span></a></li>
+    <li><a href="login.html" data-i18n="login">تسجيل الدخول</a></li>
+  </ul>
+</div>
+
+<section class="page-header">
+  <div class="container">
+    <h1 data-i18n="allBooks">جميع الكتب</h1>
+    <p data-i18n="allBooksSubtitle">تصفح مجموعتنا الكاملة من الكتب التعليمية</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="filter-bar">
+      <select id="filterSubject" onchange="filterBooks()">
+        <option value="" data-i18n="allSubjects">كل المواد</option>
+        <option value="رياضيات" data-i18n="mathFull">الرياضيات</option>
+        <option value="فيزياء" data-i18n="physicsFull">الفيزياء</option>
+        <option value="كيمياء" data-i18n="chemistryFull">الكيمياء</option>
+        <option value="أحياء" data-i18n="biologyFull">الأحياء</option>
+        <option value="عربي" data-i18n="arabicFull">اللغة العربية</option>
+        <option value="إنجليزي" data-i18n="englishFull">اللغة الإنجليزية</option>
+        <option value="تاريخ" data-i18n="historyFull">التاريخ</option>
+        <option value="جغرافيا" data-i18n="geographyFull">الجغرافيا</option>
+      </select>
+      <select id="filterGrade" onchange="filterBooks()">
+        <option value="" data-i18n="allGrades">كل الصفوف</option>
+        <option value="أول" data-i18n="grade1">الصف الأول الثانوي</option>
+        <option value="ثاني" data-i18n="grade2">الصف الثاني الثانوي</option>
+        <option value="ثالث" data-i18n="grade3">الصف الثالث الثانوي</option>
+      </select>
+      <select id="filterSort" onchange="filterBooks()">
+        <option value="" data-i18n="sortBy">ترتيب حسب</option>
+        <option value="low" data-i18n="priceLow">السعر: الأقل أولاً</option>
+        <option value="high" data-i18n="priceHigh">السعر: الأعلى أولاً</option>
+      </select>
+      <input type="text" id="filterSearch" placeholder="ابحث عن كتاب..." data-i18n-placeholder="searchPlaceholder" oninput="filterBooks()">
+    </div>
+
+    <div class="books-grid" id="booksGrid">
+      <div class="book-card" data-subject="رياضيات" data-grade="ثالث" data-price="150" data-title="الرياضيات البحتة">
+        <span class="badge" data-i18n="newArrival">وصل حديثاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&h=520&q=80" alt="الرياضيات" class="cover">
+        <div class="info">
+          <h3>الرياضيات البحتة - الصف الثالث الثانوي</h3>
+          <p class="author">أ/ محمد السيد</p>
+          <span class="subject-tag" data-i18n="math">رياضيات</span>
+          <div class="price">١٥٠ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=1" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="فيزياء" data-grade="ثالث" data-price="175" data-title="الفيزياء الحديثة">
+        <span class="badge bestseller" data-i18n="bestSeller">الأكثر مبيعاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&h=520&q=80" alt="الفيزياء" class="cover">
+        <div class="info">
+          <h3>الفيزياء الحديثة - الصف الثالث الثانوي</h3>
+          <p class="author">أ/ أحمد عبد الله</p>
+          <span class="subject-tag" data-i18n="physics">فيزياء</span>
+          <div class="price">١٧٥ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=2" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="كيمياء" data-grade="ثالث" data-price="160" data-title="الكيمياء العضوية">
+        <span class="badge" data-i18n="newArrival">وصل حديثاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&h=520&q=80" alt="الكيمياء" class="cover">
+        <div class="info">
+          <h3>الكيمياء العضوية - الصف الثالث الثانوي</h3>
+          <p class="author">أ/ سارة محمود</p>
+          <span class="subject-tag" data-i18n="chemistry">كيمياء</span>
+          <div class="price">١٦٠ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=3" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="أحياء" data-grade="ثاني" data-price="140" data-title="الأحياء">
+        <span class="badge bestseller" data-i18n="bestSeller">الأكثر مبيعاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&h=520&q=80" alt="الأحياء" class="cover">
+        <div class="info">
+          <h3>الأحياء - الصف الثاني الثانوي</h3>
+          <p class="author">أ/ هاني فاروق</p>
+          <span class="subject-tag" data-i18n="biology">أحياء</span>
+          <div class="price">١٤٠ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=4" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="عربي" data-grade="ثالث" data-price="130" data-title="اللغة العربية">
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=400&h=520&q=80" alt="اللغة العربية" class="cover">
+        <div class="info">
+          <h3>اللغة العربية - الصف الثالث الثانوي</h3>
+          <p class="author">أ/ فاطمة الزهراء</p>
+          <span class="subject-tag" data-i18n="arabic">عربي</span>
+          <div class="price">١٣٠ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=5" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="إنجليزي" data-grade="ثاني" data-price="155" data-title="اللغة الإنجليزية">
+        <span class="badge" data-i18n="newArrival">وصل حديثاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=400&h=520&q=80" alt="اللغة الإنجليزية" class="cover">
+        <div class="info">
+          <h3>اللغة الإنجليزية - الصف الثاني الثانوي</h3>
+          <p class="author">أ/ منى حسين</p>
+          <span class="subject-tag" data-i18n="english">إنجليزي</span>
+          <div class="price">١٥٥ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=6" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="تاريخ" data-grade="أول" data-price="120" data-title="التاريخ">
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=400&h=520&q=80" alt="التاريخ" class="cover">
+        <div class="info">
+          <h3>التاريخ - الصف الأول الثانوي</h3>
+          <p class="author">أ/ كريم عادل</p>
+          <span class="subject-tag" data-i18n="history">تاريخ</span>
+          <div class="price">١٢٠ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=7" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="جغرافيا" data-grade="أول" data-price="115" data-title="الجغرافيا">
+        <span class="badge bestseller" data-i18n="bestSeller">الأكثر مبيعاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=400&h=520&q=80" alt="الجغرافيا" class="cover">
+        <div class="info">
+          <h3>الجغرافيا - الصف الأول الثانوي</h3>
+          <p class="author">أ/ ياسمين نبيل</p>
+          <span class="subject-tag" data-i18n="geography">جغرافيا</span>
+          <div class="price">١١٥ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=8" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="رياضيات" data-grade="ثاني" data-price="145" data-title="الرياضيات التطبيقية">
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=400&h=520&q=80" alt="الرياضيات" class="cover">
+        <div class="info">
+          <h3>الرياضيات التطبيقية - الصف الثاني الثانوي</h3>
+          <p class="author">أ/ محمد السيد</p>
+          <span class="subject-tag" data-i18n="math">رياضيات</span>
+          <div class="price">١٤٥ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=9" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+
+      <div class="book-card" data-subject="فيزياء" data-grade="ثاني" data-price="165" data-title="أساسيات الفيزياء">
+        <span class="badge" data-i18n="newArrival">وصل حديثاً</span>
+        <button class="wishlist-btn" onclick="toggleWishlist(this)"><i class="fas fa-heart"></i></button>
+        <img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&w=400&h=520&q=80" alt="الفيزياء" class="cover">
+        <div class="info">
+          <h3>أساسيات الفيزياء - الصف الثاني الثانوي</h3>
+          <p class="author">أ/ أحمد عبد الله</p>
+          <span class="subject-tag" data-i18n="physics">فيزياء</span>
+          <div class="price">١٦٥ ج.م</div>
+        </div>
+        <div class="actions">
+          <a href="book-details.html?id=10" target="_blank" class="btn btn-outline" data-i18n="viewDetails">عرض التفاصيل</a>
+          <button class="btn btn-primary" data-i18n="addToCart">أضف للسلة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4 data-i18n="footerAbout">مكتبة إنفينيتي</h4>
+        <p data-i18n="footerAboutDescFull">مكتبتك الإلكترونية الأولى في مصر لكتب المدرسين التعليمية. نوفر لك أفضل الكتب من أمهر المدرسين لجميع المراحل الدراسية.</p>
+        <div class="social">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="https://wa.me/201012345678"><i class="fab fa-whatsapp"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4 data-i18n="quickLinks">روابط سريعة</h4>
+        <ul><li><a href="index.html" data-i18n="footerHome">الرئيسية</a></li><li><a href="books.html" data-i18n="footerAllBooks">جميع الكتب</a></li><li><a href="teachers.html" data-i18n="footerTeachers">المدرسين</a></li><li><a href="faq.html" data-i18n="footerFaq">الأسئلة الشائعة</a></li><li><a href="delivery.html" data-i18n="footerDelivery">معلومات التوصيل</a></li></ul>
+      </div>
+      <div>
+        <h4 data-i18n="subjects">المواد الدراسية</h4>
+        <ul><li><a href="books.html" data-i18n="footerMath">الرياضيات</a></li><li><a href="books.html" data-i18n="footerPhysics">الفيزياء</a></li><li><a href="books.html" data-i18n="footerChemistry">الكيمياء</a></li><li><a href="books.html" data-i18n="footerBiology">الأحياء</a></li><li><a href="books.html" data-i18n="footerArabic">اللغة العربية</a></li><li><a href="books.html" data-i18n="footerEnglish">اللغة الإنجليزية</a></li></ul>
+      </div>
+      <div>
+        <h4 data-i18n="contactUs">تواصل معنا</h4>
+        <ul><li><i class="fas fa-phone"></i> 01012345678</li><li><i class="fas fa-envelope"></i> info@infinity-books.com</li><li><i class="fas fa-map-marker-alt"></i> <span data-i18n="footerLocation">القاهرة، مصر</span></li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom"><div class="container"><span data-i18n="copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</span></div></div>
+</footer>
+
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+function toggleMobile(){document.getElementById('mobileMenu').classList.toggle('open');document.getElementById('mobileOverlay').style.display=document.getElementById('mobileMenu').classList.contains('open')?'block':'none';}
+function toggleWishlist(btn){btn.classList.toggle('active');}
+function filterBooks(){
+  const subject=document.getElementById('filterSubject').value;
+  const grade=document.getElementById('filterGrade').value;
+  const sort=document.getElementById('filterSort').value;
+  const search=document.getElementById('filterSearch').value.trim();
+  const cards=document.querySelectorAll('.book-card');
+  let visible=[];
+  cards.forEach(c=>{
+    let show=true;
+    if(subject&&c.dataset.subject!==subject)show=false;
+    if(grade&&c.dataset.grade!==grade)show=false;
+    if(search&&!c.dataset.title.includes(search)&&!c.querySelector('.author').textContent.includes(search))show=false;
+    c.style.display=show?'':'none';
+    if(show)visible.push(c);
+  });
+  if(sort){
+    const grid=document.getElementById('booksGrid');
+    visible.sort((a,b)=>sort==='low'?a.dataset.price-b.dataset.price:b.dataset.price-a.dataset.price);
+    visible.forEach(c=>grid.appendChild(c));
+  }
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('section, .book-card').forEach(function(el){el.classList.add('fade-in');});
+  var fadeObserver=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');fadeObserver.unobserve(e.target);}});},{threshold:0.1});
+  document.querySelectorAll('.fade-in').forEach(function(el){fadeObserver.observe(el);});
+});
+</script>
+<script>
+window.addEventListener('scroll', function() {
+  const scrolled = window.pageYOffset;
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollPercent = Math.min(scrolled / maxScroll, 1);
+
+  document.querySelectorAll('.bg-icon').forEach(function(icon) {
+    const speed = parseFloat(icon.dataset.speed || 0.3);
+    const baseScale = 0.4;
+    const scaleGrowth = scrollPercent * 0.8;
+    const scale = baseScale + scaleGrowth;
+    const moveY = -scrolled * speed;
+    const rotate = scrolled * 0.03;
+    icon.style.transform = 'translateY(' + moveY + 'px) rotate(' + rotate + 'deg) scale(' + scale + ')';
+  });
+});
+</script>
+<script src="lang-toggle.js"></script>
+</body>
+</html>

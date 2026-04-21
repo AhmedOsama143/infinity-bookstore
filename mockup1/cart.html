@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - سلة المشتريات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--accent:#e3af64;--accent-dark:#da9035;--text:#161618;--bg-light:#f2f2f7;--bg-white:#f9f9fb;--shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);--radius:12px;--radius-sm:8px}
+body{font-family:'Cairo','Tajawal',sans-serif;color:var(--text);background:var(--bg-white);line-height:1.7}
+a{text-decoration:none;color:inherit}ul{list-style:none}img{max-width:100%;display:block}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.header{position:sticky;top:0;background:#fff;z-index:1000;height:70px;display:flex;align-items:center;box-shadow:var(--shadow)}
+.header .container{display:flex;align-items:center;justify-content:space-between;width:100%}
+.logo{font-family:'Cairo',sans-serif;font-size:1.4rem;font-weight:800;color:var(--primary-dark)}.logo span{color:var(--accent);font-weight:700}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-links a{font-family:'Tajawal',sans-serif;font-weight:500;font-size:.95rem;color:var(--text);transition:color .3s;position:relative}
+.nav-links a:hover,.nav-links a.active{color:var(--primary)}
+.nav-links a.active::after{content:'';position:absolute;bottom:-4px;right:0;width:100%;height:2px;background:var(--primary)}
+.btn{display:inline-block;border:none;cursor:pointer;border-radius:50px;font-family:'Cairo',sans-serif;font-weight:600;transition:all .3s}
+.btn-primary{background:var(--accent);color:#fff;padding:10px 28px;font-size:.95rem}.btn-primary:hover{background:var(--accent-dark);transform:translateY(-2px)}
+.btn-outline{border:2px solid var(--primary);color:var(--primary);padding:8px 24px;background:transparent}.btn-outline:hover{background:var(--primary);color:#fff}
+.hamburger{display:none;background:none;border:none;font-size:1.5rem;color:var(--text);cursor:pointer}
+.mobile-overlay{display:none;position:fixed;top:0;right:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:2000}
+.mobile-menu{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:2001;padding:30px 20px;transition:right .3s;overflow-y:auto}
+.mobile-menu.open{right:0}.mobile-menu .close-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;margin-bottom:20px;color:var(--text)}
+.mobile-menu ul{display:flex;flex-direction:column;gap:16px}.mobile-menu ul a{font-size:1.1rem;font-weight:600;display:block;padding:8px 0;border-bottom:1px solid var(--bg-light)}
+.lang-toggle{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.3s;margin-right:10px;}
+.lang-toggle:hover{background:var(--accent-dark);}
+.section{padding:80px 0}
+.page-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:50px 0;text-align:center}
+.page-header h1{font-size:2.2rem;font-weight:800;margin-bottom:8px}
+.cart-layout{display:grid;grid-template-columns:1fr 350px;gap:32px;align-items:start}
+.cart-item{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:20px;align-items:center}
+.cart-item .thumb{width:80px;height:110px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0}
+.cart-item .item-info{flex:1}
+.cart-item .item-info h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.cart-item .item-info .author{color:#888;font-size:.85rem;margin-bottom:4px}
+.cart-item .item-info .price{color:var(--accent-dark);font-weight:700}
+.cart-item .qty{display:flex;align-items:center;gap:8px}
+.cart-item .qty button{width:32px;height:32px;border-radius:50%;border:2px solid #ddd;background:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .3s;color:var(--text)}
+.cart-item .qty button:hover{border-color:var(--primary);color:var(--primary)}
+.cart-item .qty span{font-weight:700;font-size:1rem;min-width:20px;text-align:center}
+.cart-item .subtotal{font-weight:800;font-size:1.1rem;color:var(--primary-dark);min-width:80px;text-align:center}
+.cart-item .remove-btn{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1rem;padding:8px;transition:opacity .3s}
+.cart-item .remove-btn:hover{opacity:.7}
+.order-summary{background:#fff;border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);position:sticky;top:90px}
+.order-summary h3{font-size:1.2rem;font-weight:800;margin-bottom:20px;color:var(--primary-dark)}
+.order-summary .row{display:flex;justify-content:space-between;margin-bottom:12px;font-size:.95rem}
+.order-summary .row.total{border-top:2px solid var(--bg-light);padding-top:12px;font-size:1.15rem;font-weight:800;color:var(--primary-dark)}
+.order-summary .btn{width:100%;margin-top:16px;text-align:center;padding:14px}
+.order-summary .continue{display:block;text-align:center;margin-top:12px;color:var(--primary);font-weight:600;font-size:.9rem}
+.empty-cart{text-align:center;padding:80px 20px;display:none}
+.empty-cart i{font-size:5rem;color:#ddd;margin-bottom:20px}
+.empty-cart h3{font-size:1.4rem;color:#888;margin-bottom:8px}
+.empty-cart p{color:#aaa;margin-bottom:24px}
+.footer{background:var(--primary-dark);color:#fff;padding:60px 0 0}
+.footer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-bottom:40px}
+.footer h4{font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--accent)}
+.footer p,.footer li,.footer a{font-size:.9rem;color:rgba(255,255,255,.8);line-height:2}.footer a:hover{color:var(--accent)}
+.footer .social{display:flex;gap:12px;margin-top:12px}
+.footer .social a{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#fff;transition:background .3s}.footer .social a:hover{background:var(--accent)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:20px 0;text-align:center;font-size:.85rem;color:rgba(255,255,255,.6)}
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:var(--shadow-lg);z-index:999;transition:transform .3s}.whatsapp-float:hover{transform:scale(1.1)}
+@media(max-width:992px){.cart-layout{grid-template-columns:1fr}.footer-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.nav-links{display:none}.hamburger{display:block}.cart-item{flex-wrap:wrap}.section{padding:50px 0}.footer-grid{grid-template-columns:1fr}}
+.bubbles-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;bottom:-80px;border-radius:50%;opacity:0;animation:floatBubble linear infinite}
+@keyframes floatBubble{0%{transform:translateX(0) scale(0.5);opacity:0;bottom:-80px}10%{opacity:1}90%{opacity:1}100%{transform:translateX(100px) scale(1);opacity:0;bottom:110vh}}
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.header{position:sticky;z-index:1000}
+.section,.page-header,.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="bubbles-bg">
+  <div class="bubble" style="width:20px;height:20px;left:5%;background:rgba(87,142,126,0.08);animation-duration:12s;animation-delay:0s;"></div>
+  <div class="bubble" style="width:40px;height:40px;left:15%;background:rgba(227,175,100,0.06);animation-duration:15s;animation-delay:2s;"></div>
+  <div class="bubble" style="width:15px;height:15px;left:25%;background:rgba(87,142,126,0.07);animation-duration:10s;animation-delay:4s;"></div>
+  <div class="bubble" style="width:50px;height:50px;left:40%;background:rgba(227,175,100,0.05);animation-duration:18s;animation-delay:1s;"></div>
+  <div class="bubble" style="width:25px;height:25px;left:55%;background:rgba(87,142,126,0.08);animation-duration:14s;animation-delay:3s;"></div>
+  <div class="bubble" style="width:35px;height:35px;left:70%;background:rgba(227,175,100,0.06);animation-duration:16s;animation-delay:5s;"></div>
+  <div class="bubble" style="width:18px;height:18px;left:80%;background:rgba(87,142,126,0.07);animation-duration:11s;animation-delay:2.5s;"></div>
+  <div class="bubble" style="width:45px;height:45px;left:90%;background:rgba(227,175,100,0.05);animation-duration:17s;animation-delay:4.5s;"></div>
+</div>
+
+<header class="header">
+  <div class="container">
+    <a href="index.html" class="logo">مكتبة إنفينيتي <span>| Infinity</span></a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html" data-i18n="home">الرئيسية</a></li>
+        <li><a href="about.html" data-i18n="about">من نحن</a></li>
+        <li><a href="books.html" data-i18n="books">الكتب</a></li>
+        <li><a href="teachers.html" data-i18n="teachers">المدرسين</a></li>
+        <li><a href="stationery.html" data-i18n="stationery">الأدوات</a></li>
+        <li><a href="search.html" data-i18n="search">البحث</a></li>
+        <li><a href="cart.html" class="active"><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">السلة</span></a></li>
+        <li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li>
+        <li><button class="lang-toggle" id="langToggleBtn" onclick="toggleLang()">EN</button></li>
+        <li><a href="login.html" class="btn btn-primary" style="padding:8px 20px;font-size:0.85rem;" data-i18n="login">تسجيل الدخول</a></li>
+      </ul>
+    </nav>
+    <button class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></button>
+  </div>
+</header>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobile()"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-btn" onclick="toggleMobile()"><i class="fas fa-times"></i></button>
+  <button class="lang-toggle" id="langToggleBtnMobile" onclick="toggleLang()" style="margin-bottom:16px;">EN</button>
+  <ul><li><a href="index.html" data-i18n="home">الرئيسية</a></li><li><a href="about.html" data-i18n="about">من نحن</a></li><li><a href="books.html" data-i18n="books">الكتب</a></li><li><a href="teachers.html" data-i18n="teachers">المدرسين</a></li><li><a href="stationery.html" data-i18n="stationery">الأدوات</a></li><li><a href="search.html" data-i18n="search">البحث</a></li><li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">السلة</span></a></li><li><a href="wishlist.html"><i class="fas fa-heart"></i> <span data-i18n="wishlistNav">قائمة الأمنيات</span></a></li><li><a href="login.html" data-i18n="login">تسجيل الدخول</a></li></ul>
+</div>
+
+<section class="page-header">
+  <div class="container"><h1 data-i18n="shoppingCart">سلة المشتريات</h1></div>
+</section>
+
+<section class="section" id="cartSection">
+  <div class="container">
+    <div class="cart-layout">
+      <div id="cartItems">
+        <div class="cart-item" data-price="150" data-id="1">
+          <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=160&h=220&q=80" alt="الرياضيات" class="thumb">
+          <div class="item-info">
+            <h3>الرياضيات البحتة - الصف الثالث الثانوي</h3>
+            <p class="author">أ/ محمد السيد</p>
+            <p class="price">١٥٠ ج.م</p>
+          </div>
+          <div class="qty">
+            <button onclick="changeQty(this,-1)"><i class="fas fa-minus"></i></button>
+            <span class="qty-val">1</span>
+            <button onclick="changeQty(this,1)"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="subtotal">١٥٠ ج.م</div>
+          <button class="remove-btn" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="cart-item" data-price="175" data-id="2">
+          <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=160&h=220&q=80" alt="الفيزياء" class="thumb">
+          <div class="item-info">
+            <h3>الفيزياء الحديثة - الصف الثالث الثانوي</h3>
+            <p class="author">أ/ أحمد عبد الله</p>
+            <p class="price">١٧٥ ج.م</p>
+          </div>
+          <div class="qty">
+            <button onclick="changeQty(this,-1)"><i class="fas fa-minus"></i></button>
+            <span class="qty-val">1</span>
+            <button onclick="changeQty(this,1)"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="subtotal">١٧٥ ج.م</div>
+          <button class="remove-btn" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="cart-item" data-price="160" data-id="3">
+          <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=160&h=220&q=80" alt="الكيمياء" class="thumb">
+          <div class="item-info">
+            <h3>الكيمياء العضوية - الصف الثالث الثانوي</h3>
+            <p class="author">أ/ سارة محمود</p>
+            <p class="price">١٦٠ ج.م</p>
+          </div>
+          <div class="qty">
+            <button onclick="changeQty(this,-1)"><i class="fas fa-minus"></i></button>
+            <span class="qty-val">2</span>
+            <button onclick="changeQty(this,1)"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="subtotal">٣٢٠ ج.م</div>
+          <button class="remove-btn" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="order-summary">
+        <h3 data-i18n="orderSummary">ملخص الطلب</h3>
+        <div class="row"><span data-i18n="subtotal">المجموع الفرعي</span><span id="subtotalVal">٦٤٥ ج.م</span></div>
+        <div class="row"><span data-i18n="deliveryFee">رسوم التوصيل</span><span id="deliveryVal" style="color:var(--primary);font-weight:600" data-i18n="free">مجاناً</span></div>
+        <div class="row total"><span data-i18n="total">الإجمالي</span><span id="totalVal">٦٤٥ ج.م</span></div>
+        <button class="btn btn-primary" data-i18n="checkout">إتمام الطلب</button>
+        <a href="books.html" class="continue" data-i18n="continueShopping">متابعة التسوق</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="empty-cart" id="emptyCart">
+  <i class="fas fa-shopping-cart"></i>
+  <h3 data-i18n="emptyCart">سلتك فارغة</h3>
+  <p data-i18n="emptyCartMsg">لم تضف أي كتب إلى سلة المشتريات بعد</p>
+  <a href="books.html" class="btn btn-primary" data-i18n="browseBooks">تصفح الكتب</a>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><h4 data-i18n="footerAbout">مكتبة إنفينيتي</h4><p data-i18n="footerAboutDesc">مكتبتك الإلكترونية الأولى في مصر لكتب المدرسين التعليمية.</p><div class="social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-instagram"></i></a><a href="https://wa.me/201012345678"><i class="fab fa-whatsapp"></i></a><a href="#"><i class="fab fa-twitter"></i></a></div></div>
+      <div><h4 data-i18n="quickLinks">روابط سريعة</h4><ul><li><a href="index.html" data-i18n="footerHome">الرئيسية</a></li><li><a href="books.html" data-i18n="footerAllBooks">جميع الكتب</a></li><li><a href="teachers.html" data-i18n="footerTeachers">المدرسين</a></li><li><a href="faq.html" data-i18n="footerFaq">الأسئلة الشائعة</a></li><li><a href="delivery.html" data-i18n="footerDelivery">معلومات التوصيل</a></li></ul></div>
+      <div><h4 data-i18n="subjects">المواد الدراسية</h4><ul><li><a href="books.html" data-i18n="footerMath">الرياضيات</a></li><li><a href="books.html" data-i18n="footerPhysics">الفيزياء</a></li><li><a href="books.html" data-i18n="footerChemistry">الكيمياء</a></li><li><a href="books.html" data-i18n="footerBiology">الأحياء</a></li><li><a href="books.html" data-i18n="footerArabic">اللغة العربية</a></li><li><a href="books.html" data-i18n="footerEnglish">اللغة الإنجليزية</a></li></ul></div>
+      <div><h4 data-i18n="contactUs">تواصل معنا</h4><ul><li><i class="fas fa-phone"></i> 01012345678</li><li><i class="fas fa-envelope"></i> info@infinity-books.com</li><li><i class="fas fa-map-marker-alt"></i> <span data-i18n="footerLocation">القاهرة، مصر</span></li></ul></div>
+    </div>
+  </div>
+  <div class="footer-bottom"><div class="container"><span data-i18n="copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</span></div></div>
+</footer>
+
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+function toggleMobile(){document.getElementById('mobileMenu').classList.toggle('open');document.getElementById('mobileOverlay').style.display=document.getElementById('mobileMenu').classList.contains('open')?'block':'none';}
+function toArabicNum(n){return n.toString().replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);}
+function changeQty(btn,delta){
+  const item=btn.closest('.cart-item');
+  const qtyEl=item.querySelector('.qty-val');
+  let q=parseInt(qtyEl.textContent)||1;
+  q=Math.max(1,q+delta);
+  qtyEl.textContent=q;
+  const price=parseInt(item.dataset.price);
+  item.querySelector('.subtotal').textContent=toArabicNum(price*q)+' ج.م';
+  updateSummary();
+}
+function removeItem(btn){
+  btn.closest('.cart-item').remove();
+  updateSummary();
+  checkEmpty();
+}
+function updateSummary(){
+  let total=0;
+  document.querySelectorAll('.cart-item').forEach(item=>{
+    const price=parseInt(item.dataset.price);
+    const qty=parseInt(item.querySelector('.qty-val').textContent)||1;
+    total+=price*qty;
+  });
+  const delivery=total>=500?0:40;
+  document.getElementById('subtotalVal').textContent=toArabicNum(total)+' ج.م';
+  const lang=localStorage.getItem('lang')||'ar';
+  document.getElementById('deliveryVal').textContent=delivery===0?(lang==='en'?'Free':'مجاناً'):toArabicNum(delivery)+' ج.م';
+  document.getElementById('deliveryVal').style.color=delivery===0?'var(--primary)':'var(--text)';
+  document.getElementById('totalVal').textContent=toArabicNum(total+delivery)+' ج.م';
+}
+function checkEmpty(){
+  const items=document.querySelectorAll('.cart-item');
+  if(items.length===0){
+    document.getElementById('cartSection').style.display='none';
+    document.getElementById('emptyCart').style.display='block';
+  }
+}
+updateSummary();
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('section, .cart-item, .order-summary').forEach(function(el){el.classList.add('fade-in');});
+  var fadeObserver=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');fadeObserver.unobserve(e.target);}});},{threshold:0.1});
+  document.querySelectorAll('.fade-in').forEach(function(el){fadeObserver.observe(el);});
+});
+</script>
+<script src="lang-toggle.js"></script>
+</body>
+</html>

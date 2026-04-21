@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.admin-credentials.md
+secrets/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.turbo/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code — user-local overrides (keep shared settings.json)
+.claude/settings.local.json
+
+# Supabase CLI (local state)
+.supabase/
+supabase/.temp/
+
+# OS
+Thumbs.db

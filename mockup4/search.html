@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - البحث</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);direction:rtl}a{text-decoration:none;color:inherit}
+.lang-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.2s;margin-right:10px;}
+.lang-toggle:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(227,175,100,0.4);}
+.header{background:var(--warm-bg);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 40px;position:sticky;top:0;z-index:1000;box-shadow:var(--shadow)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}.logo span:first-child{color:var(--gold-dark)}.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.nav{display:flex;align-items:center;gap:28px;list-style:none}.nav a{font-weight:600;font-size:.95rem;transition:.3s;position:relative;padding-bottom:4px}.nav a:hover{color:var(--gold-dark)}.nav a:hover::after{content:'';position:absolute;bottom:0;right:0;width:100%;height:2px;background:var(--gold);border-radius:2px}
+.nav .badge-count{background:var(--gold);color:#fff;font-size:.7rem;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;top:-8px;right:-4px}
+.hamburger{display:none;font-size:1.5rem;cursor:pointer;color:var(--dark)}
+.search-section{max-width:800px;margin:48px auto;padding:0 20px}
+.search-card{background:var(--warm-bg);border-radius:var(--radius-lg);padding:40px;box-shadow:var(--shadow-lg);text-align:center}
+.search-card h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.search-card p{color:#666;font-family:'Tajawal',sans-serif;margin-bottom:24px}
+.search-bar{display:flex;gap:0;max-width:600px;margin:0 auto}
+.search-bar input{flex:1;padding:16px 24px;border:2px solid var(--warm-bg2);border-radius:0 var(--radius) var(--radius) 0;font-size:1rem;font-family:'Cairo',sans-serif;outline:none;transition:.3s}
+.search-bar input:focus{border-color:var(--gold)}
+.search-bar button{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:16px 32px;border-radius:var(--radius) 0 0 var(--radius);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:.3s}
+.search-bar button:hover{opacity:.9}
+.search-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:20px}
+.search-tags span{background:var(--warm-bg2);padding:6px 16px;border-radius:20px;font-size:.85rem;cursor:pointer;transition:.3s;font-family:'Tajawal',sans-serif}
+.search-tags span:hover{background:var(--gold);color:#fff}
+.content-wrap{max-width:1280px;margin:32px auto;padding:0 20px;display:flex;gap:32px}
+.sidebar{width:260px;flex-shrink:0}
+.filter-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px;border-top:4px solid var(--gold)}
+.filter-card h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--gold-dark)}
+.filter-card label{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.9rem;cursor:pointer;font-family:'Tajawal',sans-serif}
+.filter-card input[type="checkbox"]{accent-color:var(--gold-dark);width:16px;height:16px}
+.filter-card select{width:100%;padding:10px;border:2px solid #eee;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.9rem}
+.filter-card select:focus{border-color:var(--gold);outline:none}
+.results{flex:1}
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.results-header h2{font-size:1.2rem;font-weight:700}
+.results-header span{color:#888;font-size:.9rem}
+.masonry{columns:3;column-gap:20px}
+.book-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-right:4px solid var(--gold);margin-bottom:20px;break-inside:avoid;transition:.3s;position:relative}
+.book-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.book-card img{width:100%;display:block}
+.book-heart{position:absolute;top:12px;left:12px;width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:.3s}
+.book-heart:hover,.book-heart.active{color:red}
+.book-info{padding:16px}
+.book-info h3{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.book-info .author{font-size:.85rem;color:#888;margin-bottom:8px}
+.book-info .price{font-size:1.1rem;font-weight:800;color:var(--gold-dark)}
+.book-actions{padding:0 16px 16px}
+.book-actions a{display:block;text-align:center;padding:10px;border-radius:10px;font-size:.85rem;font-weight:600;background:var(--primary-light);color:var(--primary-dark);transition:.3s}
+.book-actions a:hover{background:var(--primary);color:#fff}
+.empty-state{text-align:center;padding:80px 20px;display:none}
+.empty-state i{font-size:4rem;color:var(--gold);margin-bottom:16px}
+.empty-state h2{font-size:1.5rem;margin-bottom:8px}
+.empty-state p{color:#888;font-family:'Tajawal',sans-serif}
+.footer{background:linear-gradient(135deg,#2a2a2e,var(--dark));border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:48px 40px 24px;margin-top:60px;color:#ccc}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.footer h3{color:var(--gold);font-size:1.1rem;margin-bottom:16px}.footer p,.footer a{font-size:.9rem;color:#aaa;line-height:2;font-family:'Tajawal',sans-serif}.footer a:hover{color:var(--gold)}
+.footer-social{display:flex;gap:12px;margin-top:12px}.footer-social a{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ccc;transition:.3s}.footer-social a:hover{background:var(--gold);color:#fff}
+.footer-bottom{max-width:1280px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);text-align:center;font-size:.85rem;color:#888}
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:999;transition:.3s}.whatsapp-float:hover{transform:scale(1.1)}
+.mobile-nav{display:none;position:fixed;top:0;right:0;width:280px;height:100%;background:var(--warm-bg);z-index:2000;padding:80px 24px 24px;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.3s}.mobile-nav.active{transform:translateX(0)}.mobile-nav a{display:block;padding:12px 0;font-weight:600;border-bottom:1px solid rgba(0,0,0,.06)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999}.mobile-overlay.active{display:block}.mobile-close{position:absolute;top:20px;left:20px;font-size:1.5rem;cursor:pointer}
+@media(max-width:1024px){.masonry{columns:2}}
+@media(max-width:768px){.nav{display:none}.hamburger{display:block}.content-wrap{flex-direction:column}.sidebar{width:100%}.masonry{columns:1}.footer-inner{grid-template-columns:1fr}}
+.shapes-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.shape{position:absolute;bottom:-60px;opacity:0;animation:floatShape linear infinite}
+.shape.circle{border-radius:50%}.shape.square{border-radius:4px}.shape.diamond{transform:rotate(45deg)}
+@keyframes floatShape{0%{transform:translateX(0) rotate(0deg) scale(0.6);opacity:0;bottom:-60px}10%{opacity:1}50%{transform:translateX(60px) rotate(180deg) scale(1)}90%{opacity:1}100%{transform:translateX(-30px) rotate(360deg) scale(0.6);opacity:0;bottom:110vh}}
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}.fade-in.visible{opacity:1;transform:translateY(0)}
+.header,.search-section,footer.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="shapes-bg"><div class="shape circle" style="width:15px;height:15px;background:rgba(227,175,100,0.06);left:5%;animation-duration:14s;animation-delay:0s"></div><div class="shape square" style="width:20px;height:20px;background:rgba(87,142,126,0.07);left:15%;animation-duration:18s;animation-delay:2s"></div><div class="shape diamond" style="width:12px;height:12px;background:rgba(227,175,100,0.08);left:25%;animation-duration:15s;animation-delay:4s"></div><div class="shape circle" style="width:25px;height:25px;background:rgba(87,142,126,0.05);left:35%;animation-duration:20s;animation-delay:1s"></div><div class="shape square" style="width:10px;height:10px;background:rgba(227,175,100,0.07);left:50%;animation-duration:13s;animation-delay:3s"></div><div class="shape diamond" style="width:18px;height:18px;background:rgba(87,142,126,0.06);left:60%;animation-duration:22s;animation-delay:5s"></div><div class="shape circle" style="width:30px;height:30px;background:rgba(227,175,100,0.05);left:70%;animation-duration:16s;animation-delay:0.5s"></div><div class="shape square" style="width:40px;height:40px;background:rgba(87,142,126,0.06);left:80%;animation-duration:19s;animation-delay:2.5s"></div><div class="shape diamond" style="width:14px;height:14px;background:rgba(227,175,100,0.08);left:88%;animation-duration:12s;animation-delay:6s"></div><div class="shape circle" style="width:22px;height:22px;background:rgba(87,142,126,0.07);left:95%;animation-duration:17s;animation-delay:3.5s"></div></div>
+<header class="header"><div class="header-inner"><div class="logo"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><ul class="nav"><li><a href="index.html" data-i18n="nav-home">الرئيسية</a></li><li><a href="about.html" data-i18n="nav-about">من نحن</a></li><li><a href="books.html" data-i18n="nav-books">الكتب</a></li><li><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a></li><li><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a></li><li><a href="search.html"><i class="fas fa-search"></i> <span data-i18n="nav-search">البحث</span></a></li><li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="nav-cart">السلة</span> <span class="badge-count">0</span></a></li><li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li><li><button class="lang-toggle" onclick="toggleLang()">EN</button></li><li><a href="login.html" data-i18n="nav-login"><i class="fas fa-user"></i> تسجيل الدخول</a></li></ul><div class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></div></div></header>
+<div class="mobile-overlay" onclick="toggleMobile()"></div>
+<div class="mobile-nav"><div class="mobile-close" onclick="toggleMobile()"><i class="fas fa-times"></i></div><a href="index.html" data-i18n="nav-home">الرئيسية</a><a href="about.html" data-i18n="nav-about">من نحن</a><a href="books.html" data-i18n="nav-books">الكتب</a><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a><a href="search.html" data-i18n="nav-search">البحث</a><a href="cart.html" data-i18n="nav-cart">السلة</a><a href="wishlist.html" data-i18n="nav-wishlist">المفضلة</a><a href="login.html" data-i18n="nav-login">تسجيل الدخول</a></div>
+
+<section class="search-section fade-in">
+<div class="search-card">
+<h1><i class="fas fa-search"></i> <span data-i18n="search-title">ابحث عن كتابك</span></h1>
+<p data-i18n="search-sub">ابحث بالعنوان، اسم المدرس، أو المادة</p>
+<div class="search-bar">
+<input type="text" id="searchInput" placeholder="اكتب كلمة البحث..." data-i18n="search-placeholder" oninput="handleSearch(this.value)">
+<button onclick="handleSearch(document.getElementById('searchInput').value)" data-i18n="search-btn"><i class="fas fa-search"></i> بحث</button>
+</div>
+<div class="search-tags">
+<span onclick="document.getElementById('searchInput').value='رياضيات';handleSearch('رياضيات')" data-i18n="math">رياضيات</span>
+<span onclick="document.getElementById('searchInput').value='فيزياء';handleSearch('فيزياء')" data-i18n="physics">فيزياء</span>
+<span onclick="document.getElementById('searchInput').value='كيمياء';handleSearch('كيمياء')" data-i18n="chemistry">كيمياء</span>
+<span onclick="document.getElementById('searchInput').value='عربي';handleSearch('عربي')" data-i18n="arabic-lang">لغة عربية</span>
+<span onclick="document.getElementById('searchInput').value='إنجليزي';handleSearch('إنجليزي')" data-i18n="english-lang">إنجليزي</span>
+</div>
+</div>
+</section>
+
+<div class="content-wrap">
+<aside class="sidebar">
+<div class="filter-card">
+<h3><i class="fas fa-filter"></i> <span data-i18n="filter-results">تصفية النتائج</span></h3>
+<label><input type="checkbox" checked> <span data-i18n="math">الرياضيات</span></label>
+<label><input type="checkbox" checked> <span data-i18n="physics">الفيزياء</span></label>
+<label><input type="checkbox" checked> <span data-i18n="chemistry">الكيمياء</span></label>
+<label><input type="checkbox" checked> <span data-i18n="arabic-lang">اللغة العربية</span></label>
+<label><input type="checkbox" checked> <span data-i18n="english-lang">اللغة الإنجليزية</span></label>
+</div>
+<div class="filter-card">
+<h3><i class="fas fa-sort"></i> <span data-i18n="sort-by">ترتيب حسب</span></h3>
+<select><option data-i18n="newest">الأحدث</option><option data-i18n="best-selling">الأكثر مبيعاً</option><option data-i18n="price-low">السعر: من الأقل</option><option data-i18n="price-high">السعر: من الأعلى</option><option data-i18n="rating">التقييم</option></select>
+</div>
+</aside>
+<div class="results">
+<div class="results-header"><h2 data-i18n="search-results">نتائج البحث</h2><span id="resultCount">٦ نتائج</span></div>
+<div class="masonry" id="resultsGrid">
+<div class="book-card"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=280&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>الرياضيات - ثالثة ثانوي</h3><p class="author">أ/ محمد السعيد</p><p class="price">٢٥٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+<div class="book-card"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&h=320&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>الفيزياء - ثانية ثانوي</h3><p class="author">أ/ أحمد فاروق</p><p class="price">٢٠٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+<div class="book-card"><img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=260&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>الكيمياء - أولى ثانوي</h3><p class="author">أ/ سارة المنصوري</p><p class="price">١٨٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+<div class="book-card"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&h=300&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>اللغة العربية - ثالثة ثانوي</h3><p class="author">أ/ فاطمة الزهراء</p><p class="price">٢٢٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+<div class="book-card"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=340&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>الإنجليزية - أولى ثانوي</h3><p class="author">أ/ عمر حسن</p><p class="price">١٧٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+<div class="book-card"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&h=290&q=80" alt=""><span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span><div class="book-info"><h3>التاريخ - ثالثة ثانوي</h3><p class="author">أ/ خالد إبراهيم</p><p class="price">١٦٠ ج.م</p></div><div class="book-actions"><a href="book-details.html" target="_blank" data-i18n="view-details">عرض التفاصيل</a></div></div>
+</div>
+<div class="empty-state" id="emptyState">
+<i class="fas fa-search"></i>
+<h2 data-i18n="no-results">لا توجد نتائج</h2>
+<p data-i18n="no-results-desc">جرب البحث بكلمات مختلفة أو تصفح الكتب مباشرة</p>
+</div>
+</div>
+</div>
+
+<footer class="footer"><div class="footer-inner"><div><div class="logo" style="margin-bottom:16px"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><p data-i18n="footer-desc-short">وجهتك الأولى للكتب التعليمية في مصر.</p></div><div><h3 data-i18n="quick-links">روابط سريعة</h3><a href="index.html" style="display:block" data-i18n="nav-home">الرئيسية</a><a href="about.html" style="display:block" data-i18n="nav-about">من نحن</a><a href="books.html" style="display:block" data-i18n="nav-books">الكتب</a><a href="teachers.html" style="display:block" data-i18n="nav-teachers">المدرسين</a><a href="faq.html" style="display:block" data-i18n="faq">الأسئلة الشائعة</a></div><div><h3 data-i18n="services">خدمات</h3><a href="delivery.html" style="display:block" data-i18n="delivery">التوصيل</a><a href="grade-level.html" style="display:block" data-i18n="by-grade">حسب المرحلة</a><a href="cart.html" style="display:block" data-i18n="cart-footer">سلة التسوق</a><a href="wishlist.html" style="display:block" data-i18n="favorites">المفضلة</a></div><div><h3 data-i18n="contact-us">تواصل معنا</h3><p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p><p><i class="fas fa-phone"></i> 01012345678</p><p><i class="fas fa-envelope"></i> info@infinity-books.com</p><div class="footer-social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-youtube"></i></a></div></div></div><div class="footer-bottom" data-i18n="footer-copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</div></footer>
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+<script>
+function toggleMobile(){document.querySelector('.mobile-nav').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active')}
+function handleSearch(q){
+var cards=document.querySelectorAll('#resultsGrid .book-card');
+var count=0;
+cards.forEach(function(c){
+if(!q||c.textContent.includes(q)){c.style.display='';count++}else{c.style.display='none'}
+});
+document.getElementById('resultCount').textContent=count+' نتائج';
+document.getElementById('emptyState').style.display=count===0?'block':'none';
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded',function(){const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});</script>
+<script src="i18n.js"></script>
+</body>
+</html>

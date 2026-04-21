@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - إنشاء حساب</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);direction:rtl}a{text-decoration:none;color:inherit}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}.logo span:first-child{color:var(--gold-dark)}.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.register-section{max-width:520px;margin:40px auto;padding:0 20px;position:relative;z-index:1}
+.register-card{background:var(--warm-bg);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:48px 40px;border-top:4px solid var(--gold)}
+.register-card h1{text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.register-card .subtitle{text-align:center;color:#888;font-family:'Tajawal',sans-serif;margin-bottom:32px}
+.form-row{display:flex;gap:16px}
+.form-group{margin-bottom:20px;flex:1}
+.form-group label{display:block;font-weight:600;font-size:.9rem;margin-bottom:8px}
+.form-group input,.form-group select{width:100%;padding:14px 16px;border:2px solid #eee;border-radius:12px;font-size:1rem;font-family:'Cairo',sans-serif;transition:.3s;background:#fff}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 4px rgba(227,175,100,.15)}
+.form-group .input-icon{position:relative}
+.form-group .input-icon i{position:absolute;top:50%;right:16px;transform:translateY(-50%);color:#aaa}
+.form-group .input-icon input{padding-right:44px}
+.btn-warm{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:16px;border-radius:var(--radius);font-size:1.1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;width:100%;box-shadow:0 4px 16px rgba(227,175,100,.4);transition:.3s}
+.btn-warm:hover{transform:translateY(-2px)}
+.terms{font-size:.85rem;color:#888;text-align:center;margin:16px 0;font-family:'Tajawal',sans-serif}
+.terms a{color:var(--gold-dark);font-weight:600}
+.login-link{text-align:center;font-size:.95rem;color:#666;margin-top:20px}
+.login-link a{color:var(--gold-dark);font-weight:700}
+/* FLOATING SHAPES */
+.shapes-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.shape{position:absolute;bottom:-60px;opacity:0;animation:floatShape linear infinite}
+.shape.circle{border-radius:50%}
+.shape.square{border-radius:4px}
+.shape.diamond{transform:rotate(45deg)}
+@keyframes floatShape{
+  0%{transform:translateX(0) rotate(0deg) scale(0.6);opacity:0;bottom:-60px}
+  10%{opacity:1}
+  50%{transform:translateX(60px) rotate(180deg) scale(1)}
+  90%{opacity:1}
+  100%{transform:translateX(-30px) rotate(360deg) scale(0.6);opacity:0;bottom:110vh}
+}
+/* FADE IN ON SCROLL */
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+@media(max-width:768px){.register-card{padding:32px 24px}.form-row{flex-direction:column;gap:0}}
+</style>
+</head>
+<body>
+<div class="shapes-bg">
+<div class="shape circle" style="width:15px;height:15px;background:rgba(227,175,100,0.06);left:5%;animation-duration:14s;animation-delay:0s"></div>
+<div class="shape square" style="width:20px;height:20px;background:rgba(87,142,126,0.07);left:15%;animation-duration:18s;animation-delay:2s"></div>
+<div class="shape diamond" style="width:12px;height:12px;background:rgba(227,175,100,0.08);left:25%;animation-duration:15s;animation-delay:4s"></div>
+<div class="shape circle" style="width:25px;height:25px;background:rgba(87,142,126,0.05);left:35%;animation-duration:20s;animation-delay:1s"></div>
+<div class="shape square" style="width:10px;height:10px;background:rgba(227,175,100,0.07);left:50%;animation-duration:13s;animation-delay:3s"></div>
+<div class="shape diamond" style="width:18px;height:18px;background:rgba(87,142,126,0.06);left:60%;animation-duration:22s;animation-delay:5s"></div>
+<div class="shape circle" style="width:30px;height:30px;background:rgba(227,175,100,0.05);left:70%;animation-duration:16s;animation-delay:0.5s"></div>
+<div class="shape square" style="width:40px;height:40px;background:rgba(87,142,126,0.06);left:80%;animation-duration:19s;animation-delay:2.5s"></div>
+<div class="shape diamond" style="width:14px;height:14px;background:rgba(227,175,100,0.08);left:88%;animation-duration:12s;animation-delay:6s"></div>
+<div class="shape circle" style="width:22px;height:22px;background:rgba(87,142,126,0.07);left:95%;animation-duration:17s;animation-delay:3.5s"></div>
+</div>
+
+<div style="text-align:center;padding:40px 0 0;position:relative;z-index:1">
+<a href="index.html" class="logo" style="display:inline-flex;font-size:1.8rem;justify-content:center"><span>مكتبة إنفينيتي</span><span>| Infinity</span></a>
+</div>
+
+<section class="register-section fade-in">
+<div class="register-card">
+<h1><i class="fas fa-user-plus" style="color:var(--gold-dark)"></i> <span data-i18n="create-account-title">إنشاء حساب جديد</span></h1>
+<p class="subtitle" data-i18n="create-account-sub">انضم إلينا واستمتع بتجربة تسوق مميزة</p>
+<form onsubmit="event.preventDefault();alert('تم إنشاء الحساب بنجاح!')">
+<div class="form-group"><label data-i18n="full-name">الاسم الكامل</label><div class="input-icon"><i class="fas fa-user"></i><input type="text" placeholder="أدخل اسمك الكامل" required></div></div>
+<div class="form-group"><label data-i18n="email">البريد الإلكتروني</label><div class="input-icon"><i class="fas fa-envelope"></i><input type="email" placeholder="example@email.com" required></div></div>
+<div class="form-group"><label data-i18n="phone">رقم الهاتف</label><div class="input-icon"><i class="fas fa-phone"></i><input type="tel" placeholder="01xxxxxxxxx" required></div></div>
+<div class="form-group"><label data-i18n="grade-level">الصف الدراسي</label><select required><option value="" data-i18n="choose-grade">اختر الصف الدراسي</option><option data-i18n="grade-1">الصف الأول الثانوي</option><option data-i18n="grade-2">الصف الثاني الثانوي</option><option data-i18n="grade-3">الصف الثالث الثانوي</option></select></div>
+<div class="form-row">
+<div class="form-group"><label data-i18n="password">كلمة المرور</label><div class="input-icon"><i class="fas fa-lock"></i><input type="password" placeholder="كلمة المرور" required minlength="6"></div></div>
+<div class="form-group"><label data-i18n="confirm-password">تأكيد كلمة المرور</label><div class="input-icon"><i class="fas fa-lock"></i><input type="password" placeholder="أعد كتابة كلمة المرور" required></div></div>
+</div>
+<p class="terms"><span data-i18n="terms-agree">بالتسجيل أنت توافق على</span> <a href="#" data-i18n="terms">الشروط والأحكام</a> و<a href="#" data-i18n="privacy">سياسة الخصوصية</a></p>
+<button type="submit" class="btn-warm" data-i18n="create-account">إنشاء الحساب</button>
+</form>
+<p class="login-link"><span data-i18n="already-have-account">لديك حساب بالفعل؟</span> <a href="login.html" data-i18n="login-now">سجل الدخول</a></p>
+</div>
+</section>
+
+<div style="text-align:center;margin:24px 0 40px;position:relative;z-index:1"><a href="index.html" style="color:var(--gold-dark);font-weight:700;font-size:1rem"><i class="fas fa-arrow-right" style="margin-left:8px"></i> العودة للرئيسية</a></div>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});
+  document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+});
+</script>
+<script src="i18n.js"></script>
+</body>
+</html>

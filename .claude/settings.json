@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/fa-book bg-icon\" style=\"font-size:14px;left:5%;top:8%;color:#578e7e;opacity:0.06/fa-book bg-icon\" style=\"font-size:14px;left:5%;top:8%;color:#578e7e;opacity:0.14/' books.html)",
+      "Bash(sed -i 's/fa-book-open bg-icon\" style=\"font-size:22px;left:80%;top:20%;color:#e3af64;opacity:0.05/fa-book-open bg-icon\" style=\"font-size:22px;left:80%;top:20%;color:#e3af64;opacity:0.12/' books.html)",
+      "Bash(sed -i 's/fa-bookmark bg-icon\" style=\"font-size:12px;left:15%;top:40%;color:#578e7e;opacity:0.07/fa-bookmark bg-icon\" style=\"font-size:12px;left:15%;top:40%;color:#578e7e;opacity:0.16/' books.html)",
+      "Bash(sed -i 's/fa-graduation-cap bg-icon\" style=\"font-size:28px;left:60%;top:10%;color:#e3af64;opacity:0.04/fa-graduation-cap bg-icon\" style=\"font-size:28px;left:60%;top:10%;color:#e3af64;opacity:0.10/' books.html)",
+      "Bash(sed -i 's/fa-pen bg-icon\" style=\"font-size:14px;left:40%;top:55%;color:#578e7e;opacity:0.06/fa-pen bg-icon\" style=\"font-size:14px;left:40%;top:55%;color:#578e7e;opacity:0.14/' books.html)"
+    ]
+  }
+}

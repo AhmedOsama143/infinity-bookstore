@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - الرئيسية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);direction:rtl}
+a{text-decoration:none;color:inherit}
+.lang-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.2s;margin-right:10px;}
+.lang-toggle:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(227,175,100,0.4);}
+/* HEADER */
+.header{background:var(--warm-bg);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 40px;position:sticky;top:0;z-index:1000;box-shadow:var(--shadow)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo span:first-child{color:var(--gold-dark)}
+.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.nav{display:flex;align-items:center;gap:28px;list-style:none}
+.nav a{font-weight:600;font-size:.95rem;transition:.3s;position:relative;padding-bottom:4px}
+.nav a:hover{color:var(--gold-dark)}
+.nav a:hover::after{content:'';position:absolute;bottom:0;right:0;width:100%;height:2px;background:var(--gold);border-radius:2px}
+.nav .badge-count{background:var(--gold);color:#fff;font-size:.7rem;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;top:-8px;right:-4px}
+.hamburger{display:none;font-size:1.5rem;cursor:pointer;color:var(--dark)}
+/* HERO */
+.hero-section{max-width:1280px;margin:40px auto;padding:0 20px}
+.hero-card{background:linear-gradient(135deg,var(--warm-bg2),var(--gold) 120%);border-radius:var(--radius-lg);padding:60px;display:flex;align-items:center;gap:40px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.hero-card::before{content:'∞';position:absolute;left:-30px;top:-40px;font-size:280px;color:rgba(255,255,255,.15);font-weight:800}
+.hero-text{flex:1;z-index:1}
+.hero-text h1{font-size:2.5rem;font-weight:800;color:var(--dark);margin-bottom:16px;line-height:1.5}
+.hero-text p{font-size:1.1rem;color:#555;margin-bottom:24px;font-family:'Tajawal',sans-serif}
+.btn-warm{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:14px 36px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 4px 16px rgba(227,175,100,.4);transition:.3s}
+.btn-warm:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(227,175,100,.5)}
+.hero-img{flex:0 0 320px;z-index:1}
+.hero-img img{width:100%;border-radius:var(--radius);box-shadow:var(--shadow-lg)}
+/* SECTION */
+.section{max-width:1280px;margin:60px auto;padding:0 20px}
+.section-title{text-align:center;font-size:1.8rem;font-weight:800;margin-bottom:8px;color:var(--dark)}
+.section-sub{text-align:center;color:#888;margin-bottom:40px;font-family:'Tajawal',sans-serif}
+/* BOOK CARDS */
+.books-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.book-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-right:4px solid var(--gold);transition:.3s;position:relative}
+.book-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.book-card img{width:100%;height:200px;object-fit:cover}
+.book-badge{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700}
+.book-heart{position:absolute;top:12px;left:12px;width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:.3s}
+.book-heart:hover,.book-heart.active{color:red}
+.book-info{padding:16px}
+.book-info h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.book-info .author{font-size:.85rem;color:#888;margin-bottom:8px}
+.book-info .price{font-size:1.1rem;font-weight:800;color:var(--gold-dark)}
+.book-info .price span{font-size:.8rem;color:#aaa;font-weight:400;margin-right:4px}
+.book-actions{padding:0 16px 16px;display:flex;gap:8px}
+.book-actions a{flex:1;text-align:center;padding:8px;border-radius:10px;font-size:.85rem;font-weight:600;transition:.3s}
+.book-actions .btn-details{background:var(--primary-light);color:var(--primary-dark)}
+.book-actions .btn-details:hover{background:var(--primary);color:#fff}
+.book-actions .btn-cart{background:var(--warm-bg2);color:var(--gold-dark)}
+.book-actions .btn-cart:hover{background:var(--gold);color:#fff}
+/* TEACHERS FLIP */
+.teachers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.flip-card{perspective:1000px;height:360px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d}
+.flip-card:hover .flip-inner{transform:rotateY(180deg)}
+.flip-front,.flip-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);box-shadow:var(--shadow)}
+.flip-front{background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px}
+.flip-front img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid var(--gold)}
+.flip-front h3{font-size:1.1rem;font-weight:700}
+.flip-front p{color:var(--primary);font-weight:600;font-size:.9rem}
+.flip-back{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center}
+.flip-back p{font-size:.9rem;line-height:1.8}
+.flip-back a{color:var(--gold);font-weight:700;text-decoration:underline}
+/* STEPS */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.step-card{background:linear-gradient(135deg,var(--warm-bg),var(--warm-bg2));border-radius:var(--radius);padding:32px 24px;text-align:center;box-shadow:var(--shadow);transition:.3s}
+.step-card:hover{transform:translateY(-4px)}
+.step-num{width:48px;height:48px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;margin-bottom:16px}
+.step-card i{font-size:2rem;color:var(--gold-dark);margin-bottom:12px;display:block}
+.step-card h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.step-card p{font-size:.85rem;color:#666;font-family:'Tajawal',sans-serif}
+/* TESTIMONIALS */
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.testimonial-card{background:var(--warm-bg);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border-top:4px solid var(--gold);position:relative}
+.testimonial-card::before{content:'\f10d';font-family:'Font Awesome 6 Free';font-weight:900;color:var(--gold);font-size:1.5rem;opacity:.3;position:absolute;top:16px;left:16px}
+.testimonial-card .stars{color:var(--gold);margin-bottom:12px}
+.testimonial-card p{font-size:.95rem;line-height:1.8;color:#555;margin-bottom:16px;font-family:'Tajawal',sans-serif}
+.testimonial-card .reviewer{display:flex;align-items:center;gap:12px}
+.testimonial-card .reviewer img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.testimonial-card .reviewer span{font-weight:700;font-size:.9rem}
+/* DELIVERY */
+.delivery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.delivery-card{background:#fff;border-radius:var(--radius);padding:32px;text-align:center;box-shadow:var(--shadow);border-bottom:4px solid var(--gold)}
+.delivery-card i{font-size:2.5rem;color:var(--gold-dark);margin-bottom:16px}
+.delivery-card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px}
+.delivery-card p{font-size:.9rem;color:#666;font-family:'Tajawal',sans-serif}
+/* FOOTER */
+.footer{background:linear-gradient(135deg,#2a2a2e,var(--dark));border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:48px 40px 24px;margin-top:60px;color:#ccc}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.footer h3{color:var(--gold);font-size:1.1rem;margin-bottom:16px}
+.footer p,.footer a{font-size:.9rem;color:#aaa;line-height:2;font-family:'Tajawal',sans-serif}
+.footer a:hover{color:var(--gold)}
+.footer-social{display:flex;gap:12px;margin-top:12px}
+.footer-social a{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ccc;transition:.3s}
+.footer-social a:hover{background:var(--gold);color:#fff}
+.footer-bottom{max-width:1280px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);text-align:center;font-size:.85rem;color:#888}
+/* WHATSAPP */
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:999;transition:.3s}
+.whatsapp-float:hover{transform:scale(1.1)}
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;top:0;right:0;width:280px;height:100%;background:var(--warm-bg);z-index:2000;padding:80px 24px 24px;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.3s}
+.mobile-nav.active{transform:translateX(0)}
+.mobile-nav a{display:block;padding:12px 0;font-weight:600;font-size:1.05rem;border-bottom:1px solid rgba(0,0,0,.06)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999}
+.mobile-overlay.active{display:block}
+.mobile-close{position:absolute;top:20px;left:20px;font-size:1.5rem;cursor:pointer}
+@media(max-width:1024px){.books-grid,.steps-grid{grid-template-columns:repeat(2,1fr)}.teachers-grid,.testimonials-grid,.delivery-grid{grid-template-columns:repeat(2,1fr)}.footer-inner{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.nav{display:none}.hamburger{display:block}.hero-card{flex-direction:column;padding:32px;text-align:center}.hero-img{flex:0 0 auto;width:100%}.hero-text h1{font-size:1.8rem}.books-grid,.steps-grid,.teachers-grid,.testimonials-grid,.delivery-grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr}}
+/* FLOATING SHAPES */
+.shapes-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.shape{position:absolute;bottom:-60px;opacity:0;animation:floatShape linear infinite}
+.shape.circle{border-radius:50%}
+.shape.square{border-radius:4px}
+.shape.diamond{transform:rotate(45deg)}
+@keyframes floatShape{
+  0%{transform:translateX(0) rotate(0deg) scale(0.6);opacity:0;bottom:-60px}
+  10%{opacity:1}
+  50%{transform:translateX(60px) rotate(180deg) scale(1)}
+  90%{opacity:1}
+  100%{transform:translateX(-30px) rotate(360deg) scale(0.6);opacity:0;bottom:110vh}
+}
+/* FADE IN ON SCROLL */
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* Section-specific larger shapes for teachers */
+.section-shapes{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0}
+.section-shape{position:absolute;animation:floatShape linear infinite}
+.section-shape.circle{border-radius:50%}
+.section-shape.diamond{border-radius:4px;transform:rotate(45deg)}
+.header,.section,.hero-section,footer.footer{position:relative;z-index:1}
+/* CATEGORY CAROUSEL */
+.cat-carousel{position:relative;padding:0 50px}
+.cat-track-wrapper{overflow:hidden;border-radius:var(--radius-lg)}
+.cat-track{display:flex;transition:transform 0.5s cubic-bezier(.4,0,.2,1);gap:24px}
+.cat-card{min-width:calc((100% - 72px) / 4);flex-shrink:0;background:var(--warm-bg);border-radius:var(--radius-lg);overflow:hidden;border-top:4px solid var(--gold);box-shadow:var(--shadow);transition:transform 0.3s,box-shadow 0.3s;cursor:pointer}
+.cat-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+.cat-img-wrap{position:relative;height:160px;overflow:hidden}
+.cat-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
+.cat-card:hover .cat-img-wrap img{transform:scale(1.08)}
+.cat-overlay{position:absolute;inset:0;background:var(--cat-gradient);display:flex;align-items:center;justify-content:center}
+.cat-overlay i{font-size:2.8rem;color:#fff;opacity:0.9;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.2));transition:transform 0.3s}
+.cat-card:hover .cat-overlay i{transform:scale(1.15)}
+.cat-body{padding:16px 20px;text-align:center}
+.cat-body h3{font-size:1.05rem;font-weight:700;margin-bottom:6px;color:var(--dark)}
+.cat-count{font-size:0.85rem;color:var(--gold-dark);font-weight:600;font-family:'Tajawal',sans-serif}
+.cat-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;font-size:1rem;cursor:pointer;z-index:10;box-shadow:0 4px 16px rgba(227,175,100,0.4);transition:0.3s;display:flex;align-items:center;justify-content:center}
+.cat-arrow:hover{transform:translateY(-50%) scale(1.1);box-shadow:0 6px 24px rgba(227,175,100,0.5)}
+.cat-arrow-right{right:calc(100% - 44px);right:0}
+.cat-arrow-left{left:0}
+.cat-dots{display:flex;justify-content:center;gap:8px;margin-top:20px}
+.cat-dot{width:10px;height:10px;border-radius:50%;background:rgba(227,175,100,0.3);border:none;cursor:pointer;transition:0.3s;padding:0}
+.cat-dot.active{background:var(--gold);transform:scale(1.2)}
+@media(max-width:1024px){.cat-card{min-width:calc((100% - 48px) / 3)}}
+@media(max-width:768px){.cat-card{min-width:calc((100% - 24px) / 2)}.cat-carousel{padding:0 40px}}
+@media(max-width:480px){.cat-card{min-width:100%}.cat-carousel{padding:0 40px}}
+/* CATEGORY LINK */
+.cat-link{display:block;text-decoration:none;color:inherit}
+.cat-view-books{display:inline-block;margin-top:8px;font-size:0.85rem;font-weight:700;color:var(--gold-dark);transition:0.3s}
+.cat-card:hover .cat-view-books{color:var(--primary-dark)}
+</style>
+</head>
+<body>
+<div class="shapes-bg">
+<div class="shape circle" style="width:15px;height:15px;background:rgba(227,175,100,0.06);left:5%;animation-duration:14s;animation-delay:0s"></div>
+<div class="shape square" style="width:20px;height:20px;background:rgba(87,142,126,0.07);left:15%;animation-duration:18s;animation-delay:2s"></div>
+<div class="shape diamond" style="width:12px;height:12px;background:rgba(227,175,100,0.08);left:25%;animation-duration:15s;animation-delay:4s"></div>
+<div class="shape circle" style="width:25px;height:25px;background:rgba(87,142,126,0.05);left:35%;animation-duration:20s;animation-delay:1s"></div>
+<div class="shape square" style="width:10px;height:10px;background:rgba(227,175,100,0.07);left:50%;animation-duration:13s;animation-delay:3s"></div>
+<div class="shape diamond" style="width:18px;height:18px;background:rgba(87,142,126,0.06);left:60%;animation-duration:22s;animation-delay:5s"></div>
+<div class="shape circle" style="width:30px;height:30px;background:rgba(227,175,100,0.05);left:70%;animation-duration:16s;animation-delay:0.5s"></div>
+<div class="shape square" style="width:40px;height:40px;background:rgba(87,142,126,0.06);left:80%;animation-duration:19s;animation-delay:2.5s"></div>
+<div class="shape diamond" style="width:14px;height:14px;background:rgba(227,175,100,0.08);left:88%;animation-duration:12s;animation-delay:6s"></div>
+<div class="shape circle" style="width:22px;height:22px;background:rgba(87,142,126,0.07);left:95%;animation-duration:17s;animation-delay:3.5s"></div>
+</div>
+<!-- HEADER -->
+<header class="header">
+<div class="header-inner">
+<div class="logo"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div>
+<ul class="nav">
+<li><a href="index.html" class="active" data-i18n="nav-home">الرئيسية</a></li>
+<li><a href="about.html" data-i18n="nav-about">من نحن</a></li>
+<li><a href="books.html" data-i18n="nav-books">الكتب</a></li>
+<li><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a></li>
+<li><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a></li>
+<li><a href="search.html"><i class="fas fa-search"></i> <span data-i18n="nav-search">البحث</span></a></li>
+<li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="nav-cart">السلة</span> <span class="badge-count">0</span></a></li>
+<li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li>
+<li><button class="lang-toggle" onclick="toggleLang()">EN</button></li>
+<li><a href="login.html" data-i18n="nav-login"><i class="fas fa-user"></i> تسجيل الدخول</a></li>
+</ul>
+<div class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></div>
+</div>
+</header>
+<div class="mobile-overlay" onclick="toggleMobile()"></div>
+<div class="mobile-nav">
+<div class="mobile-close" onclick="toggleMobile()"><i class="fas fa-times"></i></div>
+<a href="index.html" data-i18n="nav-home">الرئيسية</a>
+<a href="about.html" data-i18n="nav-about">من نحن</a>
+<a href="books.html" data-i18n="nav-books">الكتب</a>
+<a href="teachers.html" data-i18n="nav-teachers">المدرسين</a>
+<a href="stationery.html" data-i18n="nav-stationery">الأدوات</a>
+<a href="search.html" data-i18n="nav-search">البحث</a>
+<a href="cart.html" data-i18n="nav-cart">السلة</a>
+<a href="wishlist.html" data-i18n="nav-wishlist">المفضلة</a>
+<a href="login.html" data-i18n="nav-login">تسجيل الدخول</a>
+</div>
+
+<!-- HERO -->
+<section class="hero-section fade-in">
+<div class="hero-card">
+<div class="hero-text">
+<h1 data-i18n="hero-title">اكتشف أفضل الكتب التعليمية</h1>
+<p data-i18n="hero-desc">مجموعة مختارة من أفضل كتب المدرسين في مصر لجميع المراحل الدراسية. احجز نسختك الآن!</p>
+<a href="books.html" class="btn-warm" data-i18n="hero-btn">تصفح الكتب</a>
+</div>
+<div class="hero-img">
+<img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=400&h=320&q=80" alt="كتب تعليمية">
+</div>
+</div>
+</section>
+
+<!-- FEATURED BOOKS -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="featured-books">كتب مميزة</h2>
+<p class="section-sub" data-i18n="featured-books-sub">أحدث الإصدارات والأكثر مبيعاً</p>
+<div class="books-grid">
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&h=250&q=80" alt="كتاب">
+<span class="book-badge" data-i18n="badge-new">وصل حديثاً</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3>الرياضيات - الصف الثالث الثانوي</h3>
+<p class="author">أ/ محمد السعيد</p>
+<p class="price">٢٥٠ ج.م <span>٣٠٠ ج.م</span></p>
+</div>
+<div class="book-actions">
+<a href="book-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=400&h=250&q=80" alt="كتاب">
+<span class="book-badge" data-i18n="badge-bestseller">الأكثر مبيعاً</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3>الفيزياء - الصف الثاني الثانوي</h3>
+<p class="author">أ/ أحمد فاروق</p>
+<p class="price">٢٠٠ ج.م <span>٢٧٠ ج.م</span></p>
+</div>
+<div class="book-actions">
+<a href="book-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&h=250&q=80" alt="كتاب">
+<span class="book-badge" data-i18n="badge-new">وصل حديثاً</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3>الكيمياء - الصف الأول الثانوي</h3>
+<p class="author">أ/ سارة المنصوري</p>
+<p class="price">١٨٠ ج.م <span>٢٢٠ ج.م</span></p>
+</div>
+<div class="book-actions">
+<a href="book-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&w=400&h=250&q=80" alt="كتاب">
+<span class="book-badge" data-i18n="badge-bestseller">الأكثر مبيعاً</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3>اللغة العربية - الصف الثالث الثانوي</h3>
+<p class="author">أ/ فاطمة الزهراء</p>
+<p class="price">٢٢٠ ج.م <span>٢٨٠ ج.م</span></p>
+</div>
+<div class="book-actions">
+<a href="book-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- BROWSE BY CATEGORY -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="browse-categories">تصفح حسب التصنيف</h2>
+<p class="section-sub" data-i18n="browse-categories-sub">اختر التصنيف الذي يناسبك وابدأ التصفح</p>
+<div class="cat-carousel" id="catCarousel">
+<button class="cat-arrow cat-arrow-right" id="catPrev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+<button class="cat-arrow cat-arrow-left" id="catNext" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
+<div class="cat-track-wrapper">
+<div class="cat-track" id="catTrack">
+<!-- 1 - الرياضيات -->
+<a href="books.html?category=math" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(0,128,128,0.75),rgba(0,77,77,0.85))">
+<img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&h=200&q=80" alt="الرياضيات">
+<div class="cat-overlay">
+<i class="fas fa-calculator"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-math">الرياضيات</h3>
+<span class="cat-count" data-i18n="cat-math-count">٤٥ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 2 - الفيزياء -->
+<a href="books.html?category=physics" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(30,100,200,0.75),rgba(15,60,130,0.85))">
+<img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&h=200&q=80" alt="الفيزياء">
+<div class="cat-overlay">
+<i class="fas fa-atom"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-physics">الفيزياء</h3>
+<span class="cat-count" data-i18n="cat-physics-count">٣٨ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 3 - الكيمياء -->
+<a href="books.html?category=chemistry" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(128,0,180,0.75),rgba(80,0,120,0.85))">
+<img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=300&h=200&q=80" alt="الكيمياء">
+<div class="cat-overlay">
+<i class="fas fa-flask"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-chemistry">الكيمياء</h3>
+<span class="cat-count" data-i18n="cat-chemistry-count">٣٢ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 4 - الأحياء -->
+<a href="books.html?category=biology" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(40,160,80,0.75),rgba(20,100,50,0.85))">
+<img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=300&h=200&q=80" alt="الأحياء">
+<div class="cat-overlay">
+<i class="fas fa-dna"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-biology">الأحياء</h3>
+<span class="cat-count" data-i18n="cat-biology-count">٢٨ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 5 - اللغة العربية -->
+<a href="books.html?category=arabic" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(227,175,100,0.75),rgba(218,144,53,0.85))">
+<img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=300&h=200&q=80" alt="اللغة العربية">
+<div class="cat-overlay">
+<i class="fas fa-book-open"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-arabic">اللغة العربية</h3>
+<span class="cat-count" data-i18n="cat-arabic-count">٥٠ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 6 - اللغة الإنجليزية -->
+<a href="books.html?category=english" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(200,50,50,0.75),rgba(140,25,25,0.85))">
+<img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=300&h=200&q=80" alt="اللغة الإنجليزية">
+<div class="cat-overlay">
+<i class="fas fa-language"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-english">اللغة الإنجليزية</h3>
+<span class="cat-count" data-i18n="cat-english-count">٤٢ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 7 - التاريخ -->
+<a href="books.html?category=history" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(139,90,43,0.75),rgba(100,60,20,0.85))">
+<img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=300&h=200&q=80" alt="التاريخ">
+<div class="cat-overlay">
+<i class="fas fa-landmark"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-history">التاريخ</h3>
+<span class="cat-count" data-i18n="cat-history-count">٢٠ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+<!-- 8 - العلوم -->
+<a href="books.html?category=science" class="cat-card cat-link">
+<div class="cat-img-wrap" style="--cat-gradient:linear-gradient(135deg,rgba(0,100,100,0.75),rgba(0,65,65,0.85))">
+<img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&w=300&h=200&q=80" alt="العلوم">
+<div class="cat-overlay">
+<i class="fas fa-microscope"></i>
+</div>
+</div>
+<div class="cat-body">
+<h3 data-i18n="cat-science">العلوم</h3>
+<span class="cat-count" data-i18n="cat-science-count">٣٥ كتاب</span>
+<span class="cat-view-books" data-i18n="view-cat-books">عرض الكتب</span>
+</div>
+</a>
+</div>
+</div>
+<div class="cat-dots" id="catDots"></div>
+</div>
+</section>
+
+<!-- TOP TEACHERS -->
+<section class="section fade-in" style="position:relative;overflow:hidden">
+<div class="section-shapes">
+  <div class="section-shape circle" style="width:80px;height:80px;background:rgba(227,175,100,0.1);top:10%;left:8%;animation-duration:14s;animation-delay:0s"></div>
+  <div class="section-shape diamond" style="width:60px;height:60px;background:rgba(87,142,126,0.12);top:60%;left:85%;animation-duration:18s;animation-delay:2s"></div>
+  <div class="section-shape circle" style="width:100px;height:100px;background:rgba(227,175,100,0.09);top:30%;left:70%;animation-duration:16s;animation-delay:4s"></div>
+  <div class="section-shape diamond" style="width:70px;height:70px;background:rgba(87,142,126,0.15);top:70%;left:20%;animation-duration:20s;animation-delay:1s"></div>
+  <div class="section-shape circle" style="width:120px;height:120px;background:rgba(227,175,100,0.08);top:50%;left:50%;animation-duration:15s;animation-delay:3s"></div>
+  <div class="section-shape diamond" style="width:90px;height:90px;background:rgba(87,142,126,0.11);top:80%;left:40%;animation-duration:17s;animation-delay:5s"></div>
+</div>
+<h2 class="section-title" data-i18n="top-teachers">أفضل المدرسين</h2>
+<p class="section-sub" data-i18n="top-teachers-sub">نخبة من أفضل المعلمين في مصر</p>
+<div class="teachers-grid">
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80" alt="مدرس">
+<h3>أ/ محمد السعيد</h3>
+<p data-i18n="math">الرياضيات</p>
+<span style="color:var(--gold)"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+</div>
+<div class="flip-back">
+<h3>أ/ محمد السعيد</h3>
+<p>خبرة ١٥ عاماً في تدريس الرياضيات<br>حاصل على ماجستير التربية<br>أكثر من ١٠٠٠ طالب متفوق</p>
+<a href="teacher-profile.html" data-i18n="view-profile">عرض الملف الشخصي ←</a>
+</div>
+</div>
+</div>
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80" alt="مدرس">
+<h3>أ/ أحمد فاروق</h3>
+<p data-i18n="physics">الفيزياء</p>
+<span style="color:var(--gold)"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+</div>
+<div class="flip-back">
+<h3>أ/ أحمد فاروق</h3>
+<p>خبرة ١٢ عاماً في تدريس الفيزياء<br>دكتوراه في الفيزياء النووية<br>مؤلف ٥ كتب تعليمية</p>
+<a href="teacher-profile.html" data-i18n="view-profile">عرض الملف الشخصي ←</a>
+</div>
+</div>
+</div>
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80" alt="مدرسة">
+<h3>أ/ سارة المنصوري</h3>
+<p data-i18n="chemistry">الكيمياء</p>
+<span style="color:var(--gold)"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+</div>
+<div class="flip-back">
+<h3>أ/ سارة المنصوري</h3>
+<p>خبرة ١٠ سنوات في الكيمياء<br>ماجستير الكيمياء التحليلية<br>نسبة نجاح ٩٨%</p>
+<a href="teacher-profile.html" data-i18n="view-profile">عرض الملف الشخصي ←</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FEATURED STATIONERY -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="featured-stationery">أدوات مدرسية مميزة</h2>
+<p class="section-sub" data-i18n="featured-stationery-sub">أفضل الأدوات المدرسية لجميع الطلاب</p>
+<div class="books-grid">
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=400&h=250&q=80" alt="طقم أقلام جاف ملونة">
+<span class="book-badge" data-i18n="cat-pens">أقلام</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3 data-i18n="prod-pens-set">طقم أقلام جاف ملونة</h3>
+<p class="author" data-i18n="prod-pens-set-desc">١٢ قلم بألوان متنوعة للكتابة والتلوين</p>
+<p class="price">٤٥ ج.م</p>
+</div>
+<div class="book-actions">
+<a href="stationery.html" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&h=250&q=80" alt="حقيبة مدرسية ظهر كبيرة">
+<span class="book-badge" data-i18n="cat-bags">حقائب مدرسية</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3 data-i18n="prod-backpack">حقيبة مدرسية ظهر كبيرة</h3>
+<p class="author" data-i18n="prod-backpack-desc">حقيبة ظهر واسعة ومريحة للطلاب</p>
+<p class="price">٣٥٠ ج.م</p>
+</div>
+<div class="book-actions">
+<a href="stationery.html" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=400&h=250&q=80" alt="علبة ألوان خشب ٢٤ لون">
+<span class="book-badge" data-i18n="cat-colors">ألوان وفرش</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3 data-i18n="prod-color-pencils">علبة ألوان خشب ٢٤ لون</h3>
+<p class="author" data-i18n="prod-color-pencils-desc">ألوان خشبية زاهية وسهلة الاستخدام</p>
+<p class="price">٦٥ ج.م</p>
+</div>
+<div class="book-actions">
+<a href="stationery.html" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+<div class="book-card">
+<img src="https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=400&h=250&q=80" alt="آلة حاسبة علمية كاسيو">
+<span class="book-badge" data-i18n="cat-calculators">آلات حاسبة</span>
+<span class="book-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="book-info">
+<h3 data-i18n="prod-calculator">آلة حاسبة علمية كاسيو</h3>
+<p class="author" data-i18n="prod-calculator-desc">آلة حاسبة علمية متقدمة للطلاب</p>
+<p class="price">٣٥٠ ج.م</p>
+</div>
+<div class="book-actions">
+<a href="stationery.html" class="btn-details" data-i18n="view-details">عرض التفاصيل</a>
+<a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a>
+</div>
+</div>
+</div>
+<div style="text-align:center;margin-top:32px">
+<a href="stationery.html" class="btn-warm" data-i18n="view-all-stationery">عرض جميع الأدوات</a>
+</div>
+</section>
+
+<!-- RESERVE STEPS -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="how-to-reserve">كيف تحجز كتابك؟</h2>
+<p class="section-sub" data-i18n="how-to-reserve-sub">٤ خطوات بسيطة للحصول على كتابك</p>
+<div class="steps-grid">
+<div class="step-card">
+<span class="step-num">١</span>
+<i class="fas fa-search"></i>
+<h3 data-i18n="step-search">ابحث عن كتابك</h3>
+<p data-i18n="step-search-desc">تصفح مجموعتنا الواسعة من الكتب التعليمية</p>
+</div>
+<div class="step-card">
+<span class="step-num">٢</span>
+<i class="fas fa-cart-plus"></i>
+<h3 data-i18n="step-add">أضف للسلة</h3>
+<p data-i18n="step-add-desc">اختر الكتب التي تريدها وأضفها إلى سلة التسوق</p>
+</div>
+<div class="step-card">
+<span class="step-num">٣</span>
+<i class="fas fa-credit-card"></i>
+<h3 data-i18n="step-complete">أكمل الطلب</h3>
+<p data-i18n="step-complete-desc">أدخل بياناتك وعنوان التوصيل</p>
+</div>
+<div class="step-card">
+<span class="step-num">٤</span>
+<i class="fas fa-truck"></i>
+<h3 data-i18n="step-receive">استلم كتابك</h3>
+<p data-i18n="step-receive-desc">يصلك الكتاب لباب بيتك خلال ٢-٥ أيام</p>
+</div>
+</div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section fade-in" style="position:relative;overflow:hidden">
+<div class="section-shapes">
+  <div class="section-shape circle" style="width:90px;height:90px;background:rgba(227,175,100,0.12);top:8%;left:5%;animation-duration:15s;animation-delay:0s"></div>
+  <div class="section-shape diamond" style="width:70px;height:70px;background:rgba(87,142,126,0.14);top:55%;left:88%;animation-duration:19s;animation-delay:2s"></div>
+  <div class="section-shape circle" style="width:110px;height:110px;background:rgba(227,175,100,0.1);top:25%;left:72%;animation-duration:17s;animation-delay:4s"></div>
+  <div class="section-shape diamond" style="width:80px;height:80px;background:rgba(87,142,126,0.13);top:65%;left:18%;animation-duration:21s;animation-delay:1s"></div>
+  <div class="section-shape circle" style="width:120px;height:120px;background:rgba(227,175,100,0.09);top:45%;left:48%;animation-duration:16s;animation-delay:3s"></div>
+  <div class="section-shape diamond" style="width:60px;height:60px;background:rgba(87,142,126,0.15);top:78%;left:38%;animation-duration:18s;animation-delay:5s"></div>
+</div>
+<h2 class="section-title" data-i18n="student-testimonials">آراء طلابنا</h2>
+<p class="section-sub" data-i18n="student-testimonials-sub">ماذا يقول طلابنا عن تجربتهم</p>
+<div class="testimonials-grid">
+<div class="testimonial-card">
+<div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+<p>"كتب ممتازة ومحتوى مميز جداً. ساعدتني كثيراً في الحصول على أعلى الدرجات في الثانوية العامة."</p>
+<div class="reviewer">
+<img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=50&h=50&q=80" alt="">
+<span>أحمد محمود - الصف الثالث الثانوي</span>
+</div>
+</div>
+<div class="testimonial-card">
+<div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+<p>"التوصيل سريع والكتب بحالة ممتازة. أنصح الجميع بالتعامل مع مكتبة إنفينيتي."</p>
+<div class="reviewer">
+<img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=50&h=50&q=80" alt="">
+<span>نورا خالد - الصف الثاني الثانوي</span>
+</div>
+</div>
+<div class="testimonial-card">
+<div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+<p>"شرح المدرسين في الكتب واضح ومبسط. أفضل مكتبة تعليمية تعاملت معاها."</p>
+<div class="reviewer">
+<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=50&h=50&q=80" alt="">
+<span>يوسف عمر - الصف الأول الثانوي</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- DELIVERY INFO -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="delivery-info">خدمة التوصيل</h2>
+<p class="section-sub" data-i18n="delivery-info-sub">نوصل لجميع محافظات مصر</p>
+<div class="delivery-grid">
+<div class="delivery-card">
+<i class="fas fa-truck-fast"></i>
+<h3 data-i18n="fast-delivery-index">توصيل سريع</h3>
+<p data-i18n="fast-delivery-index-desc">توصيل خلال ٢-٥ أيام عمل لجميع المحافظات</p>
+</div>
+<div class="delivery-card">
+<i class="fas fa-shield-halved"></i>
+<h3 data-i18n="quality-guarantee">ضمان الجودة</h3>
+<p data-i18n="quality-guarantee-desc">جميع الكتب أصلية ومغلفة بعناية</p>
+</div>
+<div class="delivery-card">
+<i class="fas fa-rotate-left"></i>
+<h3 data-i18n="free-return-index">استرجاع مجاني</h3>
+<p data-i18n="free-return-index-desc">إمكانية الاسترجاع خلال ٧ أيام من الاستلام</p>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+<div class="footer-inner">
+<div>
+<div class="logo" style="margin-bottom:16px"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div>
+<p data-i18n="footer-desc">وجهتك الأولى للكتب التعليمية في مصر. نوفر أفضل كتب المدرسين لجميع المراحل الدراسية.</p>
+</div>
+<div>
+<h3 data-i18n="quick-links">روابط سريعة</h3>
+<a href="index.html" style="display:block" data-i18n="nav-home">الرئيسية</a>
+<a href="about.html" style="display:block" data-i18n="nav-about">من نحن</a>
+<a href="books.html" style="display:block" data-i18n="nav-books">الكتب</a>
+<a href="teachers.html" style="display:block" data-i18n="nav-teachers">المدرسين</a>
+<a href="stationery.html" style="display:block" data-i18n="nav-stationery">الأدوات</a>
+<a href="faq.html" style="display:block" data-i18n="faq">الأسئلة الشائعة</a>
+</div>
+<div>
+<h3 data-i18n="services">خدمات</h3>
+<a href="delivery.html" style="display:block" data-i18n="delivery">التوصيل</a>
+<a href="grade-level.html" style="display:block" data-i18n="by-grade">حسب المرحلة</a>
+<a href="cart.html" style="display:block" data-i18n="cart-footer">سلة التسوق</a>
+<a href="wishlist.html" style="display:block" data-i18n="favorites">المفضلة</a>
+</div>
+<div>
+<h3 data-i18n="contact-us">تواصل معنا</h3>
+<p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+<p><i class="fas fa-phone"></i> 01012345678</p>
+<p><i class="fas fa-envelope"></i> info@infinity-books.com</p>
+<div class="footer-social">
+<a href="#"><i class="fab fa-facebook-f"></i></a>
+<a href="#"><i class="fab fa-twitter"></i></a>
+<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="#"><i class="fab fa-youtube"></i></a>
+</div>
+</div>
+</div>
+<div class="footer-bottom" data-i18n="footer-copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</div>
+</footer>
+
+<!-- WHATSAPP -->
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+function toggleMobile(){
+document.querySelector('.mobile-nav').classList.toggle('active');
+document.querySelector('.mobile-overlay').classList.toggle('active');
+}
+function addToCart(e){
+e.preventDefault();
+let badge=document.querySelector('.badge-count');
+badge.textContent=parseInt(badge.textContent)+1;
+e.target.textContent='تمت الإضافة ✓';
+e.target.style.background='var(--primary)';
+e.target.style.color='#fff';
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});
+  document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+});
+</script>
+<script>
+// Category Carousel
+(function(){
+  document.addEventListener('DOMContentLoaded',function(){
+    var track=document.getElementById('catTrack');
+    var dotsWrap=document.getElementById('catDots');
+    var prevBtn=document.getElementById('catPrev');
+    var nextBtn=document.getElementById('catNext');
+    if(!track)return;
+    var cards=track.querySelectorAll('.cat-card');
+    var totalCards=cards.length;
+    var currentIndex=0;
+    var autoInterval=null;
+    var isRTL=document.documentElement.dir==='rtl'||document.documentElement.getAttribute('lang')==='ar';
+
+    function getVisible(){
+      var w=window.innerWidth;
+      if(w<=480)return 1;
+      if(w<=768)return 2;
+      if(w<=1024)return 3;
+      return 4;
+    }
+
+    function getMaxIndex(){return Math.max(0,totalCards-getVisible())}
+
+    function buildDots(){
+      dotsWrap.innerHTML='';
+      var max=getMaxIndex();
+      for(var i=0;i<=max;i++){
+        var dot=document.createElement('button');
+        dot.className='cat-dot'+(i===currentIndex?' active':'');
+        dot.setAttribute('aria-label','Slide '+(i+1));
+        dot.dataset.idx=i;
+        dot.onclick=function(){goTo(parseInt(this.dataset.idx))};
+        dotsWrap.appendChild(dot);
+      }
+    }
+
+    function updateDots(){
+      var dots=dotsWrap.querySelectorAll('.cat-dot');
+      for(var i=0;i<dots.length;i++){
+        dots[i].classList.toggle('active',i===currentIndex);
+      }
+    }
+
+    function slide(){
+      var visible=getVisible();
+      var gap=24;
+      var cardWidth=(track.parentElement.offsetWidth-(visible-1)*gap)/visible;
+      var offset=currentIndex*(cardWidth+gap);
+      if(isRTL){
+        track.style.transform='translateX('+offset+'px)';
+      }else{
+        track.style.transform='translateX(-'+offset+'px)';
+      }
+      updateDots();
+    }
+
+    function goTo(idx){
+      var max=getMaxIndex();
+      if(idx>max)idx=0;
+      if(idx<0)idx=max;
+      currentIndex=idx;
+      slide();
+    }
+
+    function nextSlide(){goTo(currentIndex+1)}
+    function prevSlide(){goTo(currentIndex-1)}
+
+    function startAuto(){
+      stopAuto();
+      autoInterval=setInterval(nextSlide,3000);
+    }
+    function stopAuto(){
+      if(autoInterval){clearInterval(autoInterval);autoInterval=null}
+    }
+
+    // In RTL, the visual "next" arrow (left) goes forward, "prev" arrow (right) goes back
+    nextBtn.addEventListener('click',function(){nextSlide();startAuto()});
+    prevBtn.addEventListener('click',function(){prevSlide();startAuto()});
+
+    // Pause on hover/touch
+    var carousel=document.getElementById('catCarousel');
+    carousel.addEventListener('mouseenter',stopAuto);
+    carousel.addEventListener('mouseleave',startAuto);
+    carousel.addEventListener('touchstart',stopAuto,{passive:true});
+    carousel.addEventListener('touchend',function(){setTimeout(startAuto,1000)});
+
+    // Touch swipe support
+    var touchStartX=0;
+    carousel.addEventListener('touchstart',function(e){touchStartX=e.touches[0].clientX},{passive:true});
+    carousel.addEventListener('touchend',function(e){
+      var diff=e.changedTouches[0].clientX-touchStartX;
+      if(Math.abs(diff)>50){
+        if((isRTL&&diff>0)||(!isRTL&&diff<0)){nextSlide()}
+        else{prevSlide()}
+      }
+    });
+
+    // Recalculate on resize
+    var resizeTimer;
+    window.addEventListener('resize',function(){
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(function(){
+        if(currentIndex>getMaxIndex())currentIndex=getMaxIndex();
+        buildDots();
+        slide();
+      },200);
+    });
+
+    // Watch for RTL/LTR change
+    var langObserver=new MutationObserver(function(){
+      isRTL=document.documentElement.dir==='rtl'||document.documentElement.getAttribute('lang')==='ar';
+      slide();
+    });
+    langObserver.observe(document.documentElement,{attributes:true,attributeFilter:['dir','lang']});
+
+    buildDots();
+    slide();
+    startAuto();
+  });
+})();
+</script>
+<script src="i18n.js"></script>
+</body>
+</html>

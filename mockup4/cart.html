@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - سلة التسوق</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);direction:rtl}a{text-decoration:none;color:inherit}
+.lang-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.2s;margin-right:10px;}
+.lang-toggle:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(227,175,100,0.4);}
+.header{background:var(--warm-bg);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 40px;position:sticky;top:0;z-index:1000;box-shadow:var(--shadow)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}.logo span:first-child{color:var(--gold-dark)}.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.nav{display:flex;align-items:center;gap:28px;list-style:none}.nav a{font-weight:600;font-size:.95rem;transition:.3s;position:relative;padding-bottom:4px}.nav a:hover{color:var(--gold-dark)}.nav a:hover::after{content:'';position:absolute;bottom:0;right:0;width:100%;height:2px;background:var(--gold);border-radius:2px}
+.nav .badge-count{background:var(--gold);color:#fff;font-size:.7rem;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;top:-8px;right:-4px}
+.hamburger{display:none;font-size:1.5rem;cursor:pointer;color:var(--dark)}
+.btn-warm{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:14px 36px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 4px 16px rgba(227,175,100,.4);transition:.3s}
+.btn-warm:hover{transform:translateY(-2px)}
+.page-header{background:linear-gradient(135deg,var(--warm-bg),var(--warm-bg2));padding:40px 20px;text-align:center;margin-bottom:32px}
+.page-header h1{font-size:2rem;font-weight:800}.page-header p{color:#666;font-family:'Tajawal',sans-serif}
+.cart-wrap{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:32px}
+.cart-items{flex:1}
+.cart-card{background:var(--warm-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;gap:20px;align-items:center;margin-bottom:16px;border-right:4px solid var(--gold);transition:.3s}
+.cart-card:hover{box-shadow:var(--shadow-lg)}
+.cart-card img{width:100px;height:120px;object-fit:cover;border-radius:12px}
+.cart-card .info{flex:1}
+.cart-card h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.cart-card .author{font-size:.85rem;color:#888;margin-bottom:8px}
+.cart-card .price{font-size:1.1rem;font-weight:800;color:var(--gold-dark)}
+.qty-control{display:flex;align-items:center;gap:0;border-radius:10px;overflow:hidden;border:2px solid #eee}
+.qty-control button{width:36px;height:36px;border:none;background:var(--warm-bg2);font-size:1.1rem;cursor:pointer;font-weight:700;color:var(--dark);transition:.3s}
+.qty-control button:hover{background:var(--gold);color:#fff}
+.qty-control span{width:40px;text-align:center;font-weight:700;font-size:1rem}
+.cart-remove{color:#e74c3c;cursor:pointer;font-size:1.2rem;margin-right:12px;transition:.3s}
+.cart-remove:hover{transform:scale(1.2)}
+.summary-card{width:340px;flex-shrink:0;position:sticky;top:90px;align-self:flex-start}
+.summary-inner{background:var(--warm-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px;border-top:4px solid var(--gold)}
+.summary-inner h2{font-size:1.3rem;font-weight:800;margin-bottom:20px;text-align:center}
+.summary-row{display:flex;justify-content:space-between;padding:10px 0;font-family:'Tajawal',sans-serif;border-bottom:1px solid rgba(0,0,0,.06)}
+.summary-row.total{border:none;font-weight:800;font-size:1.2rem;color:var(--gold-dark);padding-top:16px}
+.summary-inner .btn-warm{width:100%;margin-top:20px;text-align:center;display:block}
+.summary-inner .continue{display:block;text-align:center;margin-top:12px;color:var(--primary);font-weight:600;font-size:.9rem}
+.empty-cart{text-align:center;padding:80px 20px}
+.empty-cart i{font-size:4rem;color:var(--gold);margin-bottom:16px}
+.empty-cart h2{margin-bottom:8px}.empty-cart p{color:#888;font-family:'Tajawal',sans-serif;margin-bottom:24px}
+.footer{background:linear-gradient(135deg,#2a2a2e,var(--dark));border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:48px 40px 24px;margin-top:60px;color:#ccc}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.footer h3{color:var(--gold);font-size:1.1rem;margin-bottom:16px}.footer p,.footer a{font-size:.9rem;color:#aaa;line-height:2;font-family:'Tajawal',sans-serif}.footer a:hover{color:var(--gold)}
+.footer-social{display:flex;gap:12px;margin-top:12px}.footer-social a{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ccc;transition:.3s}.footer-social a:hover{background:var(--gold);color:#fff}
+.footer-bottom{max-width:1280px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);text-align:center;font-size:.85rem;color:#888}
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:999;transition:.3s}.whatsapp-float:hover{transform:scale(1.1)}
+.mobile-nav{display:none;position:fixed;top:0;right:0;width:280px;height:100%;background:var(--warm-bg);z-index:2000;padding:80px 24px 24px;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.3s}.mobile-nav.active{transform:translateX(0)}.mobile-nav a{display:block;padding:12px 0;font-weight:600;border-bottom:1px solid rgba(0,0,0,.06)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999}.mobile-overlay.active{display:block}.mobile-close{position:absolute;top:20px;left:20px;font-size:1.5rem;cursor:pointer}
+@media(max-width:768px){.nav{display:none}.hamburger{display:block}.cart-wrap{flex-direction:column}.summary-card{width:100%;position:static}.cart-card{flex-wrap:wrap}.footer-inner{grid-template-columns:1fr}}
+.shapes-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.shape{position:absolute;bottom:-60px;opacity:0;animation:floatShape linear infinite}
+.shape.circle{border-radius:50%}.shape.square{border-radius:4px}.shape.diamond{transform:rotate(45deg)}
+@keyframes floatShape{0%{transform:translateX(0) rotate(0deg) scale(0.6);opacity:0;bottom:-60px}10%{opacity:1}50%{transform:translateX(60px) rotate(180deg) scale(1)}90%{opacity:1}100%{transform:translateX(-30px) rotate(360deg) scale(0.6);opacity:0;bottom:110vh}}
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}.fade-in.visible{opacity:1;transform:translateY(0)}
+.header,.page-header,.cart-wrap,.empty-cart,footer.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="shapes-bg"><div class="shape circle" style="width:15px;height:15px;background:rgba(227,175,100,0.06);left:5%;animation-duration:14s;animation-delay:0s"></div><div class="shape square" style="width:20px;height:20px;background:rgba(87,142,126,0.07);left:15%;animation-duration:18s;animation-delay:2s"></div><div class="shape diamond" style="width:12px;height:12px;background:rgba(227,175,100,0.08);left:25%;animation-duration:15s;animation-delay:4s"></div><div class="shape circle" style="width:25px;height:25px;background:rgba(87,142,126,0.05);left:35%;animation-duration:20s;animation-delay:1s"></div><div class="shape square" style="width:10px;height:10px;background:rgba(227,175,100,0.07);left:50%;animation-duration:13s;animation-delay:3s"></div><div class="shape diamond" style="width:18px;height:18px;background:rgba(87,142,126,0.06);left:60%;animation-duration:22s;animation-delay:5s"></div><div class="shape circle" style="width:30px;height:30px;background:rgba(227,175,100,0.05);left:70%;animation-duration:16s;animation-delay:0.5s"></div><div class="shape square" style="width:40px;height:40px;background:rgba(87,142,126,0.06);left:80%;animation-duration:19s;animation-delay:2.5s"></div><div class="shape diamond" style="width:14px;height:14px;background:rgba(227,175,100,0.08);left:88%;animation-duration:12s;animation-delay:6s"></div><div class="shape circle" style="width:22px;height:22px;background:rgba(87,142,126,0.07);left:95%;animation-duration:17s;animation-delay:3.5s"></div></div>
+<header class="header"><div class="header-inner"><div class="logo"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><ul class="nav"><li><a href="index.html" data-i18n="nav-home">الرئيسية</a></li><li><a href="about.html" data-i18n="nav-about">من نحن</a></li><li><a href="books.html" data-i18n="nav-books">الكتب</a></li><li><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a></li><li><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a></li><li><a href="search.html"><i class="fas fa-search"></i> <span data-i18n="nav-search">البحث</span></a></li><li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="nav-cart">السلة</span> <span class="badge-count">3</span></a></li><li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li><li><button class="lang-toggle" onclick="toggleLang()">EN</button></li><li><a href="login.html" data-i18n="nav-login"><i class="fas fa-user"></i> تسجيل الدخول</a></li></ul><div class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></div></div></header>
+<div class="mobile-overlay" onclick="toggleMobile()"></div>
+<div class="mobile-nav"><div class="mobile-close" onclick="toggleMobile()"><i class="fas fa-times"></i></div><a href="index.html" data-i18n="nav-home">الرئيسية</a><a href="about.html" data-i18n="nav-about">من نحن</a><a href="books.html" data-i18n="nav-books">الكتب</a><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a><a href="search.html" data-i18n="nav-search">البحث</a><a href="cart.html" data-i18n="nav-cart">السلة</a><a href="wishlist.html" data-i18n="nav-wishlist">المفضلة</a><a href="login.html" data-i18n="nav-login">تسجيل الدخول</a></div>
+
+<div class="page-header fade-in"><h1><i class="fas fa-shopping-cart"></i> <span data-i18n="shopping-cart">سلة التسوق</span></h1><p data-i18n="cart-review">راجع طلباتك قبل إتمام الشراء</p></div>
+
+<div class="cart-wrap fade-in" id="cartContent">
+<div class="cart-items" id="cartItems">
+<div class="cart-card" data-price="250">
+<img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=120&h=140&q=80" alt="">
+<div class="info"><h3>الرياضيات - الصف الثالث الثانوي</h3><p class="author">أ/ محمد السعيد</p><p class="price">٢٥٠ ج.م</p></div>
+<div class="qty-control"><button onclick="changeQty(this,-1)">-</button><span>1</span><button onclick="changeQty(this,1)">+</button></div>
+<span class="cart-remove" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></span>
+</div>
+<div class="cart-card" data-price="200">
+<img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=120&h=140&q=80" alt="">
+<div class="info"><h3>الفيزياء - الصف الثاني الثانوي</h3><p class="author">أ/ أحمد فاروق</p><p class="price">٢٠٠ ج.م</p></div>
+<div class="qty-control"><button onclick="changeQty(this,-1)">-</button><span>1</span><button onclick="changeQty(this,1)">+</button></div>
+<span class="cart-remove" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></span>
+</div>
+<div class="cart-card" data-price="180">
+<img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=120&h=140&q=80" alt="">
+<div class="info"><h3>الكيمياء - الصف الأول الثانوي</h3><p class="author">أ/ سارة المنصوري</p><p class="price">١٨٠ ج.م</p></div>
+<div class="qty-control"><button onclick="changeQty(this,-1)">-</button><span>1</span><button onclick="changeQty(this,1)">+</button></div>
+<span class="cart-remove" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></span>
+</div>
+</div>
+<div class="summary-card">
+<div class="summary-inner">
+<h2><i class="fas fa-receipt"></i> <span data-i18n="order-summary">ملخص الطلب</span></h2>
+<div class="summary-row"><span data-i18n="book-count">عدد الكتب</span><span id="totalItems">٣</span></div>
+<div class="summary-row"><span data-i18n="subtotal">المجموع الفرعي</span><span id="subtotal">٦٣٠ ج.م</span></div>
+<div class="summary-row"><span data-i18n="delivery-fee">التوصيل</span><span>٥٠ ج.م</span></div>
+<div class="summary-row"><span data-i18n="discount">الخصم</span><span style="color:var(--primary)">- ٠ ج.م</span></div>
+<div class="summary-row total"><span data-i18n="total">الإجمالي</span><span id="total">٦٨٠ ج.م</span></div>
+<button class="btn-warm" onclick="alert('تم تأكيد الطلب بنجاح!')" data-i18n="checkout">إتمام الشراء</button>
+<a href="books.html" class="continue" data-i18n="continue-back">← متابعة التسوق</a>
+</div>
+</div>
+</div>
+
+<div class="empty-cart" id="emptyCart" style="display:none">
+<i class="fas fa-shopping-cart"></i>
+<h2 data-i18n="cart-empty">سلة التسوق فارغة</h2>
+<p data-i18n="cart-empty-desc">لم تقم بإضافة أي كتب بعد</p>
+<a href="books.html" class="btn-warm" data-i18n="browse-books">تصفح الكتب</a>
+</div>
+
+<footer class="footer"><div class="footer-inner"><div><div class="logo" style="margin-bottom:16px"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><p data-i18n="footer-desc-short">وجهتك الأولى للكتب التعليمية في مصر.</p></div><div><h3 data-i18n="quick-links">روابط سريعة</h3><a href="index.html" style="display:block" data-i18n="nav-home">الرئيسية</a><a href="about.html" style="display:block" data-i18n="nav-about">من نحن</a><a href="books.html" style="display:block" data-i18n="nav-books">الكتب</a><a href="teachers.html" style="display:block" data-i18n="nav-teachers">المدرسين</a><a href="faq.html" style="display:block" data-i18n="faq">الأسئلة الشائعة</a></div><div><h3 data-i18n="services">خدمات</h3><a href="delivery.html" style="display:block" data-i18n="delivery">التوصيل</a><a href="grade-level.html" style="display:block" data-i18n="by-grade">حسب المرحلة</a><a href="cart.html" style="display:block" data-i18n="cart-footer">سلة التسوق</a><a href="wishlist.html" style="display:block" data-i18n="favorites">المفضلة</a></div><div><h3 data-i18n="contact-us">تواصل معنا</h3><p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p><p><i class="fas fa-phone"></i> 01012345678</p><p><i class="fas fa-envelope"></i> info@infinity-books.com</p><div class="footer-social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-youtube"></i></a></div></div></div><div class="footer-bottom" data-i18n="footer-copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</div></footer>
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+<script>
+function toggleMobile(){document.querySelector('.mobile-nav').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active')}
+function changeQty(btn,d){var s=btn.parentElement.querySelector('span');var v=parseInt(s.textContent)+d;if(v<1)v=1;s.textContent=v;updateSummary()}
+function removeItem(el){el.closest('.cart-card').remove();updateSummary()}
+function updateSummary(){
+var cards=document.querySelectorAll('.cart-card');
+if(cards.length===0){document.getElementById('cartContent').style.display='none';document.getElementById('emptyCart').style.display='block';return}
+var items=0,sub=0;
+cards.forEach(function(c){var q=parseInt(c.querySelector('.qty-control span').textContent);var p=parseInt(c.dataset.price);items+=q;sub+=q*p});
+document.getElementById('totalItems').textContent=items;
+document.getElementById('subtotal').textContent=sub+' ج.م';
+document.getElementById('total').textContent=(sub+50)+' ج.م';
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded',function(){const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});</script>
+<script src="i18n.js"></script>
+</body>
+</html>

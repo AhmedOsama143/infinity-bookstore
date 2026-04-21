@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - الأدوات المدرسية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:linear-gradient(135deg,#f9f9fb 0%,#f0ece2 100%);color:var(--dark);direction:rtl}
+a{text-decoration:none;color:inherit}
+.lang-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.2s;margin-right:10px;}
+.lang-toggle:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(227,175,100,0.4);}
+.header{background:var(--warm-bg);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 40px;position:sticky;top:0;z-index:1000;box-shadow:var(--shadow)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo span:first-child{color:var(--gold-dark)}.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.nav{display:flex;align-items:center;gap:28px;list-style:none}
+.nav a{font-weight:600;font-size:.95rem;transition:.3s;position:relative;padding-bottom:4px}
+.nav a:hover{color:var(--gold-dark)}.nav a:hover::after{content:'';position:absolute;bottom:0;right:0;width:100%;height:2px;background:var(--gold);border-radius:2px}
+.nav .badge-count{background:var(--gold);color:#fff;font-size:.7rem;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;top:-8px;right:-4px}
+.hamburger{display:none;font-size:1.5rem;cursor:pointer;color:var(--dark)}
+.btn-warm{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:14px 36px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 4px 16px rgba(227,175,100,.4);transition:.3s}
+.btn-warm:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(227,175,100,.5)}
+.page-header{background:linear-gradient(135deg,var(--warm-bg),var(--warm-bg2));padding:40px 20px;text-align:center;margin-bottom:32px}
+.page-header h1{font-size:2rem;font-weight:800;color:var(--dark)}.page-header p{color:#666;font-family:'Tajawal',sans-serif}
+/* FILTER PILLS */
+.filter-pills{max-width:1280px;margin:0 auto 32px;padding:0 20px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.filter-pill{background:var(--warm-bg);border:2px solid var(--gold);color:var(--gold-dark);padding:8px 20px;border-radius:50px;font-size:.9rem;font-weight:700;cursor:pointer;transition:.3s;font-family:'Cairo',sans-serif}
+.filter-pill:hover,.filter-pill.active{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark)}
+/* PRODUCT GRID */
+.products-grid{max-width:1280px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.product-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-right:4px solid var(--gold);transition:.3s;position:relative}
+.product-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.product-card img{width:100%;height:200px;object-fit:cover}
+.product-badge{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700}
+.product-heart{position:absolute;top:12px;left:12px;width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:.3s}
+.product-heart:hover,.product-heart.active{color:red}
+.product-info{padding:16px}
+.product-info h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.product-info .desc{font-size:.85rem;color:#888;margin-bottom:8px;font-family:'Tajawal',sans-serif}
+.product-info .price{font-size:1.1rem;font-weight:800;color:var(--gold-dark)}
+.product-actions{padding:0 16px 16px;display:flex;gap:8px}
+.product-actions a{flex:1;text-align:center;padding:8px;border-radius:10px;font-size:.85rem;font-weight:600;transition:.3s;cursor:pointer;border:none;font-family:'Cairo',sans-serif}
+.product-actions .btn-details{background:var(--primary-light);color:var(--primary-dark)}
+.product-actions .btn-details:hover{background:var(--primary);color:#fff}
+.product-actions .btn-cart{background:var(--warm-bg2);color:var(--gold-dark)}
+.product-actions .btn-cart:hover{background:var(--gold);color:#fff}
+/* FOOTER */
+.footer{background:linear-gradient(135deg,#2a2a2e,var(--dark));border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:48px 40px 24px;margin-top:60px;color:#ccc}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.footer h3{color:var(--gold);font-size:1.1rem;margin-bottom:16px}
+.footer p,.footer a{font-size:.9rem;color:#aaa;line-height:2;font-family:'Tajawal',sans-serif}
+.footer a:hover{color:var(--gold)}
+.footer-social{display:flex;gap:12px;margin-top:12px}
+.footer-social a{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ccc;transition:.3s}
+.footer-social a:hover{background:var(--gold);color:#fff}
+.footer-bottom{max-width:1280px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);text-align:center;font-size:.85rem;color:#888}
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:999;transition:.3s}
+.whatsapp-float:hover{transform:scale(1.1)}
+.mobile-nav{display:none;position:fixed;top:0;right:0;width:280px;height:100%;background:var(--warm-bg);z-index:2000;padding:80px 24px 24px;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.3s}
+.mobile-nav.active{transform:translateX(0)}
+.mobile-nav a{display:block;padding:12px 0;font-weight:600;font-size:1.05rem;border-bottom:1px solid rgba(0,0,0,.06)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999}
+.mobile-overlay.active{display:block}
+.mobile-close{position:absolute;top:20px;left:20px;font-size:1.5rem;cursor:pointer}
+@media(max-width:1024px){.products-grid{grid-template-columns:repeat(2,1fr)}.footer-inner{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.nav{display:none}.hamburger{display:block}.products-grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr}}
+.stationery-bg-icons{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.bg-icon{position:absolute;opacity:0.15;transform:scale(0.4);transition:transform 0.15s ease-out;will-change:transform}
+.bg-icon.small{font-size:16px}.bg-icon.medium{font-size:28px}.bg-icon.large{font-size:42px}.bg-icon.xlarge{font-size:56px}
+.stationery-bubbles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.rising-bubble{position:absolute;bottom:-80px;border-radius:50%;animation:riseBubble linear infinite}
+@keyframes riseBubble{0%{transform:translateX(0) scale(0.5);opacity:0;bottom:-80px}10%{opacity:0.15}90%{opacity:0.15}100%{transform:translateX(80px) scale(1);opacity:0;bottom:110vh}}
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}.fade-in.visible{opacity:1;transform:translateY(0)}
+.header,.page-header,.products-grid,footer.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<!-- Stationery Background Icons (Gold Theme) -->
+<div class="stationery-bg-icons">
+  <i class="fas fa-pen bg-icon medium" style="left:5%;top:8%;color:#e3af64;opacity:0.18;animation-duration:12s;animation-delay:0s" data-speed="0.2"></i>
+  <i class="fas fa-pencil bg-icon small" style="left:15%;top:20%;color:#da9035;opacity:0.15;animation-duration:18s;animation-delay:2s" data-speed="0.3"></i>
+  <i class="fas fa-ruler bg-icon large" style="left:80%;top:5%;color:#e3af64;opacity:0.12;animation-duration:15s;animation-delay:1s" data-speed="0.15"></i>
+  <i class="fas fa-scissors bg-icon medium" style="left:60%;top:30%;color:#578e7e;opacity:0.14;animation-duration:20s;animation-delay:3s" data-speed="0.4"></i>
+  <i class="fas fa-palette bg-icon xlarge" style="left:90%;top:15%;color:#e3af64;opacity:0.12;animation-duration:22s;animation-delay:0.5s" data-speed="0.1"></i>
+  <i class="fas fa-paint-brush bg-icon small" style="left:35%;top:45%;color:#da9035;opacity:0.20;animation-duration:10s;animation-delay:4s" data-speed="0.35"></i>
+  <i class="fas fa-eraser bg-icon medium" style="left:50%;top:60%;color:#e3af64;opacity:0.14;animation-duration:14s;animation-delay:5s" data-speed="0.25"></i>
+  <i class="fas fa-calculator bg-icon large" style="left:10%;top:70%;color:#578e7e;opacity:0.13;animation-duration:25s;animation-delay:1.5s" data-speed="0.2"></i>
+  <i class="fas fa-briefcase bg-icon small" style="left:75%;top:50%;color:#e3af64;opacity:0.18;animation-duration:16s;animation-delay:6s" data-speed="0.5"></i>
+  <i class="fas fa-paperclip bg-icon xlarge" style="left:25%;top:80%;color:#da9035;opacity:0.12;animation-duration:19s;animation-delay:2.5s" data-speed="0.15"></i>
+  <i class="fas fa-tape bg-icon medium" style="left:45%;top:10%;color:#e3af64;opacity:0.16;animation-duration:13s;animation-delay:7s" data-speed="0.3"></i>
+  <i class="fas fa-compass-drafting bg-icon large" style="left:70%;top:75%;color:#578e7e;opacity:0.14;animation-duration:21s;animation-delay:3.5s" data-speed="0.4"></i>
+  <i class="fas fa-marker bg-icon small" style="left:3%;top:40%;color:#e3af64;opacity:0.20;animation-duration:11s;animation-delay:8s" data-speed="0.2"></i>
+  <i class="fas fa-highlighter bg-icon medium" style="left:55%;top:90%;color:#da9035;opacity:0.15;animation-duration:17s;animation-delay:0s" data-speed="0.35"></i>
+  <i class="fas fa-thumbtack bg-icon xlarge" style="left:85%;top:120%;color:#e3af64;opacity:0.12;animation-duration:23s;animation-delay:4.5s" data-speed="0.1"></i>
+  <i class="fas fa-note-sticky bg-icon large" style="left:20%;top:100%;color:#578e7e;opacity:0.16;animation-duration:9s;animation-delay:5.5s" data-speed="0.45"></i>
+  <i class="fas fa-pen bg-icon small" style="left:40%;top:150%;color:#e3af64;opacity:0.18;animation-duration:14s;animation-delay:9s" data-speed="0.3"></i>
+  <i class="fas fa-pencil bg-icon xlarge" style="left:65%;top:130%;color:#da9035;opacity:0.13;animation-duration:20s;animation-delay:6.5s" data-speed="0.2"></i>
+  <i class="fas fa-ruler bg-icon medium" style="left:95%;top:55%;color:#e3af64;opacity:0.15;animation-duration:16s;animation-delay:7.5s" data-speed="0.25"></i>
+  <i class="fas fa-scissors bg-icon small" style="left:30%;top:170%;color:#578e7e;opacity:0.17;animation-duration:12s;animation-delay:1s" data-speed="0.4"></i>
+  <i class="fas fa-palette bg-icon medium" style="left:8%;top:190%;color:#e3af64;opacity:0.14;animation-duration:18s;animation-delay:8.5s" data-speed="0.15"></i>
+  <i class="fas fa-calculator bg-icon large" style="left:50%;top:200%;color:#da9035;opacity:0.12;animation-duration:24s;animation-delay:10s" data-speed="0.5"></i>
+</div>
+
+<!-- Stationery Floating Bubbles (Gold Theme) -->
+<div class="stationery-bubbles">
+  <div class="rising-bubble" style="width:20px;height:20px;left:5%;background:rgba(227,175,100,0.13);animation-duration:12s;animation-delay:0s;opacity:0.13"></div>
+  <div class="rising-bubble" style="width:40px;height:40px;left:15%;background:rgba(87,142,126,0.10);animation-duration:16s;animation-delay:2s;opacity:0.10"></div>
+  <div class="rising-bubble" style="width:15px;height:15px;left:30%;background:rgba(227,175,100,0.15);animation-duration:10s;animation-delay:4s;opacity:0.15"></div>
+  <div class="rising-bubble" style="width:55px;height:55px;left:45%;background:rgba(218,144,53,0.08);animation-duration:18s;animation-delay:1s;opacity:0.08"></div>
+  <div class="rising-bubble" style="width:25px;height:25px;left:55%;background:rgba(227,175,100,0.13);animation-duration:14s;animation-delay:3s;opacity:0.13"></div>
+  <div class="rising-bubble" style="width:35px;height:35px;left:65%;background:rgba(87,142,126,0.10);animation-duration:20s;animation-delay:5s;opacity:0.10"></div>
+  <div class="rising-bubble" style="width:18px;height:18px;left:75%;background:rgba(227,175,100,0.14);animation-duration:11s;animation-delay:6s;opacity:0.14"></div>
+  <div class="rising-bubble" style="width:60px;height:60px;left:85%;background:rgba(218,144,53,0.08);animation-duration:17s;animation-delay:7s;opacity:0.08"></div>
+  <div class="rising-bubble" style="width:30px;height:30px;left:40%;background:rgba(227,175,100,0.11);animation-duration:15s;animation-delay:8s;opacity:0.11"></div>
+  <div class="rising-bubble" style="width:45px;height:45px;left:92%;background:rgba(87,142,126,0.09);animation-duration:19s;animation-delay:2.5s;opacity:0.09"></div>
+</div>
+<header class="header"><div class="header-inner"><div class="logo"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><ul class="nav"><li><a href="index.html" data-i18n="nav-home">الرئيسية</a></li><li><a href="about.html" data-i18n="nav-about">من نحن</a></li><li><a href="books.html" data-i18n="nav-books">الكتب</a></li><li><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a></li><li><a href="stationery.html" class="active" data-i18n="nav-stationery">الأدوات</a></li><li><a href="search.html"><i class="fas fa-search"></i> <span data-i18n="nav-search">البحث</span></a></li><li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="nav-cart">السلة</span> <span class="badge-count">0</span></a></li><li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li><li><button class="lang-toggle" onclick="toggleLang()">EN</button></li><li><a href="login.html" data-i18n="nav-login"><i class="fas fa-user"></i> تسجيل الدخول</a></li></ul><div class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></div></div></header>
+<div class="mobile-overlay" onclick="toggleMobile()"></div>
+<div class="mobile-nav"><div class="mobile-close" onclick="toggleMobile()"><i class="fas fa-times"></i></div><a href="index.html" data-i18n="nav-home">الرئيسية</a><a href="about.html" data-i18n="nav-about">من نحن</a><a href="books.html" data-i18n="nav-books">الكتب</a><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a><a href="search.html" data-i18n="nav-search">البحث</a><a href="cart.html" data-i18n="nav-cart">السلة</a><a href="wishlist.html" data-i18n="nav-wishlist">المفضلة</a><a href="login.html" data-i18n="nav-login">تسجيل الدخول</a></div>
+
+<div class="page-header fade-in"><h1><i class="fas fa-pencil-ruler"></i> <span data-i18n="stationery-title">الأدوات المدرسية</span></h1><p data-i18n="stationery-sub">كل ما يحتاجه الطالب من أدوات مدرسية عالية الجودة</p></div>
+
+<!-- FILTER PILLS -->
+<div class="filter-pills">
+<button class="filter-pill active" data-category="all" data-i18n="filter-all">الكل</button>
+<button class="filter-pill" data-category="أقلام" data-i18n="cat-pens">أقلام</button>
+<button class="filter-pill" data-category="كراسات ودفاتر" data-i18n="cat-notebooks">كراسات ودفاتر</button>
+<button class="filter-pill" data-category="حقائب مدرسية" data-i18n="cat-bags">حقائب مدرسية</button>
+<button class="filter-pill" data-category="ألوان وفرش" data-i18n="cat-colors">ألوان وفرش</button>
+<button class="filter-pill" data-category="أدوات هندسية" data-i18n="cat-geometry">أدوات هندسية</button>
+<button class="filter-pill" data-category="ملفات ومجلدات" data-i18n="cat-files">ملفات ومجلدات</button>
+<button class="filter-pill" data-category="آلات حاسبة" data-i18n="cat-calculators">آلات حاسبة</button>
+</div>
+
+<!-- PRODUCTS GRID -->
+<div class="products-grid fade-in">
+
+<div class="product-card" data-category="أقلام">
+<img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=250&h=250&q=80" alt="طقم أقلام جاف ملونة">
+<span class="product-badge" data-i18n="cat-pens">أقلام</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-pens-set">طقم أقلام جاف ملونة</h3>
+<p class="desc" data-i18n="prod-pens-set-desc">١٢ قلم بألوان متنوعة للكتابة والتلوين</p>
+<p class="price">٤٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="أقلام">
+<img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?auto=format&fit=crop&w=250&h=250&q=80" alt="قلم حبر باركر فضي">
+<span class="product-badge" data-i18n="cat-pens">أقلام</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-parker-pen">قلم حبر باركر فضي</h3>
+<p class="desc" data-i18n="prod-parker-pen-desc">قلم حبر فاخر بتصميم أنيق</p>
+<p class="price">٢٥٠ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="كراسات ودفاتر">
+<img src="https://images.unsplash.com/photo-1531346878377-a5be20888e57?auto=format&fit=crop&w=250&h=250&q=80" alt="كراسة ١٠٠ ورقة سلك">
+<span class="product-badge" data-i18n="cat-notebooks">كراسات ودفاتر</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-notebook-100">كراسة ١٠٠ ورقة سلك</h3>
+<p class="desc" data-i18n="prod-notebook-100-desc">كراسة سلك عملية بغلاف متين</p>
+<p class="price">٣٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="كراسات ودفاتر">
+<img src="https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=250&h=250&q=80" alt="دفتر ملاحظات A5 جلد">
+<span class="product-badge" data-i18n="cat-notebooks">كراسات ودفاتر</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-notebook-a5">دفتر ملاحظات A5 جلد</h3>
+<p class="desc" data-i18n="prod-notebook-a5-desc">دفتر أنيق بغلاف جلدي فاخر</p>
+<p class="price">٨٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="حقائب مدرسية">
+<img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=250&h=250&q=80" alt="حقيبة مدرسية ظهر كبيرة">
+<span class="product-badge" data-i18n="cat-bags">حقائب مدرسية</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-backpack">حقيبة مدرسية ظهر كبيرة</h3>
+<p class="desc" data-i18n="prod-backpack-desc">حقيبة ظهر واسعة ومريحة للطلاب</p>
+<p class="price">٣٥٠ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="حقائب مدرسية">
+<img src="https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=250&h=250&q=80" alt="شنطة لاب توب ١٥ بوصة">
+<span class="product-badge" data-i18n="cat-bags">حقائب مدرسية</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-laptop-bag">شنطة لاب توب ١٥ بوصة</h3>
+<p class="desc" data-i18n="prod-laptop-bag-desc">حقيبة لاب توب مبطنة وعملية</p>
+<p class="price">٤٥٠ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="ألوان وفرش">
+<img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=250&h=250&q=80" alt="علبة ألوان خشب ٢٤ لون">
+<span class="product-badge" data-i18n="cat-colors">ألوان وفرش</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-color-pencils">علبة ألوان خشب ٢٤ لون</h3>
+<p class="desc" data-i18n="prod-color-pencils-desc">ألوان خشبية زاهية وسهلة الاستخدام</p>
+<p class="price">٦٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="ألوان وفرش">
+<img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=250&h=250&q=80" alt="طقم ألوان مائية ١٢ لون">
+<span class="product-badge" data-i18n="cat-colors">ألوان وفرش</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-watercolors">طقم ألوان مائية ١٢ لون</h3>
+<p class="desc" data-i18n="prod-watercolors-desc">ألوان مائية احترافية مع فرشاة</p>
+<p class="price">٩٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="أدوات هندسية">
+<img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=250&h=250&q=80" alt="طقم أدوات هندسية كامل">
+<span class="product-badge" data-i18n="cat-geometry">أدوات هندسية</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-geometry-set">طقم أدوات هندسية كامل</h3>
+<p class="desc" data-i18n="prod-geometry-set-desc">طقم كامل يشمل فرجار ومنقلة ومثلثات</p>
+<p class="price">٥٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="أدوات هندسية">
+<img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=250&h=250&q=80" alt="مسطرة T شفافة ٣٠ سم">
+<span class="product-badge" data-i18n="cat-geometry">أدوات هندسية</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-t-ruler">مسطرة T شفافة ٣٠ سم</h3>
+<p class="desc" data-i18n="prod-t-ruler-desc">مسطرة شفافة دقيقة للرسم الهندسي</p>
+<p class="price">٢٥ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="ملفات ومجلدات">
+<img src="https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?auto=format&fit=crop&w=250&h=250&q=80" alt="ملف بلاستيك ٤٠ جيب">
+<span class="product-badge" data-i18n="cat-files">ملفات ومجلدات</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-plastic-file">ملف بلاستيك ٤٠ جيب</h3>
+<p class="desc" data-i18n="prod-plastic-file-desc">ملف بلاستيك شفاف لحفظ الأوراق</p>
+<p class="price">٤٠ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+<div class="product-card" data-category="آلات حاسبة">
+<img src="https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=250&h=250&q=80" alt="آلة حاسبة علمية كاسيو">
+<span class="product-badge" data-i18n="cat-calculators">آلات حاسبة</span>
+<span class="product-heart" onclick="this.classList.toggle('active')"><i class="fas fa-heart"></i></span>
+<div class="product-info">
+<h3 data-i18n="prod-calculator">آلة حاسبة علمية كاسيو</h3>
+<p class="desc" data-i18n="prod-calculator-desc">آلة حاسبة علمية متقدمة للطلاب</p>
+<p class="price">٣٥٠ ج.م</p>
+</div>
+<div class="product-actions"><a href="stationery-details.html" target="_blank" class="btn-details" data-i18n="view-details">عرض التفاصيل</a><a href="#" class="btn-cart" onclick="addToCart(event)" data-i18n="add-to-cart">أضف للسلة</a></div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="footer-inner"><div><div class="logo" style="margin-bottom:16px"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div><p data-i18n="footer-desc-short">وجهتك الأولى للكتب التعليمية في مصر.</p></div><div><h3 data-i18n="quick-links">روابط سريعة</h3><a href="index.html" style="display:block" data-i18n="nav-home">الرئيسية</a><a href="about.html" style="display:block" data-i18n="nav-about">من نحن</a><a href="books.html" style="display:block" data-i18n="nav-books">الكتب</a><a href="teachers.html" style="display:block" data-i18n="nav-teachers">المدرسين</a><a href="stationery.html" style="display:block" data-i18n="nav-stationery">الأدوات</a><a href="faq.html" style="display:block" data-i18n="faq">الأسئلة الشائعة</a></div><div><h3 data-i18n="services">خدمات</h3><a href="delivery.html" style="display:block" data-i18n="delivery">التوصيل</a><a href="grade-level.html" style="display:block" data-i18n="by-grade">حسب المرحلة</a><a href="cart.html" style="display:block" data-i18n="cart-footer">سلة التسوق</a><a href="wishlist.html" style="display:block" data-i18n="favorites">المفضلة</a></div><div><h3 data-i18n="contact-us">تواصل معنا</h3><p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p><p><i class="fas fa-phone"></i> 01012345678</p><p><i class="fas fa-envelope"></i> info@infinity-books.com</p><div class="footer-social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-youtube"></i></a></div></div></div><div class="footer-bottom" data-i18n="footer-copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</div></footer>
+
+<!-- WHATSAPP -->
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+function toggleMobile(){
+document.querySelector('.mobile-nav').classList.toggle('active');
+document.querySelector('.mobile-overlay').classList.toggle('active');
+}
+function addToCart(e){
+e.preventDefault();
+var badge=document.querySelector('.badge-count');
+badge.textContent=parseInt(badge.textContent)+1;
+e.target.textContent='\u062a\u0645\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u0629 \u2713';
+e.target.style.background='var(--primary)';
+e.target.style.color='#fff';
+}
+
+// Category filtering
+document.querySelectorAll('.filter-pill').forEach(function(pill){
+pill.addEventListener('click',function(){
+document.querySelectorAll('.filter-pill').forEach(function(p){p.classList.remove('active')});
+this.classList.add('active');
+var cat=this.getAttribute('data-category');
+document.querySelectorAll('.product-card').forEach(function(card){
+if(cat==='all'||card.getAttribute('data-category')===cat){
+card.style.display='';
+}else{
+card.style.display='none';
+}
+});
+});
+});
+</script>
+<script>document.addEventListener('DOMContentLoaded',function(){const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});
+// Dynamic scroll for stationery bg icons - move up + grow in size
+window.addEventListener('scroll', function() {
+  var scrolled = window.pageYOffset;
+  var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  var scrollPercent = maxScroll > 0 ? scrolled / maxScroll : 0;
+  document.querySelectorAll('.bg-icon').forEach(function(icon) {
+    var speed = parseFloat(icon.dataset.speed || 0.3);
+    var baseScale = 0.4;
+    var scaleGrowth = scrollPercent * 0.8;
+    var scale = baseScale + scaleGrowth;
+    var moveY = -scrolled * speed;
+    var rotate = scrolled * 0.03;
+    icon.style.transform = 'translateY(' + moveY + 'px) rotate(' + rotate + 'deg) scale(' + scale + ')';
+  });
+});
+</script>
+<script src="i18n.js"></script>
+</body>
+</html>

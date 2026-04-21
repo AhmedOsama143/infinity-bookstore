@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة إنفينيتي | Infinity - من نحن</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--primary:#578e7e;--primary-dark:#3c655a;--primary-light:#dcebe5;--gold:#e3af64;--gold-dark:#da9035;--dark:#161618;--bg:#f2f2f7;--bg-light:#f9f9fb;--warm-bg:#fff8f0;--warm-bg2:#fef3e2;--radius:16px;--radius-lg:20px;--shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);direction:rtl}
+a{text-decoration:none;color:inherit}
+.lang-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:6px 14px;border-radius:50px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;transition:0.2s;margin-right:10px;}
+.lang-toggle:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(227,175,100,0.4);}
+/* HEADER */
+.header{background:var(--warm-bg);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 40px;position:sticky;top:0;z-index:1000;box-shadow:var(--shadow)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo span:first-child{color:var(--gold-dark)}
+.logo span:last-child{color:var(--primary);font-family:'Tajawal',sans-serif;font-weight:700}
+.nav{display:flex;align-items:center;gap:28px;list-style:none}
+.nav a{font-weight:600;font-size:.95rem;transition:.3s;position:relative;padding-bottom:4px}
+.nav a:hover{color:var(--gold-dark)}
+.nav a:hover::after{content:'';position:absolute;bottom:0;right:0;width:100%;height:2px;background:var(--gold);border-radius:2px}
+.nav .badge-count{background:var(--gold);color:#fff;font-size:.7rem;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;top:-8px;right:-4px}
+.hamburger{display:none;font-size:1.5rem;cursor:pointer;color:var(--dark)}
+/* SECTION */
+.section{max-width:1280px;margin:60px auto;padding:0 20px}
+.section-title{text-align:center;font-size:1.8rem;font-weight:800;margin-bottom:8px;color:var(--dark)}
+.section-sub{text-align:center;color:#888;margin-bottom:40px;font-family:'Tajawal',sans-serif}
+/* HERO CARD */
+.hero-section{max-width:1280px;margin:40px auto;padding:0 20px}
+.hero-card{background:linear-gradient(135deg,var(--warm-bg2),var(--gold) 120%);border-radius:var(--radius-lg);padding:60px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.hero-card::before{content:'\f0eb';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;left:-20px;top:-20px;font-size:200px;color:rgba(255,255,255,.1)}
+.hero-card h1{font-size:2.5rem;font-weight:800;color:var(--dark);margin-bottom:16px}
+.hero-card p{font-size:1.15rem;color:#555;font-family:'Tajawal',sans-serif;max-width:600px;margin:0 auto}
+/* STORY */
+.story-card{background:var(--warm-bg);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-top:4px solid var(--gold);display:flex;gap:0}
+.story-card img{width:340px;min-height:100%;object-fit:cover;flex-shrink:0}
+.story-text{padding:40px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.story-text h2{font-size:1.6rem;font-weight:800;color:var(--gold-dark)}
+.story-text p{font-size:1rem;line-height:2;color:#555;font-family:'Tajawal',sans-serif}
+/* VISION MISSION */
+.vm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.vm-card{background:var(--warm-bg);border-radius:var(--radius);padding:36px;box-shadow:var(--shadow);border-top:4px solid var(--gold);text-align:center;transition:.3s}
+.vm-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.vm-card i{font-size:2.5rem;color:var(--gold-dark);margin-bottom:16px;display:block}
+.vm-card h3{font-size:1.3rem;font-weight:700;margin-bottom:12px;color:var(--dark)}
+.vm-card p{font-size:.95rem;line-height:2;color:#555;font-family:'Tajawal',sans-serif}
+/* WHY CHOOSE US */
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.feature-card{background:var(--warm-bg);border-radius:var(--radius);padding:28px 28px 28px 28px;box-shadow:var(--shadow);display:flex;align-items:center;gap:20px;border-right:4px solid var(--gold);transition:.3s}
+.feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.feature-card i{font-size:2rem;color:var(--gold-dark);flex-shrink:0;width:50px;text-align:center}
+.feature-card div h3{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.feature-card div p{font-size:.9rem;color:#666;font-family:'Tajawal',sans-serif}
+/* COUNTERS */
+.counters-section{background:var(--warm-bg);padding:60px 20px;margin:60px 0}
+.counters-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.counter-item .num{font-size:2.5rem;font-weight:800;color:var(--gold-dark);display:block;margin-bottom:8px}
+.counter-item .label{font-size:1rem;font-weight:600;color:#555;font-family:'Tajawal',sans-serif}
+/* TEAM FLIP CARDS */
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.flip-card{perspective:1000px;height:360px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d}
+.flip-card:hover .flip-inner{transform:rotateY(180deg)}
+.flip-front,.flip-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);box-shadow:var(--shadow)}
+.flip-front{background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;border-top:4px solid var(--gold)}
+.flip-front img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid var(--gold)}
+.flip-front h3{font-size:1.1rem;font-weight:700}
+.flip-front p{color:var(--primary);font-weight:600;font-size:.9rem}
+.flip-back{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;border-radius:var(--radius)}
+.flip-back h3{font-size:1.15rem}
+.flip-back p{font-size:.9rem;line-height:2;opacity:.9}
+.flip-back .stats{display:flex;gap:20px;margin:8px 0}
+.flip-back .stat{text-align:center}
+.flip-back .stat .num{font-size:1.5rem;font-weight:800;color:var(--gold)}
+.flip-back .stat .label{font-size:.75rem;opacity:.8}
+/* CONTACT CTA */
+.cta-card{background:var(--warm-bg);border-radius:var(--radius);padding:48px;box-shadow:var(--shadow);border-top:4px solid var(--gold);text-align:center}
+.cta-card h2{font-size:1.6rem;font-weight:800;margin-bottom:24px;color:var(--dark)}
+.cta-info{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-bottom:32px}
+.cta-info-item{display:flex;align-items:center;gap:10px;font-size:.95rem;color:#555;font-family:'Tajawal',sans-serif}
+.cta-info-item i{font-size:1.2rem;color:var(--gold-dark)}
+.btn-warm{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:14px 36px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 4px 16px rgba(227,175,100,.4);transition:.3s;display:inline-flex;align-items:center;gap:10px}
+.btn-warm:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(227,175,100,.5)}
+.btn-whatsapp{background:#25D366;box-shadow:0 4px 16px rgba(37,211,102,.4)}
+.btn-whatsapp:hover{box-shadow:0 6px 24px rgba(37,211,102,.5)}
+/* FOOTER */
+.footer{background:linear-gradient(135deg,#2a2a2e,var(--dark));border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:48px 40px 24px;margin-top:60px;color:#ccc}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.footer h3{color:var(--gold);font-size:1.1rem;margin-bottom:16px}
+.footer p,.footer a{font-size:.9rem;color:#aaa;line-height:2;font-family:'Tajawal',sans-serif}
+.footer a:hover{color:var(--gold)}
+.footer-social{display:flex;gap:12px;margin-top:12px}
+.footer-social a{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ccc;transition:.3s}
+.footer-social a:hover{background:var(--gold);color:#fff}
+.footer-bottom{max-width:1280px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);text-align:center;font-size:.85rem;color:#888}
+/* WHATSAPP */
+.whatsapp-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:999;transition:.3s}
+.whatsapp-float:hover{transform:scale(1.1)}
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;top:0;right:0;width:280px;height:100%;background:var(--warm-bg);z-index:2000;padding:80px 24px 24px;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.3s}
+.mobile-nav.active{transform:translateX(0)}
+.mobile-nav a{display:block;padding:12px 0;font-weight:600;font-size:1.05rem;border-bottom:1px solid rgba(0,0,0,.06)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999}
+.mobile-overlay.active{display:block}
+.mobile-close{position:absolute;top:20px;left:20px;font-size:1.5rem;cursor:pointer}
+@media(max-width:1024px){.vm-grid,.features-grid{grid-template-columns:repeat(2,1fr)}.team-grid,.counters-grid{grid-template-columns:repeat(2,1fr)}.footer-inner{grid-template-columns:repeat(2,1fr)}.story-card img{width:280px}}
+@media(max-width:768px){.nav{display:none}.hamburger{display:block}.hero-card{padding:32px}.hero-card h1{font-size:1.8rem}.story-card{flex-direction:column}.story-card img{width:100%;height:250px}.vm-grid,.features-grid,.team-grid,.counters-grid{grid-template-columns:1fr}.cta-info{flex-direction:column;align-items:center;gap:16px}.footer-inner{grid-template-columns:1fr}}
+/* FLOATING SHAPES */
+.shapes-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+.shape{position:absolute;bottom:-60px;opacity:0;animation:floatShape linear infinite}
+.shape.circle{border-radius:50%}
+.shape.square{border-radius:4px}
+.shape.diamond{transform:rotate(45deg)}
+@keyframes floatShape{
+  0%{transform:translateX(0) rotate(0deg) scale(0.6);opacity:0;bottom:-60px}
+  10%{opacity:1}
+  50%{transform:translateX(60px) rotate(180deg) scale(1)}
+  90%{opacity:1}
+  100%{transform:translateX(-30px) rotate(360deg) scale(0.6);opacity:0;bottom:110vh}
+}
+/* FADE IN ON SCROLL */
+.fade-in{opacity:0;transform:translateY(25px);transition:opacity 0.7s ease,transform 0.7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.header,.section,.hero-section,.counters-section,footer.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="shapes-bg">
+<div class="shape circle" style="width:15px;height:15px;background:rgba(227,175,100,0.06);left:5%;animation-duration:14s;animation-delay:0s"></div>
+<div class="shape square" style="width:20px;height:20px;background:rgba(87,142,126,0.07);left:15%;animation-duration:18s;animation-delay:2s"></div>
+<div class="shape diamond" style="width:12px;height:12px;background:rgba(227,175,100,0.08);left:25%;animation-duration:15s;animation-delay:4s"></div>
+<div class="shape circle" style="width:25px;height:25px;background:rgba(87,142,126,0.05);left:35%;animation-duration:20s;animation-delay:1s"></div>
+<div class="shape square" style="width:10px;height:10px;background:rgba(227,175,100,0.07);left:50%;animation-duration:13s;animation-delay:3s"></div>
+<div class="shape diamond" style="width:18px;height:18px;background:rgba(87,142,126,0.06);left:60%;animation-duration:22s;animation-delay:5s"></div>
+<div class="shape circle" style="width:30px;height:30px;background:rgba(227,175,100,0.05);left:70%;animation-duration:16s;animation-delay:0.5s"></div>
+<div class="shape square" style="width:40px;height:40px;background:rgba(87,142,126,0.06);left:80%;animation-duration:19s;animation-delay:2.5s"></div>
+<div class="shape diamond" style="width:14px;height:14px;background:rgba(227,175,100,0.08);left:88%;animation-duration:12s;animation-delay:6s"></div>
+<div class="shape circle" style="width:22px;height:22px;background:rgba(87,142,126,0.07);left:95%;animation-duration:17s;animation-delay:3.5s"></div>
+</div>
+<!-- HEADER -->
+<header class="header">
+<div class="header-inner">
+<div class="logo"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div>
+<ul class="nav">
+<li><a href="index.html" data-i18n="nav-home">الرئيسية</a></li>
+<li><a href="about.html" class="active" data-i18n="nav-about">من نحن</a></li>
+<li><a href="books.html" data-i18n="nav-books">الكتب</a></li>
+<li><a href="teachers.html" data-i18n="nav-teachers">المدرسين</a></li>
+<li><a href="stationery.html" data-i18n="nav-stationery">الأدوات</a></li>
+<li><a href="search.html"><i class="fas fa-search"></i> <span data-i18n="nav-search">البحث</span></a></li>
+<li><a href="cart.html"><i class="fas fa-shopping-cart"></i> <span data-i18n="nav-cart">السلة</span> <span class="badge-count">0</span></a></li>
+<li><a href="wishlist.html"><i class="fas fa-heart"></i></a></li>
+<li><button class="lang-toggle" onclick="toggleLang()">EN</button></li>
+<li><a href="login.html" data-i18n="nav-login"><i class="fas fa-user"></i> تسجيل الدخول</a></li>
+</ul>
+<div class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars"></i></div>
+</div>
+</header>
+<div class="mobile-overlay" onclick="toggleMobile()"></div>
+<div class="mobile-nav">
+<div class="mobile-close" onclick="toggleMobile()"><i class="fas fa-times"></i></div>
+<a href="index.html" data-i18n="nav-home">الرئيسية</a>
+<a href="about.html" data-i18n="nav-about">من نحن</a>
+<a href="books.html" data-i18n="nav-books">الكتب</a>
+<a href="teachers.html" data-i18n="nav-teachers">المدرسين</a>
+<a href="stationery.html" data-i18n="nav-stationery">الأدوات</a>
+<a href="search.html" data-i18n="nav-search">البحث</a>
+<a href="cart.html" data-i18n="nav-cart">السلة</a>
+<a href="wishlist.html" data-i18n="nav-wishlist">المفضلة</a>
+<a href="login.html" data-i18n="nav-login">تسجيل الدخول</a>
+</div>
+
+<!-- HERO -->
+<section class="hero-section fade-in">
+<div class="hero-card">
+<h1 data-i18n="about-hero-title">من نحن</h1>
+<p data-i18n="about-hero-sub">تعرف على مكتبة إنفينيتي وقصتنا</p>
+</div>
+</section>
+
+<!-- OUR STORY -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="about-story-title">قصتنا</h2>
+<p class="section-sub" data-i18n="about-story-sub">كيف بدأت رحلتنا في عالم الكتب التعليمية</p>
+<div class="story-card">
+<img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=500&h=350&q=80" alt="قصتنا">
+<div class="story-text">
+<h2 data-i18n="about-story-heading">رحلة مكتبة إنفينيتي</h2>
+<p data-i18n="about-story-p1">تأسست مكتبة إنفينيتي في عام ٢٠٢٠ بهدف توفير أفضل الكتب التعليمية للطلاب في جميع أنحاء مصر. بدأنا كمشروع صغير بشغف كبير تجاه التعليم، وسرعان ما نمت مكتبتنا لتصبح واحدة من أبرز المكتبات التعليمية في البلاد.</p>
+<p data-i18n="about-story-p2">نؤمن بأن التعليم هو أساس بناء المستقبل، ولذلك نعمل جاهدين على توفير أفضل المحتويات التعليمية من أمهر المدرسين والمؤلفين لمساعدة كل طالب على تحقيق أحلامه وطموحاته الأكاديمية.</p>
+</div>
+</div>
+</section>
+
+<!-- VISION & MISSION -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="about-vm-title">رؤيتنا ورسالتنا</h2>
+<p class="section-sub" data-i18n="about-vm-sub">نطمح للأفضل دائماً</p>
+<div class="vm-grid">
+<div class="vm-card">
+<i class="fas fa-eye"></i>
+<h3 data-i18n="about-vision-title">الرؤية</h3>
+<p data-i18n="about-vision-text">أن نكون المكتبة التعليمية الأولى في مصر والوطن العربي، ونساهم في بناء جيل متعلم ومثقف قادر على مواجهة تحديات المستقبل بثقة وعلم.</p>
+</div>
+<div class="vm-card">
+<i class="fas fa-bullseye"></i>
+<h3 data-i18n="about-mission-title">الرسالة</h3>
+<p data-i18n="about-mission-text">توفير كتب تعليمية عالية الجودة بأسعار مناسبة لجميع الطلاب، مع ضمان وصولها لكل طالب في أي مكان في مصر بسهولة وسرعة.</p>
+</div>
+</div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="about-why-title">لماذا تختارنا؟</h2>
+<p class="section-sub" data-i18n="about-why-sub">مميزات تجعلنا الخيار الأفضل</p>
+<div class="features-grid">
+<div class="feature-card">
+<i class="fas fa-book-open"></i>
+<div>
+<h3 data-i18n="about-feat1-title">كتب من أفضل المدرسين</h3>
+<p data-i18n="about-feat1-desc">نتعاون مع نخبة من أفضل المعلمين والمؤلفين في مصر لتوفير محتوى تعليمي متميز</p>
+</div>
+</div>
+<div class="feature-card">
+<i class="fas fa-tags"></i>
+<div>
+<h3 data-i18n="about-feat2-title">أسعار مناسبة</h3>
+<p data-i18n="about-feat2-desc">نحرص على تقديم أفضل الأسعار التنافسية لتكون الكتب في متناول جميع الطلاب</p>
+</div>
+</div>
+<div class="feature-card">
+<i class="fas fa-truck-fast"></i>
+<div>
+<h3 data-i18n="about-feat3-title">توصيل لجميع المحافظات</h3>
+<p data-i18n="about-feat3-desc">نوصل كتبك لباب بيتك في أي محافظة في مصر خلال ٢-٥ أيام عمل</p>
+</div>
+</div>
+<div class="feature-card">
+<i class="fas fa-headset"></i>
+<div>
+<h3 data-i18n="about-feat4-title">خدمة عملاء متميزة</h3>
+<p data-i18n="about-feat4-desc">فريق خدمة عملاء محترف متاح يومياً للرد على جميع استفساراتك ومساعدتك</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- COUNTERS -->
+<section class="counters-section fade-in">
+<div class="counters-grid">
+<div class="counter-item">
+<span class="num" data-i18n="about-counter1-num">+٥٠٠</span>
+<span class="label" data-i18n="about-counter1-label">كتاب</span>
+</div>
+<div class="counter-item">
+<span class="num" data-i18n="about-counter2-num">+١٠٠</span>
+<span class="label" data-i18n="about-counter2-label">مدرس</span>
+</div>
+<div class="counter-item">
+<span class="num" data-i18n="about-counter3-num">+١٠,٠٠٠</span>
+<span class="label" data-i18n="about-counter3-label">طالب</span>
+</div>
+<div class="counter-item">
+<span class="num" data-i18n="about-counter4-num">+٢٠</span>
+<span class="label" data-i18n="about-counter4-label">محافظة</span>
+</div>
+</div>
+</section>
+
+<!-- TEAM -->
+<section class="section fade-in">
+<h2 class="section-title" data-i18n="about-team-title">فريق العمل</h2>
+<p class="section-sub" data-i18n="about-team-sub">تعرف على فريقنا المتميز</p>
+<div class="team-grid">
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80" alt="أحمد محمد">
+<h3 data-i18n="about-team1-name">أحمد محمد</h3>
+<p data-i18n="about-team1-role">المدير العام</p>
+</div>
+<div class="flip-back">
+<h3 data-i18n="about-team1-name">أحمد محمد</h3>
+<p data-i18n="about-team1-desc">خبرة أكثر من ١٠ سنوات في إدارة المشاريع التعليمية. يقود فريق مكتبة إنفينيتي بشغف ورؤية واضحة نحو التميز.</p>
+</div>
+</div>
+</div>
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80" alt="سارة أحمد">
+<h3 data-i18n="about-team2-name">سارة أحمد</h3>
+<p data-i18n="about-team2-role">مدير المبيعات</p>
+</div>
+<div class="flip-back">
+<h3 data-i18n="about-team2-name">سارة أحمد</h3>
+<p data-i18n="about-team2-desc">متخصصة في التسويق والمبيعات مع خبرة ٧ سنوات. تعمل على توسيع نطاق خدماتنا وتحسين تجربة العملاء.</p>
+</div>
+</div>
+</div>
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80" alt="محمد حسن">
+<h3 data-i18n="about-team3-name">محمد حسن</h3>
+<p data-i18n="about-team3-role">خدمة العملاء</p>
+</div>
+<div class="flip-back">
+<h3 data-i18n="about-team3-name">محمد حسن</h3>
+<p data-i18n="about-team3-desc">يضمن رضا عملائنا من خلال تقديم دعم استثنائي والرد السريع على جميع الاستفسارات والمشكلات.</p>
+</div>
+</div>
+</div>
+<div class="flip-card">
+<div class="flip-inner">
+<div class="flip-front">
+<img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&h=150&q=80" alt="نور الدين">
+<h3 data-i18n="about-team4-name">نور الدين</h3>
+<p data-i18n="about-team4-role">مدير التوصيل</p>
+</div>
+<div class="flip-back">
+<h3 data-i18n="about-team4-name">نور الدين</h3>
+<p data-i18n="about-team4-desc">يشرف على عمليات التوصيل لضمان وصول الكتب بأمان وسرعة إلى جميع محافظات مصر.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CONTACT CTA -->
+<section class="section fade-in">
+<div class="cta-card">
+<h2 data-i18n="about-cta-title">تواصل معنا</h2>
+<div class="cta-info">
+<div class="cta-info-item">
+<i class="fas fa-phone"></i>
+<span>01012345678</span>
+</div>
+<div class="cta-info-item">
+<i class="fas fa-envelope"></i>
+<span>info@infinity-books.com</span>
+</div>
+<div class="cta-info-item">
+<i class="fas fa-map-marker-alt"></i>
+<span data-i18n="about-cta-address">القاهرة، مصر</span>
+</div>
+</div>
+<a href="https://wa.me/201012345678" target="_blank" class="btn-warm btn-whatsapp">
+<i class="fab fa-whatsapp"></i>
+<span data-i18n="about-cta-whatsapp">تواصل عبر واتساب</span>
+</a>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+<div class="footer-inner">
+<div>
+<div class="logo" style="margin-bottom:16px"><span>مكتبة إنفينيتي</span><span>| Infinity</span></div>
+<p data-i18n="footer-desc">وجهتك الأولى للكتب التعليمية في مصر. نوفر أفضل كتب المدرسين لجميع المراحل الدراسية.</p>
+</div>
+<div>
+<h3 data-i18n="quick-links">روابط سريعة</h3>
+<a href="index.html" style="display:block" data-i18n="nav-home">الرئيسية</a>
+<a href="about.html" style="display:block" data-i18n="nav-about">من نحن</a>
+<a href="books.html" style="display:block" data-i18n="nav-books">الكتب</a>
+<a href="teachers.html" style="display:block" data-i18n="nav-teachers">المدرسين</a>
+<a href="stationery.html" style="display:block" data-i18n="nav-stationery">الأدوات</a>
+<a href="faq.html" style="display:block" data-i18n="faq">الأسئلة الشائعة</a>
+</div>
+<div>
+<h3 data-i18n="services">خدمات</h3>
+<a href="delivery.html" style="display:block" data-i18n="delivery">التوصيل</a>
+<a href="grade-level.html" style="display:block" data-i18n="by-grade">حسب المرحلة</a>
+<a href="cart.html" style="display:block" data-i18n="cart-footer">سلة التسوق</a>
+<a href="wishlist.html" style="display:block" data-i18n="favorites">المفضلة</a>
+</div>
+<div>
+<h3 data-i18n="contact-us">تواصل معنا</h3>
+<p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+<p><i class="fas fa-phone"></i> 01012345678</p>
+<p><i class="fas fa-envelope"></i> info@infinity-books.com</p>
+<div class="footer-social">
+<a href="#"><i class="fab fa-facebook-f"></i></a>
+<a href="#"><i class="fab fa-twitter"></i></a>
+<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="#"><i class="fab fa-youtube"></i></a>
+</div>
+</div>
+</div>
+<div class="footer-bottom" data-i18n="footer-copyright">جميع الحقوق محفوظة &copy; 2026 مكتبة إنفينيتي</div>
+</footer>
+
+<!-- WHATSAPP -->
+<a href="https://wa.me/201012345678" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+function toggleMobile(){
+document.querySelector('.mobile-nav').classList.toggle('active');
+document.querySelector('.mobile-overlay').classList.toggle('active');
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.15});
+  document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+});
+</script>
+<script src="i18n.js"></script>
+</body>
+</html>

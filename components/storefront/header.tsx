@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import CartBadge from '@/components/cart/cart-badge';
 
 const navItems = [
   { href: '/', label: 'الرئيسية' },
@@ -52,9 +53,7 @@ export default async function Header() {
           <Link href="/wishlist" className="text-ink hover:text-primary text-lg px-2" aria-label="المفضلة">
             <i className="fa-regular fa-heart" />
           </Link>
-          <Link href="/cart" className="text-ink hover:text-primary text-lg px-2" aria-label="السلة">
-            <i className="fa-solid fa-cart-shopping" />
-          </Link>
+          <CartBadge />
 
           {user ? (
             <Link

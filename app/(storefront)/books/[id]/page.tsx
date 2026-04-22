@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { getBook, getBookStock, getRelatedBooks, getSiteSettings } from '@/lib/data';
 import { bookTypeLabelAr, fallbackCover, formatPrice, gradeLabelAr } from '@/lib/utils';
 import BookCard from '@/components/storefront/book-card';
+import AddToCartButton from '@/components/cart/add-to-cart-button';
+import BackInStockButton from '@/components/cart/back-in-stock-button';
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -144,25 +146,19 @@ export default async function BookDetailsPage({ params }: PageProps) {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="btn btn-primary px-8 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              <AddToCartButton
+                item={{
+                  book_id: book.id,
+                  title_ar: book.title_ar,
+                  cover_url: book.cover_url,
+                  unit_price: book.final_price,
+                  teacher_name: book.teacher?.name_ar,
+                }}
                 disabled={totalAvailable === 0}
-                title={totalAvailable === 0 ? 'نفدت الكمية من كل الفروع' : undefined}
-              >
-                <i className="fa-solid fa-cart-plus ml-2" />
-                {totalAvailable === 0 ? 'نفدت الكمية' : 'أضف للسلة'}
-              </button>
-              <button type="button" className="btn btn-outline px-8 py-3 text-base">
-                <i className="fa-regular fa-heart ml-2" />
-                المفضلة
-              </button>
+                disabledReason={totalAvailable === 0 ? 'نفدت الكمية' : undefined}
+              />
+              {totalAvailable === 0 && <BackInStockButton bookId={book.id} />}
             </div>
-            {totalAvailable === 0 && (
-              <p className="text-xs text-[#666] mt-3">
-                سيتم تفعيل زر "أعلمني عند التوفر" بعد تسجيل الدخول
-              </p>
-            )}
 
             {book.description && (
               <div className="mt-8">

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
 
 const navItems = [
   { href: '/', label: 'الرئيسية' },
@@ -9,7 +10,19 @@ const navItems = [
   { href: '/about', label: 'من نحن' },
 ];
 
-export default function Header() {
+export default async function Header() {
+  const supa = await createClient();
+  const { data: { user } } = await supa.auth.getUser();
+  let fullName: string | null = null;
+  if (user) {
+    const { data: student } = await supa
+      .from('students')
+      .select('full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    fullName = student?.full_name ?? user.email ?? null;
+  }
+
   return (
     <header className="sticky top-0 bg-white z-40 h-[70px] flex items-center shadow-card">
       <div className="container-app flex items-center justify-between w-full">
@@ -42,8 +55,21 @@ export default function Header() {
           <Link href="/cart" className="text-ink hover:text-primary text-lg px-2" aria-label="السلة">
             <i className="fa-solid fa-cart-shopping" />
           </Link>
-          <Link href="/login" className="btn btn-outline text-sm hidden sm:inline-block">دخول</Link>
-          <Link href="/register" className="btn btn-primary text-sm">تسجيل</Link>
+
+          {user ? (
+            <Link
+              href="/account"
+              className="flex items-center gap-2 bg-primary-light text-primary-dark px-4 py-1.5 rounded-pill font-semibold text-sm hover:bg-primary hover:text-white transition-colors max-w-[150px]"
+            >
+              <i className="fa-solid fa-user text-xs" />
+              <span className="truncate">{fullName ?? 'حسابي'}</span>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="btn btn-outline text-sm hidden sm:inline-block">دخول</Link>
+              <Link href="/register" className="btn btn-primary text-sm">تسجيل</Link>
+            </>
+          )}
         </div>
       </div>
     </header>

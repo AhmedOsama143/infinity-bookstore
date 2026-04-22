@@ -463,7 +463,7 @@ site_settings                    -- singleton
 
 > Payment is intentionally **last** (Phase 8). Until then, all orders flow as **Cash on Pickup / Cash on Delivery**.
 
-### Phase 0 — Setup & Foundations  *(1–2 days)*
+### Phase 0 — Setup & Foundations  *(1–2 days)*  ✅ **DONE 2026-04-21**
 - Init Next.js + TypeScript + Tailwind repo
 - Create second Supabase project for dev
 - Port `mockup1` HTML to Next.js components, swapping inline styles for Tailwind (tokens match exactly)
@@ -471,7 +471,7 @@ site_settings                    -- singleton
 - Sentry, Plausible, Meta Pixel, Turnstile installed + configured
 - Git repo + initial commit
 
-### Phase 1 — Database & Seed  *(2–3 days)*
+### Phase 1 — Database & Seed  *(2–3 days)*  ✅ **DONE 2026-04-22**
 - All tables from §5 via Supabase SQL migrations
 - RLS policies
 - Seed scripts:

@@ -60,17 +60,33 @@ export default async function OrdersPage({ searchParams }: Props) {
             {statusLabels[s]}
           </Link>
         ))}
-        {ctx.role === 'admin' && branches && branches.length > 0 && (
-          <select
-            className="bg-white px-4 py-2 rounded-pill text-sm font-bold border border-[#ddd]"
-            defaultValue={params.branch ?? ''}
-            onChange={() => {}}
-          >
-            <option value="">كل الفروع</option>
-            {branches.map((b) => <option key={b.id} value={b.id}>{b.name_ar}</option>)}
-          </select>
-        )}
       </div>
+
+      {ctx.role === 'admin' && branches && branches.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-5 items-center">
+          <span className="text-xs text-[#666] ml-2">الفرع:</span>
+          <Link
+            href={params.status ? `/admin/orders?status=${params.status}` : '/admin/orders'}
+            className={`px-3 py-1 rounded-pill text-xs font-bold ${!params.branch ? 'bg-primary-dark text-white' : 'bg-white text-ink hover:bg-primary-light'}`}
+          >
+            كل الفروع
+          </Link>
+          {branches.map((b) => {
+            const qs = new URLSearchParams();
+            if (params.status) qs.set('status', params.status);
+            qs.set('branch', b.id);
+            return (
+              <Link
+                key={b.id}
+                href={`/admin/orders?${qs.toString()}`}
+                className={`px-3 py-1 rounded-pill text-xs font-bold ${params.branch === b.id ? 'bg-primary-dark text-white' : 'bg-white text-ink hover:bg-primary-light'}`}
+              >
+                {b.name_ar}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* Table */}
       <div className="card overflow-x-auto">

@@ -66,10 +66,13 @@ export async function getTeacherBooks(teacherId: number): Promise<Book[]> {
 }
 
 // ---------- Books ----------
+export type BookSort = 'newest' | 'price_low' | 'price_high';
+
 export interface BookListFilters {
   grade?: GradeLevel;
   teacher_id?: number;
   search?: string;
+  sort?: BookSort;
   limit?: number;
 }
 
@@ -86,7 +89,17 @@ export async function getBooks(filters: BookListFilters = {}): Promise<BookWithT
   if (filters.teacher_id) query = query.eq('teacher_id', filters.teacher_id);
   if (filters.search) query = query.ilike('title_ar', `%${filters.search}%`);
   if (filters.limit) query = query.limit(filters.limit);
-  query = query.order('id', { ascending: false });
+
+  switch (filters.sort) {
+    case 'price_low':
+      query = query.order('final_price', { ascending: true });
+      break;
+    case 'price_high':
+      query = query.order('final_price', { ascending: false });
+      break;
+    default:
+      query = query.order('id', { ascending: false });
+  }
 
   const { data } = await query;
   return (data ?? []) as unknown as BookWithTeacher[];

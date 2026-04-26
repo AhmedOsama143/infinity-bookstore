@@ -34,7 +34,16 @@ export default async function AdminBooksPage({ searchParams }: Props) {
   }
 
   return (
-    <PageShell title="الكتب" subtitle={`${books?.length ?? 0} كتاب`}>
+    <PageShell
+      title="الكتب"
+      subtitle={`${books?.length ?? 0} كتاب`}
+      actions={
+        <Link href="/admin/books/new" className="btn bg-white text-primary-dark hover:bg-bg-light px-5 py-2 text-sm">
+          <i className="fa-solid fa-plus ml-2" />
+          إضافة كتاب جديد
+        </Link>
+      }
+    >
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <Link href="/admin/books" className={`px-4 py-2 rounded-pill text-sm font-bold ${!params.grade && !params.review ? 'bg-primary text-white' : 'bg-white text-ink hover:bg-primary-light'}`}>الكل</Link>
@@ -68,7 +77,7 @@ export default async function AdminBooksPage({ searchParams }: Props) {
                 <tr key={b.id} className="border-b border-bg-light hover:bg-bg-light/50 last:border-0">
                   <td className="p-3 text-[#888]">{b.id}</td>
                   <td className="p-3">
-                    <Link href={`/books/${b.id}`} className="font-bold hover:text-primary" target="_blank">
+                    <Link href={`/admin/books/${b.id}/edit`} className="font-bold hover:text-primary">
                       {b.title_ar}
                     </Link>
                     {b.needs_review && <span className="block text-[10px] text-accent-dark mt-0.5">⚠️ تحتاج مراجعة</span>}

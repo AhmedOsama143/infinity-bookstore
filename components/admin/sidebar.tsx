@@ -12,14 +12,18 @@ interface Item {
 }
 
 const items: Item[] = [
-  { href: '/admin',           label: 'الرئيسية',     icon: 'fa-gauge-high' },
-  { href: '/admin/orders',    label: 'الطلبات',       icon: 'fa-bag-shopping' },
-  { href: '/admin/branches',  label: 'الفروع',         icon: 'fa-store' },
-  { href: '/admin/books',     label: 'الكتب',          icon: 'fa-book' },
-  { href: '/admin/teachers',  label: 'المدرسين',       icon: 'fa-chalkboard-user', adminOnly: true },
-  { href: '/admin/students',  label: 'الطلاب',         icon: 'fa-users',           adminOnly: true },
-  { href: '/admin/shipping',  label: 'الشحن والتوصيل', icon: 'fa-truck',           adminOnly: true },
-  { href: '/admin/notifications', label: 'الإشعارات',  icon: 'fa-bell' },
+  { href: '/admin',                       label: 'الرئيسية',           icon: 'fa-gauge-high' },
+  { href: '/admin/orders',                label: 'الطلبات',             icon: 'fa-bag-shopping' },
+  { href: '/admin/analytics/orders',      label: 'تحليلات الطلبات',     icon: 'fa-chart-line' },
+  { href: '/admin/analytics/payments',    label: 'الدفعات والحجوزات',   icon: 'fa-coins' },
+  { href: '/admin/branches',              label: 'الفروع',               icon: 'fa-store' },
+  { href: '/admin/books',                 label: 'الكتب',                icon: 'fa-book' },
+  { href: '/admin/teachers',              label: 'المدرسين',             icon: 'fa-chalkboard-user', adminOnly: true },
+  { href: '/admin/students',              label: 'الطلاب',               icon: 'fa-users',           adminOnly: true },
+  { href: '/admin/returns',               label: 'الإرجاعات',            icon: 'fa-rotate-left' },
+  { href: '/admin/shipping',              label: 'الشحن والتوصيل',       icon: 'fa-truck',           adminOnly: true },
+  { href: '/admin/content',               label: 'محتوى الموقع',          icon: 'fa-file-pen',        adminOnly: true },
+  { href: '/admin/notifications',         label: 'الإشعارات',            icon: 'fa-bell' },
 ];
 
 export default function Sidebar({ role, email }: { role: AdminRole; email: string | null }) {

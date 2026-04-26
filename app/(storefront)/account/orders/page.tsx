@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { formatPrice } from '@/lib/utils';
 import type { OrderStatus } from '@/lib/types';
+import ReturnRequestForm from '@/components/account/return-request-form';
 
 export const metadata = { title: 'طلباتي | مكتبة إنفينيتي' };
 
@@ -42,29 +43,35 @@ export default async function OrdersPage() {
 
   return (
     <div className="space-y-4">
-      {orders.map((o: any) => (
-        <Link
-          key={o.id}
-          href={`/account/orders/${o.id}`}
-          className="card card-hover p-5 flex flex-wrap items-center justify-between gap-4"
-        >
-          <div>
-            <div className="font-bold text-primary-dark">{o.order_number}</div>
-            <div className="text-xs text-[#666]">
-              {new Date(o.created_at).toLocaleDateString('ar-EG', { dateStyle: 'medium' })} —{' '}
-              {o.fulfillment_type === 'pickup' ? `استلام من ${o.branch?.name_ar}` : 'توصيل'}
+      {orders.map((o: any) => {
+        const canReturn = ['ready', 'completed'].includes(o.status);
+        return (
+          <div key={o.id} className="card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="font-bold text-primary-dark">{o.order_number}</div>
+                <div className="text-xs text-[#666]">
+                  {new Date(o.created_at).toLocaleDateString('ar-EG', { dateStyle: 'medium' })} —{' '}
+                  {o.fulfillment_type === 'pickup' ? `استلام من ${o.branch?.name_ar}` : 'توصيل'}
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-3 py-1 rounded-pill text-xs font-bold ${statusClass[o.status as OrderStatus]}`}>
+                  {statusLabelAr[o.status as OrderStatus]}
+                </span>
+                <span className="font-extrabold text-accent-dark text-lg">
+                  {formatPrice(o.total)}
+                </span>
+              </div>
             </div>
+            {canReturn && (
+              <div className="mt-3 pt-3 border-t border-bg-light">
+                <ReturnRequestForm orderId={o.id} />
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-4">
-            <span className={`px-3 py-1 rounded-pill text-xs font-bold ${statusClass[o.status as OrderStatus]}`}>
-              {statusLabelAr[o.status as OrderStatus]}
-            </span>
-            <span className="font-extrabold text-accent-dark text-lg">
-              {formatPrice(o.total)}
-            </span>
-          </div>
-        </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

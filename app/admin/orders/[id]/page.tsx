@@ -34,7 +34,19 @@ export default async function OrderDetailPage({ params }: Props) {
     <PageShell
       title={`الطلب ${order.order_number}`}
       subtitle={new Date(order.created_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })}
-      actions={<StatusPill status={order.status as OrderStatus} />}
+      actions={
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/orders/${order.id}/invoice`}
+            target="_blank"
+            className="btn bg-white text-primary-dark hover:bg-bg-light px-4 py-2 text-sm"
+          >
+            <i className="fa-solid fa-print ml-2" />
+            طباعة فاتورة
+          </Link>
+          <StatusPill status={order.status as OrderStatus} />
+        </div>
+      }
     >
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-5">

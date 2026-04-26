@@ -14,7 +14,16 @@ export default async function AdminStudentsPage() {
     .order('created_at', { ascending: false });
 
   return (
-    <PageShell title="الطلاب" subtitle={`${students?.length ?? 0} حساب طالب`}>
+    <PageShell
+      title="الطلاب"
+      subtitle={`${students?.length ?? 0} حساب طالب`}
+      actions={
+        <a href="/api/admin/export/students" download className="btn bg-white text-primary-dark hover:bg-bg-light px-5 py-2 text-sm">
+          <i className="fa-solid fa-file-csv ml-2" />
+          تنزيل CSV
+        </a>
+      }
+    >
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-primary-light text-primary-dark text-xs">

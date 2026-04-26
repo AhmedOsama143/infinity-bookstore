@@ -20,9 +20,13 @@ const items: Item[] = [
   { href: '/admin/books',                 label: 'الكتب',                icon: 'fa-book' },
   { href: '/admin/teachers',              label: 'المدرسين',             icon: 'fa-chalkboard-user', adminOnly: true },
   { href: '/admin/students',              label: 'الطلاب',               icon: 'fa-users',           adminOnly: true },
+  { href: '/admin/reviews',               label: 'مراجعات الكتب',         icon: 'fa-star',            adminOnly: true },
   { href: '/admin/returns',               label: 'الإرجاعات',            icon: 'fa-rotate-left' },
+  { href: '/admin/transfers',             label: 'نقل المخزون',           icon: 'fa-right-left',      adminOnly: true },
+  { href: '/admin/promos',                label: 'أكواد الخصم',           icon: 'fa-tag',             adminOnly: true },
   { href: '/admin/shipping',              label: 'الشحن والتوصيل',       icon: 'fa-truck',           adminOnly: true },
   { href: '/admin/content',               label: 'محتوى الموقع',          icon: 'fa-file-pen',        adminOnly: true },
+  { href: '/admin/audit',                 label: 'سجل التدقيق',           icon: 'fa-shield-halved',   adminOnly: true },
   { href: '/admin/notifications',         label: 'الإشعارات',            icon: 'fa-bell' },
 ];
 

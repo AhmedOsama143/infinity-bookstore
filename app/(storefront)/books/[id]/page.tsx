@@ -6,6 +6,7 @@ import { bookTypeLabelAr, fallbackCover, formatPrice, gradeLabelAr } from '@/lib
 import BookCard from '@/components/storefront/book-card';
 import AddToCartButton from '@/components/cart/add-to-cart-button';
 import BackInStockButton from '@/components/cart/back-in-stock-button';
+import ReviewsSection from '@/components/storefront/reviews-section';
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -175,6 +176,9 @@ export default async function BookDetailsPage({ params }: PageProps) {
             )}
           </div>
         </div>
+
+        {/* Reviews */}
+        <ReviewsSection bookId={book.id} />
 
         {/* Related books */}
         {related.length > 0 && (

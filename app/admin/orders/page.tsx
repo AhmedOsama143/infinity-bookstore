@@ -33,7 +33,16 @@ export default async function OrdersPage({ searchParams }: Props) {
   };
 
   return (
-    <PageShell title="الطلبات" subtitle={`${orders?.length ?? 0} طلب`}>
+    <PageShell
+      title="الطلبات"
+      subtitle={`${orders?.length ?? 0} طلب`}
+      actions={
+        <a href="/api/admin/export/orders" download className="btn bg-white text-primary-dark hover:bg-bg-light px-5 py-2 text-sm">
+          <i className="fa-solid fa-file-csv ml-2" />
+          تنزيل CSV
+        </a>
+      }
+    >
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <Link

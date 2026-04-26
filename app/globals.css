@@ -43,3 +43,73 @@
     @apply text-center text-[#666] text-[1.05rem] mb-12;
   }
 }
+
+/* ---------- Mockup ambient animations ---------- */
+/* Floating bubbles in the page background */
+.bubbles-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bubble {
+  position: absolute;
+  bottom: -80px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatBubble linear infinite;
+}
+@keyframes floatBubble {
+  0%   { transform: translateX(0) scale(0.5); opacity: 0; bottom: -80px; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(100px) scale(1); opacity: 0; bottom: 110vh; }
+}
+
+/* Decorative background icons (parallax-animated via JS) */
+.bg-icons {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-icon {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.12;
+  transform: scale(0.4);
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+.bg-icon.small { font-size: 16px; }
+.bg-icon.large { font-size: 40px; }
+.bg-icon.xlarge { font-size: 56px; }
+
+/* Sit foreground content above the ambient layers */
+header,
+main,
+footer,
+.section,
+.page-header {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fade-in-on-scroll (toggled by IntersectionObserver in SiteAmbient) */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble { animation: none; }
+  .bg-icon { transition: none; }
+  .fade-in { opacity: 1; transform: none; transition: none; }
+}

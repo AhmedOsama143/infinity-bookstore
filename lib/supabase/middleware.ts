@@ -30,9 +30,10 @@ export async function updateSession(request: NextRequest) {
 
   const url = request.nextUrl;
   const isAccount = url.pathname.startsWith('/account') || url.pathname.startsWith('/wishlist');
+  const isAdmin = url.pathname.startsWith('/admin');
   const isAuthPage = url.pathname.startsWith('/login') || url.pathname.startsWith('/register');
 
-  if (isAccount && !user) {
+  if ((isAccount || isAdmin) && !user) {
     const redirect = url.clone();
     redirect.pathname = '/login';
     redirect.searchParams.set('next', url.pathname);
@@ -41,9 +42,13 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthPage && user) {
     const redirect = url.clone();
-    redirect.pathname = '/account';
+    redirect.pathname = isAdminUser(user) ? '/admin' : '/account';
     return NextResponse.redirect(redirect);
   }
 
   return response;
+}
+
+function isAdminUser(user: { app_metadata?: Record<string, unknown> | null } | null): boolean {
+  return user?.app_metadata?.role === 'admin';
 }

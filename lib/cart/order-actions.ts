@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { CartItem } from './types';
 import type { ShippingAreaType, FulfillmentType } from '@/lib/types';
 import { computeShipping } from './shipping';
@@ -77,8 +77,15 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
   const total = subtotal + quote.fee;
 
+  // Use the service-role client for the writes. This is required because the
+  // notify_admin_new_order trigger (and similar) inserts into the notifications
+  // table, which has admin-only RLS — under the user's session those trigger
+  // inserts get blocked. All inputs above are already validated server-side
+  // (auth, cap, prices, books), so RLS isn't the primary safety net here.
+  const admin = createAdminClient();
+
   // Create order (DB trigger auto-generates order_number, reserves stock, updates count)
-  const { data: order, error: orderErr } = await supa
+  const { data: order, error: orderErr } = await admin
     .from('orders')
     .insert({
       student_id: user.id,
@@ -111,10 +118,10 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       unit_price: Number(priceMap.get(i.book_id)!.final_price),
     }));
 
-  const { error: itemsErr } = await supa.from('order_items').insert(itemsPayload);
+  const { error: itemsErr } = await admin.from('order_items').insert(itemsPayload);
   if (itemsErr) {
     // Roll back the order on item failure (stock reservation also rolls back via trigger)
-    await supa.from('orders').delete().eq('id', order.id);
+    await admin.from('orders').delete().eq('id', order.id);
     return { error: translateOrderError(itemsErr.message) };
   }
 

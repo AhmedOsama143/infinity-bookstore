@@ -5,7 +5,7 @@ import { signOut } from '@/lib/auth/actions';
 
 const items = [
   { href: '/account', label: 'الملف الشخصي', icon: 'fa-user' },
-  { href: '/account/orders', label: 'طلباتي', icon: 'fa-bag-shopping' },
+  { href: '/account/orders', label: 'طلباتي ومدفوعاتي', icon: 'fa-bag-shopping' },
   { href: '/wishlist', label: 'المفضلة', icon: 'fa-heart' },
   { href: '/account/notifications', label: 'الإشعارات', icon: 'fa-bell' },
 ];

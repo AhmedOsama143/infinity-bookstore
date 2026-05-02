@@ -9,9 +9,24 @@ export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const teacher = await getTeacher(parseInt(id, 10));
   if (!teacher) return { title: 'المدرس غير موجود' };
+  const title = `${teacher.name_ar} | مكتبة إنفينيتي`;
+  const description = teacher.description ?? teacher.subject ?? undefined;
+  const image = teacher.photo_url ?? undefined;
   return {
-    title: `${teacher.name_ar} | مكتبة إنفينيتي`,
-    description: teacher.description ?? teacher.subject ?? undefined,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'profile',
+      images: image ? [{ url: image, width: 400, height: 400, alt: teacher.name_ar }] : undefined,
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
   };
 }
 
@@ -32,8 +47,25 @@ export default async function TeacherProfilePage({ params }: PageProps) {
       `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'><circle cx='75' cy='75' r='75' fill='%23dcebe5'/><text x='50%' y='55%' text-anchor='middle' font-size='64' fill='%233c655a' font-family='Cairo'>${teacher.name_ar.charAt(0)}</text></svg>`
     );
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: teacher.name_ar,
+    description: teacher.description ?? undefined,
+    image: teacher.photo_url ?? undefined,
+    jobTitle: teacher.subject ?? undefined,
+    address: teacher.governorate
+      ? { '@type': 'PostalAddress', addressLocality: teacher.governorate, addressCountry: 'EG' }
+      : undefined,
+    sameAs: [teacher.facebook_url, teacher.youtube_url, teacher.website_url].filter(Boolean),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Teacher header */}
       <section className="bg-page-header text-white py-14">
         <div className="container-app">
@@ -50,7 +82,7 @@ export default async function TeacherProfilePage({ params }: PageProps) {
               />
             </div>
             <div>
-              <h1 className="text-4xl font-extrabold mb-2">{teacher.name_ar}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2">{teacher.name_ar}</h1>
               {teacher.subject && <p className="text-xl opacity-90 mb-2">{teacher.subject}</p>}
               {teacher.governorate && (
                 <p className="opacity-75">

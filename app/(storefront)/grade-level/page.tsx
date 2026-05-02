@@ -26,9 +26,9 @@ export default async function GradeLevelPage() {
             if (books.length === 0) return null;
             return (
               <div key={g}>
-                <div className="flex items-end justify-between mb-6">
-                  <h2 className="text-2xl font-extrabold text-primary-dark">{gradeLabelAr[g]}</h2>
-                  <Link href={`/books?grade=${g}`} className="btn btn-outline text-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-2 mb-6">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-primary-dark">{gradeLabelAr[g]}</h2>
+                  <Link href={`/books?grade=${g}`} className="btn btn-outline text-sm shrink-0">
                     عرض الكل ({books.length})
                   </Link>
                 </div>

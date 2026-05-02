@@ -118,6 +118,35 @@ export async function getBook(id: number): Promise<BookWithTeacher | null> {
   return data as unknown as BookWithTeacher | null;
 }
 
+// Trigram-based fuzzy search (Arabic-aware via pg_trgm).
+export async function searchBooks(q: string, limit = 24): Promise<BookWithTeacher[]> {
+  if (!q.trim()) return [];
+  const supa = await createClient();
+  const { data: matches } = await supa.rpc('search_books', { q, lim: limit });
+  if (!matches || matches.length === 0) return [];
+  const ids = matches.map((b: { id: number }) => b.id);
+  const { data } = await supa
+    .from('books')
+    .select(
+      'id, title_ar, teacher_id, grade_level, book_type, description, cover_url, price, discount_pct, final_price, weight_grams, publish_year, isbn, is_active, needs_review, teacher:teachers(id, name_ar, photo_url)'
+    )
+    .in('id', ids);
+  // Preserve RPC ordering (best match first).
+  const order = new Map<number, number>(
+    (ids as number[]).map((id, i) => [id, i])
+  );
+  return ((data ?? []) as unknown as BookWithTeacher[]).sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
+  );
+}
+
+export async function searchTeachers(q: string, limit = 12): Promise<Teacher[]> {
+  if (!q.trim()) return [];
+  const supa = await createClient();
+  const { data } = await supa.rpc('search_teachers', { q, lim: limit });
+  return (data ?? []) as Teacher[];
+}
+
 export async function getRelatedBooks(
   book: Pick<BookWithTeacher, 'id' | 'teacher_id' | 'grade_level'>,
   limit = 6

@@ -16,7 +16,7 @@ export default function TeacherCard({ teacher, booksCount }: Props) {
 
   return (
     <Link href={`/teachers/${teacher.id}`} className="block">
-      <div className="card card-hover p-8 text-center">
+      <div className="card card-hover p-4 sm:p-6 md:p-8 text-center">
         <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 border-[3px] border-primary-light relative">
           <Image
             src={teacher.photo_url ?? placeholder}

@@ -160,18 +160,18 @@ export default async function OrdersPage() {
   return (
     <div className="space-y-5">
       {/* Summary strip */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card p-4 text-center">
-          <div className="text-xs text-[#666] mb-1">إجمالي الطلبات</div>
-          <div className="text-2xl font-extrabold text-primary-dark">{ordersCount}</div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="card p-3 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#666] mb-1">إجمالي الطلبات</div>
+          <div className="text-lg sm:text-2xl font-extrabold text-primary-dark">{ordersCount}</div>
         </div>
-        <div className="card p-4 text-center">
-          <div className="text-xs text-[#666] mb-1">قيد التنفيذ</div>
-          <div className="text-2xl font-extrabold text-accent-dark">{activeCount}</div>
+        <div className="card p-3 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#666] mb-1">قيد التنفيذ</div>
+          <div className="text-lg sm:text-2xl font-extrabold text-accent-dark">{activeCount}</div>
         </div>
-        <div className="card p-4 text-center">
-          <div className="text-xs text-[#666] mb-1">إجمالي المدفوع</div>
-          <div className="text-2xl font-extrabold text-primary-dark">
+        <div className="card p-3 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#666] mb-1">إجمالي المدفوع</div>
+          <div className="text-lg sm:text-2xl font-extrabold text-primary-dark">
             {formatPrice(totalSpent)}
           </div>
         </div>

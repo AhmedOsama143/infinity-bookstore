@@ -77,22 +77,22 @@ export default async function AdminOverviewPage() {
   return (
     <PageShell title="نظرة عامة" subtitle={`أهلاً ${ctx.email ?? ''}`}>
       {/* KPI tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <Kpi label="طلبات اليوم"      value={ordersToday.count ?? 0}          icon="fa-calendar-day" />
         <Kpi label="طلبات الأسبوع"    value={ordersWeek.count ?? 0}           icon="fa-calendar-week" />
         <Kpi label="طلبات الشهر"      value={ordersMonth.count ?? 0}          icon="fa-calendar" />
         <Kpi label="إجمالي الإيرادات" value={formatPrice(totalRevenue)}       icon="fa-coins" highlight />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
         <Kpi label="بانتظار التأكيد"   value={pendingOrders.count ?? 0} icon="fa-clock" warn={(pendingOrders.count ?? 0) > 0} />
         <Kpi label="مخزون منخفض"      value={lowStock.length}            icon="fa-triangle-exclamation" warn={lowStock.length > 0} />
         <Kpi label="عدد الفروع"        value={branchRows.length}          icon="fa-store" />
       </div>
 
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+      <div className="grid lg:grid-cols-[2fr_1fr] gap-4 sm:gap-6">
         {/* Latest orders */}
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-primary-dark">أحدث الطلبات</h2>
             <Link href="/admin/orders" className="text-primary text-sm font-bold hover:text-primary-dark">عرض الكل ←</Link>
@@ -100,32 +100,34 @@ export default async function AdminOverviewPage() {
           {latestOrders.length === 0 ? (
             <p className="text-sm text-[#666] text-center py-6">لا توجد طلبات بعد</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="text-xs text-[#666] border-b border-bg-light">
-                <tr>
-                  <th className="text-right py-2">رقم الطلب</th>
-                  <th className="text-right py-2">الطالب</th>
-                  <th className="text-right py-2">الفرع</th>
-                  <th className="text-right py-2">الحالة</th>
-                  <th className="text-left py-2">المبلغ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestOrders.map((o: any) => (
-                  <tr key={o.id} className="border-b border-bg-light last:border-0 hover:bg-bg-light/50">
-                    <td className="py-3">
-                      <Link href={`/admin/orders/${o.id}`} className="text-primary font-bold hover:text-primary-dark">
-                        {o.order_number}
-                      </Link>
-                    </td>
-                    <td className="py-3">{o.student?.full_name ?? '—'}</td>
-                    <td className="py-3 text-xs">{o.branch?.name_ar ?? '—'}</td>
-                    <td className="py-3"><StatusPill status={o.status} /></td>
-                    <td className="py-3 text-left font-bold">{formatPrice(Number(o.total))}</td>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm min-w-[500px]">
+                <thead className="text-xs text-[#666] border-b border-bg-light">
+                  <tr>
+                    <th className="text-right py-2 px-2">رقم الطلب</th>
+                    <th className="text-right py-2 px-2">الطالب</th>
+                    <th className="text-right py-2 px-2">الفرع</th>
+                    <th className="text-right py-2 px-2">الحالة</th>
+                    <th className="text-left py-2 px-2">المبلغ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {latestOrders.map((o: any) => (
+                    <tr key={o.id} className="border-b border-bg-light last:border-0 hover:bg-bg-light/50">
+                      <td className="py-3 px-2">
+                        <Link href={`/admin/orders/${o.id}`} className="text-primary font-bold hover:text-primary-dark">
+                          {o.order_number}
+                        </Link>
+                      </td>
+                      <td className="py-3 px-2 text-sm">{o.student?.full_name ?? '—'}</td>
+                      <td className="py-3 px-2 text-xs">{o.branch?.name_ar ?? '—'}</td>
+                      <td className="py-3 px-2"><StatusPill status={o.status} /></td>
+                      <td className="py-3 px-2 text-left font-bold">{formatPrice(Number(o.total))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

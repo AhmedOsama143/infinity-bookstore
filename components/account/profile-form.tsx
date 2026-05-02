@@ -37,14 +37,14 @@ export default function ProfileForm({ initial, booksOrderedCount, cap }: Props) 
       }}
       className="card p-6 space-y-5"
     >
-      <div className="flex items-center justify-between pb-4 border-b border-bg-light">
+      <div className="flex items-center justify-between pb-4 border-b border-bg-light gap-3">
         <div>
-          <h2 className="text-xl font-bold text-primary-dark">بياناتي</h2>
-          <p className="text-sm text-[#666]">تأكد من صحة البيانات قبل الطلب</p>
+          <h2 className="text-lg sm:text-xl font-bold text-primary-dark">بياناتي</h2>
+          <p className="text-xs sm:text-sm text-[#666]">تأكد من صحة البيانات قبل الطلب</p>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-extrabold text-primary">{booksOrderedCount}/{cap}</div>
-          <div className="text-xs text-[#666]">كتاب مطلوب</div>
+        <div className="text-center shrink-0">
+          <div className="text-xl sm:text-2xl font-extrabold text-primary">{booksOrderedCount}/{cap}</div>
+          <div className="text-[10px] sm:text-xs text-[#666]">كتاب مطلوب</div>
         </div>
       </div>
 

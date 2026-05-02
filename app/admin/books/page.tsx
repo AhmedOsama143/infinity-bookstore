@@ -38,10 +38,16 @@ export default async function AdminBooksPage({ searchParams }: Props) {
       title="الكتب"
       subtitle={`${books?.length ?? 0} كتاب`}
       actions={
-        <Link href="/admin/books/new" className="btn bg-white text-primary-dark hover:bg-bg-light px-5 py-2 text-sm">
-          <i className="fa-solid fa-plus ml-2" />
-          إضافة كتاب جديد
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/books/import" className="btn bg-white/20 text-white hover:bg-white/30 px-5 py-2 text-sm border border-white/30">
+            <i className="fa-solid fa-file-csv ml-2" />
+            استيراد CSV
+          </Link>
+          <Link href="/admin/books/new" className="btn bg-white text-primary-dark hover:bg-bg-light px-5 py-2 text-sm">
+            <i className="fa-solid fa-plus ml-2" />
+            إضافة كتاب جديد
+          </Link>
+        </div>
       }
     >
       {/* Filters */}

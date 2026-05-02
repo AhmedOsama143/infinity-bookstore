@@ -14,9 +14,24 @@ export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const book = await getBook(parseInt(id, 10));
   if (!book) return { title: 'كتاب غير موجود' };
+  const title = `${book.title_ar} | مكتبة إنفينيتي`;
+  const description = book.description ?? `${book.title_ar} - ${book.teacher?.name_ar ?? ''}`.trim();
+  const image = book.cover_url ?? undefined;
   return {
-    title: `${book.title_ar} | مكتبة إنفينيتي`,
-    description: book.description ?? book.title_ar,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      images: image ? [{ url: image, width: 600, height: 800, alt: book.title_ar }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
   };
 }
 
@@ -39,8 +54,35 @@ export default async function BookDetailsPage({ params }: PageProps) {
   const totalAvailable = stock.reduce((sum, s) => sum + s.available, 0);
   const inStockBranches = stock.filter((s) => s.available > 0);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title_ar,
+    description: book.description ?? undefined,
+    image: book.cover_url ?? undefined,
+    isbn: book.isbn ?? undefined,
+    inLanguage: 'ar',
+    bookFormat: 'https://schema.org/Paperback',
+    author: book.teacher
+      ? { '@type': 'Person', name: book.teacher.name_ar }
+      : undefined,
+    offers: {
+      '@type': 'Offer',
+      price: book.final_price,
+      priceCurrency: 'EGP',
+      availability:
+        totalAvailable > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+    },
+  };
+
   return (
     <section className="section">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="container-app">
         <nav className="text-sm text-[#666] mb-6">
           <Link href="/" className="hover:text-primary">الرئيسية</Link>
@@ -50,7 +92,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
           <span className="text-ink">{book.title_ar}</span>
         </nav>
 
-        <div className="grid md:grid-cols-[320px_1fr] gap-10">
+        <div className="grid md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] gap-6 md:gap-10">
           <div className="relative aspect-[3/4] rounded-card overflow-hidden shadow-card bg-bg-light">
             <Image
               src={cover}
@@ -73,7 +115,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
               </span>
             </div>
 
-            <h1 className="text-3xl font-extrabold mb-3">{book.title_ar}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold mb-3">{book.title_ar}</h1>
             {book.teacher && (
               <Link
                 href={`/teachers/${book.teacher.id}`}
@@ -85,7 +127,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
             )}
 
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-4xl font-extrabold text-accent-dark">
+              <span className="text-2xl sm:text-4xl font-extrabold text-accent-dark">
                 {formatPrice(book.final_price)}
               </span>
               {book.discount_pct > 0 && (
@@ -187,7 +229,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
             <p className="section-subtitle">
               {book.teacher ? `كتب أخرى لـ ${book.teacher.name_ar} أو في نفس الصف` : `كتب أخرى في ${gradeLabelAr[book.grade_level]}`}
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {related.map((b) => (
                 <BookCard key={b.id} book={b} />
               ))}

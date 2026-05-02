@@ -31,7 +31,7 @@ export default async function OrderSuccessPage({ params }: Props) {
           <div className="w-20 h-20 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-4 text-4xl">
             <i className="fa-solid fa-check" />
           </div>
-          <h1 className="text-3xl font-extrabold text-primary-dark mb-2">تم استلام طلبك!</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-dark mb-2">تم استلام طلبك!</h1>
           <p className="text-[#666]">
             رقم الطلب: <span className="font-bold text-accent-dark text-lg">{order.order_number}</span>
           </p>

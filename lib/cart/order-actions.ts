@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendEmail } from '@/lib/email';
 import type { CartItem } from './types';
 import type { ShippingAreaType, FulfillmentType } from '@/lib/types';
 import { computeShipping } from './shipping';
@@ -123,6 +124,31 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     // Roll back the order on item failure (stock reservation also rolls back via trigger)
     await admin.from('orders').delete().eq('id', order.id);
     return { error: translateOrderError(itemsErr.message) };
+  }
+
+  // Confirmation email — fire-and-forget so the checkout response isn't blocked.
+  if (user.email) {
+    const html = `<!doctype html><html dir="rtl" lang="ar"><body style="font-family:Tajawal,Arial,sans-serif;background:#f2f2f7;padding:20px;margin:0">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+        <div style="background:linear-gradient(135deg,#3c655a,#578e7e);padding:24px;color:#fff;text-align:center">
+          <h1 style="margin:0;font-size:20px">مكتبة <span style="color:#e3af64">إنفينيتي</span></h1>
+        </div>
+        <div style="padding:28px;color:#161618;line-height:1.8">
+          <h2 style="color:#3c655a;margin:0 0 12px">📚 شكرًا لطلبك!</h2>
+          <p>تم استلام طلبك رقم <b>${order.order_number}</b> وجارٍ مراجعته.</p>
+          <p style="background:#f2f2f7;padding:12px;border-radius:8px;font-size:14px">
+            <strong>الإجمالي:</strong> ${total.toFixed(0)} جنيه<br>
+            <strong>طريقة الدفع:</strong> كاش عند الاستلام
+          </p>
+          <p style="font-size:13px;color:#666">سنتواصل معك لتأكيد الطلب خلال ٢٤ ساعة.</p>
+        </div>
+      </div>
+    </body></html>`;
+    sendEmail({
+      to: user.email,
+      subject: `📚 تم استلام طلبك ${order.order_number}`,
+      html,
+    }).catch(() => {});
   }
 
   return { order_id: order.id, order_number: order.order_number };

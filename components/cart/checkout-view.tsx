@@ -135,7 +135,7 @@ export default function CheckoutView({
   }
 
   return (
-    <div className="grid md:grid-cols-[1fr_380px] gap-8 items-start">
+    <div className="grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
       <div className="space-y-6">
         {/* Fulfillment */}
         <div className="card p-6">

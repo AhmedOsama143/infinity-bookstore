@@ -18,7 +18,7 @@ export default async function TransfersPage() {
 
   return (
     <PageShell title="نقل المخزون بين الفروع">
-      <div className="grid lg:grid-cols-[1fr_1fr] gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <TransferForm branches={branches ?? []} books={books ?? []} />
 
         <div className="card p-5">

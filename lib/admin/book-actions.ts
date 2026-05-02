@@ -182,3 +182,166 @@ export async function deleteBook(bookId: number) {
   revalidatePath('/admin/books');
   return { ok: true };
 }
+
+export interface BulkImportResult {
+  ok?: { created: number; updated: number };
+  error?: string;
+  errors?: { row: number; message: string }[];
+}
+
+// CSV columns (header row required, comma-separated):
+// title_ar,teacher_id,grade_level,book_type,price,discount_pct,
+// weight_grams,publish_year,isbn,description,
+// stock_<branch_slug>... (one column per branch)
+//
+// grade_level: first_secondary | second_secondary | third_secondary
+// book_type:   external_ar | online_ar
+export async function bulkImportBooksCsv(formData: FormData): Promise<BulkImportResult> {
+  await requireFullAdmin();
+  const file = formData.get('csv');
+  if (!(file instanceof File) || file.size === 0) return { error: 'يرجى اختيار ملف CSV' };
+
+  const text = await file.text();
+  const rows = parseCsv(text);
+  if (rows.length < 2) return { error: 'الملف فارغ أو يفتقد العناوين' };
+
+  const headers = rows[0].map((h) => h.trim().toLowerCase());
+  const required = ['title_ar', 'grade_level', 'book_type', 'price'];
+  for (const r of required) {
+    if (!headers.includes(r)) return { error: `العمود "${r}" مفقود في الـ CSV` };
+  }
+
+  const supa = await createClient();
+  const { data: branches } = await supa.from('branches').select('id, slug').eq('is_active', true);
+  const slugToId = new Map((branches ?? []).map((b: any) => [b.slug, b.id as string]));
+
+  const validGrades = new Set(['first_secondary', 'second_secondary', 'third_secondary']);
+  const validTypes = new Set(['external_ar', 'online_ar']);
+  const errors: { row: number; message: string }[] = [];
+  let created = 0;
+  let updated = 0;
+
+  // Compute starting id for new inserts
+  const { data: maxRow } = await supa.from('books').select('id').order('id', { ascending: false }).limit(1).maybeSingle();
+  let nextId = (maxRow?.id ?? 0) + 1;
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length === 1 && !row[0].trim()) continue; // blank line
+    const get = (col: string) => row[headers.indexOf(col)]?.trim() ?? '';
+
+    const title_ar = get('title_ar');
+    if (!title_ar) {
+      errors.push({ row: i + 1, message: 'العنوان مطلوب' });
+      continue;
+    }
+    const grade_level = get('grade_level') as GradeLevel;
+    if (!validGrades.has(grade_level)) {
+      errors.push({ row: i + 1, message: `صف غير صحيح: ${grade_level}` });
+      continue;
+    }
+    const book_type = get('book_type') as BookType;
+    if (!validTypes.has(book_type)) {
+      errors.push({ row: i + 1, message: `نوع غير صحيح: ${book_type}` });
+      continue;
+    }
+    const price = Number(get('price'));
+    if (!Number.isFinite(price) || price < 0) {
+      errors.push({ row: i + 1, message: `سعر غير صحيح: ${get('price')}` });
+      continue;
+    }
+
+    const teacher_id = get('teacher_id') ? Number(get('teacher_id')) : null;
+    const discount_pct = get('discount_pct') ? Number(get('discount_pct')) : 0;
+    const weight_grams = get('weight_grams') ? Number(get('weight_grams')) : null;
+    const publish_year = get('publish_year') ? Number(get('publish_year')) : null;
+    const isbn = get('isbn') || null;
+    const description = get('description') || null;
+
+    // Match existing book by title to allow update on re-import.
+    const { data: existing } = await supa
+      .from('books')
+      .select('id')
+      .eq('title_ar', title_ar)
+      .maybeSingle();
+
+    let bookId: number;
+    const fields = {
+      title_ar,
+      teacher_id,
+      grade_level,
+      book_type,
+      description,
+      price,
+      discount_pct,
+      weight_grams,
+      publish_year,
+      isbn,
+      is_active: true,
+      needs_review: false,
+    };
+
+    if (existing) {
+      bookId = existing.id;
+      const { error } = await supa.from('books').update(fields).eq('id', bookId);
+      if (error) {
+        errors.push({ row: i + 1, message: error.message });
+        continue;
+      }
+      updated++;
+    } else {
+      bookId = nextId++;
+      const { error } = await supa.from('books').insert({ id: bookId, ...fields });
+      if (error) {
+        errors.push({ row: i + 1, message: error.message });
+        continue;
+      }
+      created++;
+    }
+
+    // Per-branch stock columns
+    const stockRows: { branch_id: string; book_id: number; quantity: number }[] = [];
+    for (const h of headers) {
+      if (!h.startsWith('stock_')) continue;
+      const slug = h.slice('stock_'.length);
+      const branch_id = slugToId.get(slug);
+      if (!branch_id) continue;
+      const qty = Math.max(0, Math.floor(Number(get(h) || 0)));
+      if (Number.isFinite(qty)) stockRows.push({ branch_id, book_id: bookId, quantity: qty });
+    }
+    if (stockRows.length > 0) {
+      await supa.from('branch_stock').upsert(stockRows, { onConflict: 'branch_id,book_id' });
+    }
+  }
+
+  revalidatePath('/admin/books');
+  return { ok: { created, updated }, errors: errors.length ? errors : undefined };
+}
+
+// Minimal CSV parser supporting quoted fields with embedded commas/newlines.
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+  // Strip BOM
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else inQuotes = false;
+      } else cell += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { cur.push(cell); cell = ''; }
+      else if (c === '\n') { cur.push(cell); rows.push(cur); cur = []; cell = ''; }
+      else if (c === '\r') { /* skip */ }
+      else cell += c;
+    }
+  }
+  if (cell.length > 0 || cur.length > 0) { cur.push(cell); rows.push(cur); }
+  return rows;
+}

@@ -37,8 +37,9 @@ export default async function DeliveryPage() {
             </p>
           </div>
 
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <h3 className="font-bold text-primary-dark mb-4 text-lg">أسعار الشحن</h3>
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="text-sm text-[#666] border-b border-bg-light">
                 <tr>
@@ -59,6 +60,7 @@ export default async function DeliveryPage() {
                 </tr>
               </tbody>
             </table>
+            </div>
             <p className="text-xs text-[#666] mt-4">
               * أسعار المحافظات الأخرى قيد التحديث — سيتم عرضها عند اختيار العنوان وقت الطلب.
             </p>

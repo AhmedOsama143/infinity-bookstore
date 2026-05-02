@@ -1,8 +1,48 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+
+const SOUND_KEY = 'admin-notif-sound';
+const PERMISSION_KEY = 'admin-notif-browser';
+
+function playChime() {
+  if (typeof window === 'undefined') return;
+  const muted = window.localStorage.getItem(SOUND_KEY) === 'off';
+  if (muted) return;
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.18);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+    o.connect(g).connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 0.4);
+  } catch {
+    // AudioContext blocked (no user gesture yet) — ignore.
+  }
+}
+
+function showBrowserNotification(title: string, body: string | null) {
+  if (typeof window === 'undefined') return;
+  if (window.localStorage.getItem(PERMISSION_KEY) !== 'on') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, {
+      body: body ?? undefined,
+      icon: '/favicon.ico',
+      tag: 'admin-notif',
+    });
+  } catch {
+    // Some browsers throw inside an inactive tab — ignore.
+  }
+}
 
 interface Notif {
   id: string;
@@ -37,17 +77,40 @@ export default function NotificationBell({
 }) {
   const [items, setItems] = useState<Notif[]>(initial);
   const [open, setOpen] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [soundOn, setSoundOn] = useState(true);
+  const [browserOn, setBrowserOn] = useState(false);
 
-  // Lazily create chime once
   useEffect(() => {
-    audioRef.current = new Audio(
-      // 0.3s sine-wave tone — base64 encoded WAV
-      'data:audio/wav;base64,UklGRsQGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YaAGAAAAAAAAAAAAAAAA' +
-        // Use a tiny "ding"-like waveform; browsers will generate audible click without sample
-        'AAAAAA=='
-    );
+    setSoundOn(window.localStorage.getItem(SOUND_KEY) !== 'off');
+    setBrowserOn(window.localStorage.getItem(PERMISSION_KEY) === 'on');
   }, []);
+
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundOn(next);
+    window.localStorage.setItem(SOUND_KEY, next ? 'on' : 'off');
+    if (next) playChime(); // preview
+  }
+
+  async function toggleBrowser() {
+    if (browserOn) {
+      window.localStorage.setItem(PERMISSION_KEY, 'off');
+      setBrowserOn(false);
+      return;
+    }
+    if (!('Notification' in window)) {
+      alert('متصفحك لا يدعم الإشعارات');
+      return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+    window.localStorage.setItem(PERMISSION_KEY, 'on');
+    setBrowserOn(true);
+    new Notification('إشعارات مفعّلة', {
+      body: 'ستصلك تنبيهات بالطلبات الجديدة وحالات المخزون',
+    });
+  }
 
   useEffect(() => {
     const supa = createClient();
@@ -66,8 +129,8 @@ export default function NotificationBell({
         (payload) => {
           const fresh = payload.new as Notif;
           setItems((prev) => [fresh, ...prev].slice(0, 30));
-          // Best-effort chime; ignore errors if browser blocks autoplay
-          audioRef.current?.play().catch(() => {});
+          playChime();
+          showBrowserNotification(fresh.title_ar, fresh.body_ar);
         }
       )
       .subscribe();
@@ -109,16 +172,38 @@ export default function NotificationBell({
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-30 bg-transparent"
           />
-          <div className="absolute left-0 mt-2 w-[360px] max-h-[480px] overflow-y-auto card shadow-card-lg z-40">
-            <div className="p-4 border-b border-bg-light flex items-center justify-between sticky top-0 bg-white">
-              <h3 className="font-bold text-primary-dark">الإشعارات</h3>
-              <Link
-                href="/admin/notifications"
-                onClick={() => setOpen(false)}
-                className="text-primary text-xs font-bold hover:text-primary-dark"
-              >
-                عرض الكل
-              </Link>
+          <div className="absolute left-0 mt-2 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[480px] overflow-y-auto card shadow-card-lg z-40">
+            <div className="p-4 border-b border-bg-light sticky top-0 bg-white">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold text-primary-dark">الإشعارات</h3>
+                <Link
+                  href="/admin/notifications"
+                  onClick={() => setOpen(false)}
+                  className="text-primary text-xs font-bold hover:text-primary-dark"
+                >
+                  عرض الكل
+                </Link>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-pill ${soundOn ? 'bg-primary-light text-primary-dark' : 'bg-bg-light text-[#666]'}`}
+                  title={soundOn ? 'إيقاف الصوت' : 'تفعيل الصوت'}
+                >
+                  <i className={`fa-solid ${soundOn ? 'fa-volume-high' : 'fa-volume-xmark'}`} />
+                  {soundOn ? 'الصوت مفعّل' : 'الصوت موقوف'}
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleBrowser}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-pill ${browserOn ? 'bg-primary-light text-primary-dark' : 'bg-bg-light text-[#666]'}`}
+                  title="إشعارات سطح المكتب"
+                >
+                  <i className={`fa-solid ${browserOn ? 'fa-bell' : 'fa-bell-slash'}`} />
+                  {browserOn ? 'إشعارات المتصفح' : 'تفعيل إشعارات المتصفح'}
+                </button>
+              </div>
             </div>
             {items.length === 0 ? (
               <div className="p-8 text-center text-sm text-[#666]">

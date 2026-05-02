@@ -47,20 +47,20 @@ export default async function InvoicePage({ params }: Props) {
 
       {/* Invoice paper */}
       <article className="max-w-3xl mx-auto bg-white p-8 md:p-12 shadow-card print:shadow-none print:p-0">
-        <header className="flex items-start justify-between border-b-4 border-primary pb-6 mb-6">
+        <header className="flex flex-col sm:flex-row items-start justify-between border-b-4 border-primary pb-4 sm:pb-6 mb-4 sm:mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-primary-dark">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-dark">
               مكتبة <span className="text-accent">إنفينيتي</span>
             </h1>
             <p className="text-sm text-[#666] mt-1">فاتورة طلب — Invoice</p>
           </div>
           <div className="text-left">
-            <img src={qrUrl(verifyUrl)} alt="QR" className="w-32 h-32 mb-1" />
+            <img src={qrUrl(verifyUrl)} alt="QR" className="w-24 h-24 sm:w-32 sm:h-32 mb-1" />
             <p className="text-[10px] text-[#888]">امسح للتحقق</p>
           </div>
         </header>
 
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
           <div>
             <h2 className="text-xs text-[#666] mb-1">رقم الطلب</h2>
             <p className="text-2xl font-extrabold text-accent-dark">{order.order_number}</p>

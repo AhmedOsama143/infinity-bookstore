@@ -16,7 +16,7 @@
 
 @layer components {
   .container-app {
-    @apply max-w-[1200px] mx-auto px-5;
+    @apply max-w-[1200px] mx-auto px-4 sm:px-5;
   }
   .btn {
     @apply inline-block border-0 cursor-pointer font-heading font-semibold transition-all rounded-pill;
@@ -34,13 +34,13 @@
     @apply shadow-card-lg -translate-y-1.5;
   }
   .section {
-    @apply py-20;
+    @apply py-10 sm:py-16 md:py-20;
   }
   .section-title {
-    @apply text-center text-[2rem] font-extrabold text-primary-dark mb-3;
+    @apply text-center text-[1.5rem] sm:text-[1.75rem] md:text-[2rem] font-extrabold text-primary-dark mb-3;
   }
   .section-subtitle {
-    @apply text-center text-[#666] text-[1.05rem] mb-12;
+    @apply text-center text-[#666] text-[0.9rem] sm:text-[1.05rem] mb-8 sm:mb-12;
   }
 }
 
@@ -112,4 +112,14 @@ footer,
   .bubble { animation: none; }
   .bg-icon { transition: none; }
   .fade-in { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- Print styles for invoices and reports ---------- */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .bubbles-bg, .bg-icons, .ambient { display: none !important; }
+  .print\\:hidden { display: none !important; }
+  body { background: white !important; }
+  .card, .shadow-card, .shadow-card-lg { box-shadow: none !important; }
+  a { color: inherit !important; text-decoration: none !important; }
 }

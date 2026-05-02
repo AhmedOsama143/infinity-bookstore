@@ -55,7 +55,7 @@ export default async function BranchDetailPage({ params }: Props) {
       }
     >
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <Kpi label="الإيرادات" value={formatPrice(revenue)} icon="fa-coins" />
         <Kpi label="إجمالي الطلبات" value={revQ.data?.length ?? 0} icon="fa-bag-shopping" />
         <Kpi label="إجمالي النسخ" value={totalStock} icon="fa-cubes" />

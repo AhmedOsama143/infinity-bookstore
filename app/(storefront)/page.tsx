@@ -16,22 +16,22 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-hero-gradient text-white py-24 text-center relative overflow-hidden">
+      <section className="bg-hero-gradient text-white py-14 sm:py-20 md:py-24 text-center relative overflow-hidden">
         <div className="container-app relative z-10">
-          <div className="inline-block bg-white/20 text-white px-4 py-1.5 rounded-pill text-sm font-semibold mb-6 backdrop-blur">
+          <div className="inline-block bg-white/20 text-white px-3 sm:px-4 py-1.5 rounded-pill text-xs sm:text-sm font-semibold mb-4 sm:mb-6 backdrop-blur">
             🚚 اطلب بـ {threshold} جنيه واحصل على شحن مجاني
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 sm:mb-4 leading-tight">
             مكتبة إنفينيتي — كتبك في كل فرع
           </h1>
-          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg md:text-xl opacity-90 mb-6 sm:mb-8 max-w-2xl mx-auto">
             أفضل كتب المدرسين للمرحلة الثانوية. استلم من أقرب فرع أو اطلب للتوصيل لبابك.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/books" className="btn bg-white text-primary-dark hover:bg-accent hover:text-white px-10 py-3.5 text-lg">
+          <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
+            <Link href="/books" className="btn bg-white text-primary-dark hover:bg-accent hover:text-white px-6 sm:px-10 py-2.5 sm:py-3.5 text-sm sm:text-lg">
               تصفح الكتب
             </Link>
-            <Link href="/teachers" className="btn btn-outline border-white text-white hover:bg-white hover:text-primary-dark px-10 py-3.5 text-lg">
+            <Link href="/teachers" className="btn btn-outline border-white text-white hover:bg-white hover:text-primary-dark px-6 sm:px-10 py-2.5 sm:py-3.5 text-sm sm:text-lg">
               تعرف على المدرسين
             </Link>
           </div>
@@ -118,15 +118,15 @@ export default async function HomePage() {
       {/* Free-shipping promo */}
       <section className="section">
         <div className="container-app">
-          <div className="bg-page-header rounded-card p-12 text-center text-white">
-            <div className="text-5xl mb-4">🚚</div>
-            <h2 className="text-3xl font-extrabold mb-3">
+          <div className="bg-page-header rounded-card p-6 sm:p-10 md:p-12 text-center text-white">
+            <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🚚</div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 sm:mb-3">
               شحن مجاني على الطلبات فوق {threshold} جنيه
             </h2>
-            <p className="text-lg opacity-90 mb-6 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-lg opacity-90 mb-4 sm:mb-6 max-w-2xl mx-auto">
               اشتر أكثر ووفر على الشحن. نوصلك لأي محافظة في مصر مجانًا عند وصول طلبك للحد الأدنى.
             </p>
-            <Link href="/books" className="btn bg-white text-primary-dark hover:bg-accent hover:text-white px-10 py-3.5">
+            <Link href="/books" className="btn bg-white text-primary-dark hover:bg-accent hover:text-white px-8 sm:px-10 py-2.5 sm:py-3.5 text-sm sm:text-base">
               تسوق الآن
             </Link>
           </div>

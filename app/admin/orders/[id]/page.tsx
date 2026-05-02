@@ -48,7 +48,7 @@ export default async function OrderDetailPage({ params }: Props) {
         </div>
       }
     >
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+      <div className="grid lg:grid-cols-[1fr_360px] gap-4 sm:gap-6">
         <div className="space-y-5">
           <OrderActionsBar orderId={order.id} status={order.status as OrderStatus} />
 

@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </Link>
         </div>
       </header>
-      <main className="min-h-[calc(100vh-120px)] bg-bg-light py-12 flex items-center justify-center">
+      <main className="min-h-[calc(100vh-120px)] bg-bg-light py-8 sm:py-12 flex items-center justify-center">
         <div className="w-full max-w-md px-4">{children}</div>
       </main>
     </>

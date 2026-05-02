@@ -98,6 +98,31 @@ export async function updateProfile(formData: FormData): Promise<AuthResult> {
   return {};
 }
 
+export async function completeOnboarding(formData: FormData): Promise<AuthResult> {
+  const supa = await createClient();
+  const { data: { user } } = await supa.auth.getUser();
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' };
+
+  const full_name = String(formData.get('full_name') ?? '').trim();
+  const grade_level = String(formData.get('grade_level') ?? '') as GradeLevel;
+  const next = String(formData.get('next') ?? '/');
+
+  if (!full_name) return { error: 'الاسم مطلوب' };
+  if (!['first_secondary', 'second_secondary', 'third_secondary'].includes(grade_level)) {
+    return { error: 'يرجى اختيار الصف الدراسي' };
+  }
+
+  const { error } = await supa
+    .from('students')
+    .update({ full_name, grade_level })
+    .eq('id', user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/', 'layout');
+  redirect(next);
+}
+
 // OAuth handled client-side via createBrowserClient. Server-side callback below.
 
 function translateAuthError(msg: string): string {

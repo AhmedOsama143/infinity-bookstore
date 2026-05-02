@@ -83,12 +83,12 @@ export default function BookCard({ book, inStockBranches }: Props) {
         )}
       </div>
 
-      <div className="p-4 pt-0 flex gap-2">
+      <div className="p-3 sm:p-4 pt-0 flex gap-1.5 sm:gap-2">
         <Link
           href={`/books/${book.id}`}
-          className="btn btn-outline flex-1 text-center text-[0.78rem] py-2 px-2 leading-tight whitespace-nowrap"
+          className="btn btn-outline flex-1 text-center text-[0.7rem] sm:text-[0.78rem] py-1.5 sm:py-2 px-1.5 sm:px-2 leading-tight whitespace-nowrap"
         >
-          عرض التفاصيل
+          التفاصيل
         </Link>
         <div className="flex-1">
           <AddToCartButton

@@ -71,7 +71,7 @@ function Reservations({ orders, branchName, branches }: { orders: any[]; branchN
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <Kpi label="إجمالي الحجوزات" value={reservedOrders.length} />
         <Kpi label="حجوزات مدفوعة" value={prepaid.length} highlight />
         <Kpi label="حجوزات غير مدفوعة" value={unpaid.length} />
@@ -201,7 +201,7 @@ function Payments({ orders, branchName, branches }: { orders: any[]; branchName:
           الدفع عند الاستلام (كاش)
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-5">
           <Kpi label="إجمالي طلبات COD" value={cod.length} />
           <Kpi label="تم التحصيل" value={codCollected.length} highlight />
           <Kpi label="بانتظار التحصيل" value={codOutstanding.length} warn={codOutstanding.length > 0} />

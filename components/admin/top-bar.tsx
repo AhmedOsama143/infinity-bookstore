@@ -13,7 +13,7 @@ export default async function TopBar({ ctx }: { ctx: AdminContext }) {
   const { data: notifs } = await q;
 
   return (
-    <div className="h-16 bg-white border-b border-bg-light flex items-center justify-between px-6 sticky top-0 z-30">
+    <div className="h-14 lg:h-16 bg-white border-b border-bg-light flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       <div className="text-sm text-[#666]">
         {ctx.role === 'admin' ? 'مالك المكتبة' : 'مدير الفرع'}
       </div>

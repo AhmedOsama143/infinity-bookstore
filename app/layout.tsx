@@ -6,6 +6,30 @@ export const metadata: Metadata = {
   description:
     'مكتبة إنفينيتي — كتب المدرسين للمرحلة الثانوية. فروعنا في كفر الدوار والإسكندرية. شحن مجاني على الطلبات فوق ٢٥٠٠ جنيه.',
   metadataBase: new URL('https://infinity-bookstore.vercel.app'),
+  openGraph: {
+    title: 'مكتبة إنفينيتي | Infinity Bookstore',
+    description:
+      'كتب المدرسين للمرحلة الثانوية في فروعنا بكفر الدوار والإسكندرية. شحن مجاني للطلبات فوق ٢٥٠٠ جنيه.',
+    siteName: 'مكتبة إنفينيتي',
+    type: 'website',
+    locale: 'ar_EG',
+  },
+  twitter: { card: 'summary_large_image' },
+};
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BookStore',
+  name: 'مكتبة إنفينيتي',
+  alternateName: 'Infinity Bookstore',
+  url: 'https://infinity-bookstore.vercel.app',
+  telephone: '+201104605272',
+  areaServed: 'EG',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'EG',
+    addressRegion: 'البحيرة، الإسكندرية',
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +53,10 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body>{children}</body>

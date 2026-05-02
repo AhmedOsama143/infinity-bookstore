@@ -29,7 +29,7 @@ export default async function WishlistPage() {
     <>
       <PageHeader title="حسابي" />
       <section className="section">
-        <div className="container-app grid md:grid-cols-[240px_1fr] gap-8">
+        <div className="container-app grid md:grid-cols-[220px_1fr] gap-5 md:gap-8">
           <aside><AccountNav /></aside>
           <div>
             {books.length === 0 ? (

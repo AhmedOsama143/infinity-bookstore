@@ -10,7 +10,7 @@ export default async function Footer() {
   return (
     <footer className="bg-primary-dark text-white pt-16 pb-6 mt-20">
       <div className="container-app">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-12">
           <div>
             <div className="text-xl font-extrabold mb-4">
               مكتبة <span className="text-accent">إنفينيتي</span>

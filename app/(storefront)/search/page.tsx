@@ -1,4 +1,4 @@
-import { getBooks, getTeachers, getAvailabilitySummary } from '@/lib/data';
+import { searchBooks, searchTeachers, getAvailabilitySummary } from '@/lib/data';
 import BookCard from '@/components/storefront/book-card';
 import TeacherCard from '@/components/storefront/teacher-card';
 import PageHeader from '@/components/storefront/page-header';
@@ -36,10 +36,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
     );
   }
 
-  const [books, allTeachers] = await Promise.all([getBooks({ search: query }), getTeachers()]);
-  const teachersMatch = allTeachers.filter((t) =>
-    t.name_ar.includes(query) || t.subject?.includes(query)
-  );
+  const [books, teachersMatch] = await Promise.all([
+    searchBooks(query),
+    searchTeachers(query),
+  ]);
   const availability = await getAvailabilitySummary(books.map((b) => b.id));
 
   return (

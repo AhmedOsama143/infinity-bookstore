@@ -15,14 +15,14 @@ export default async function ReviewsSection({ bookId }: { bookId: number }) {
 
   return (
     <div className="mt-12">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="section-title text-right mb-0">المراجعات</h2>
         <div className="text-left">
-          <div className="text-2xl font-extrabold text-accent-dark">{avg.toFixed(1)}<span className="text-sm text-[#666]">/5</span></div>
+          <div className="text-xl sm:text-2xl font-extrabold text-accent-dark">{avg.toFixed(1)}<span className="text-sm text-[#666]">/5</span></div>
           <div className="text-xs text-[#666]">{reviews.length} مراجعة</div>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
         {reviews.map((r: any) => (
           <div key={r.id} className="card p-5">
             <div className="flex items-center justify-between mb-2">

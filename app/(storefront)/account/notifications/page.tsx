@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata = { title: 'الإشعارات | مكتبة إنفينيتي' };
+export const metadata = { title: 'الإشعارات | مركز إنفينيتي' };
 
 export default async function NotificationsPage() {
   const supa = await createClient();

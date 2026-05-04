@@ -1,7 +1,7 @@
 import { getSiteContent } from '@/lib/data';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'الأسئلة الشائعة | مكتبة إنفينيتي' };
+export const metadata = { title: 'الأسئلة الشائعة | مركز إنفينيتي' };
 
 export default async function FaqPage() {
   const content = await getSiteContent('faq');

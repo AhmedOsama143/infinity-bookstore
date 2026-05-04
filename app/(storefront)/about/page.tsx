@@ -1,7 +1,7 @@
 import { getSiteContent } from '@/lib/data';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'من نحن | مكتبة إنفينيتي' };
+export const metadata = { title: 'من نحن | مركز إنفينيتي' };
 
 export default async function AboutPage() {
   const content = await getSiteContent('about');

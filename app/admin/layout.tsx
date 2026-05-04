@@ -2,7 +2,7 @@ import Sidebar from '@/components/admin/sidebar';
 import TopBar from '@/components/admin/top-bar';
 import { requireAdmin } from '@/lib/admin/auth';
 
-export const metadata = { title: 'لوحة الإدارة | مكتبة إنفينيتي' };
+export const metadata = { title: 'لوحة الإدارة | مركز إنفينيتي' };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireAdmin();

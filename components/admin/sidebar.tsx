@@ -65,7 +65,7 @@ export default function Sidebar({ role, email }: { role: AdminRole; email: strin
         <div className="p-5 border-b border-bg-light flex items-center justify-between">
           <div>
             <Link href="/admin" className="text-xl font-extrabold text-primary-dark font-heading">
-              مكتبة <span className="text-accent">إنفينيتي</span>
+              مركز <span className="text-accent">إنفينيتي</span>
             </Link>
             <div className="text-xs text-[#888] mt-1">
               لوحة {role === 'admin' ? 'المالك' : 'مدير الفرع'}

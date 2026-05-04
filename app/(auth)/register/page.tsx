@@ -3,7 +3,7 @@ import AuthForm from '@/components/auth/auth-form';
 import OAuthButtons from '@/components/auth/oauth-buttons';
 import { signUpWithEmail } from '@/lib/auth/actions';
 
-export const metadata = { title: 'إنشاء حساب | مكتبة إنفينيتي' };
+export const metadata = { title: 'إنشاء حساب | مركز إنفينيتي' };
 
 interface Props { searchParams: Promise<{ next?: string }> }
 

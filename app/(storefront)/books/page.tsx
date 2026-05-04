@@ -4,7 +4,7 @@ import BookCard from '@/components/storefront/book-card';
 import BooksFilterBar from '@/components/storefront/books-filter-bar';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'الكتب | مكتبة إنفينيتي' };
+export const metadata = { title: 'الكتب | مركز إنفينيتي' };
 
 interface PageProps {
   searchParams: Promise<{

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getSiteSettings } from '@/lib/data';
 import ProfileForm from '@/components/account/profile-form';
 
-export const metadata = { title: 'حسابي | مكتبة إنفينيتي' };
+export const metadata = { title: 'حسابي | مركز إنفينيتي' };
 
 export default async function AccountPage() {
   const supa = await createClient();

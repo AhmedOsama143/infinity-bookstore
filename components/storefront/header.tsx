@@ -37,7 +37,7 @@ export default async function Header() {
           href="/"
           className="text-[1.15rem] sm:text-[1.4rem] font-extrabold text-primary-dark font-heading shrink-0"
         >
-          مكتبة <span className="text-accent font-bold">إنفينيتي</span>
+          مركز <span className="text-accent font-bold">إنفينيتي</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">

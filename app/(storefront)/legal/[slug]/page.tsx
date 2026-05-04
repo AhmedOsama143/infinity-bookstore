@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   if (!ALLOWED.includes(slug as Slug)) return { title: 'صفحة غير موجودة' };
   const content = await getSiteContent(slug);
-  return { title: `${content?.title_ar ?? slug} | مكتبة إنفينيتي` };
+  return { title: `${content?.title_ar ?? slug} | مركز إنفينيتي` };
 }
 
 export default async function LegalPage({ params }: PageProps) {

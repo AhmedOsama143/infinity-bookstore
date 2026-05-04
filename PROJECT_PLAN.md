@@ -36,18 +36,18 @@ Storefront is the already-designed `mockup1` (do not redesign — just wire it u
 |---|---|---|---|---|---|---|
 | 1 | `tamlik` | فرع التمليك | كفر الدوار | البحيرة — كفر الدوار — التمليك — أمام مسجد الهدي | +20 120 3417049 | 31.1489677, 30.1269855 |
 | 2 | `elgeish` | فرع شارع الجيش | كفر الدوار | البحيرة — كفر الدوار — شارع الجيش — خلف بنك مصر، أمام مول الأصدقاء | +20 155 8656542 | 31.1324539, 30.1351109 |
-| 3 | `escott` | فرع إسكوت | الإسكندرية | الإسكندرية — سيدي بشر بحري — شارع 17 — فوق النفق (منطقة إسكوت) | +20 155 3950043 | 31.2599754, 29.9891243 |
+| 3 | `escott` | فرع سيدي بشر | الإسكندرية | الإسكندرية — سيدي بشر بحري — شارع 17 — فوق النفق (منطقة إسكوت) | +20 155 3950043 | 31.2599754, 29.9891243 |
 
 **Google Maps pins** (open directly in Maps):
 - Tamlik: https://maps.google.com/?q=31.1489677,30.1269855
 - El-Geish: https://maps.google.com/?q=31.1324539,30.1351109
-- Escott: https://maps.google.com/?q=31.2599754,29.9891243
+- Sidi Bishr (slug `escott`): https://maps.google.com/?q=31.2599754,29.9891243
 
 **WhatsApp click-to-chat links** (deep-link into an already-prefilled chat):
 - Support (general): https://wa.me/201104605272
 - Tamlik: https://wa.me/201203417049
 - El-Geish: https://wa.me/201558656542
-- Escott: https://wa.me/201553950043
+- Sidi Bishr (slug `escott`): https://wa.me/201553950043
 
 *Branch count is locked at 3 — Moharram Bey branch from early-conversation is not going to launch, so removing it entirely from the plan.*
 

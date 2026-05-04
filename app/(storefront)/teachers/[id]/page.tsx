@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const teacher = await getTeacher(parseInt(id, 10));
   if (!teacher) return { title: 'المدرس غير موجود' };
-  const title = `${teacher.name_ar} | مكتبة إنفينيتي`;
+  const title = `${teacher.name_ar} | مركز إنفينيتي`;
   const description = teacher.description ?? teacher.subject ?? undefined;
   const image = teacher.photo_url ?? undefined;
   return {

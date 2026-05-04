@@ -45,7 +45,7 @@ export default function MobileMenu({ isLoggedIn, fullName, unreadCount }: Props)
       } md:hidden`}>
         <div className="flex items-center justify-between p-4 border-b border-bg-light">
           <span className="text-lg font-extrabold text-primary-dark font-heading">
-            مكتبة <span className="text-accent">إنفينيتي</span>
+            مركز <span className="text-accent">إنفينيتي</span>
           </span>
           <button
             type="button"

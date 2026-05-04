@@ -13,10 +13,10 @@ export default async function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-12">
           <div>
             <div className="text-xl font-extrabold mb-4">
-              مكتبة <span className="text-accent">إنفينيتي</span>
+              مركز <span className="text-accent">إنفينيتي</span>
             </div>
             <p className="text-white/70 text-sm leading-loose">
-              مكتبة متخصصة في كتب المدرسين للمرحلة الثانوية.
+              مركز متخصص في كتب المدرسين للمرحلة الثانوية.
             </p>
             <p className="text-accent text-sm mt-4 font-bold">
               🚚 شحن مجاني للطلبات فوق {threshold} جنيه
@@ -78,7 +78,7 @@ export default async function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-6 text-center text-white/60 text-sm">
-          © {new Date().getFullYear()} مكتبة إنفينيتي — جميع الحقوق محفوظة
+          © {new Date().getFullYear()} مركز إنفينيتي — جميع الحقوق محفوظة
         </div>
       </div>
     </footer>

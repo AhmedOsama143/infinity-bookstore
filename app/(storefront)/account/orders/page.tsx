@@ -5,7 +5,7 @@ import { fallbackCover, formatPrice } from '@/lib/utils';
 import type { OrderStatus, PaymentStatus, PaymentMethod } from '@/lib/types';
 import ReturnRequestForm from '@/components/account/return-request-form';
 
-export const metadata = { title: 'طلباتي ومدفوعاتي | مكتبة إنفينيتي' };
+export const metadata = { title: 'طلباتي ومدفوعاتي | مركز إنفينيتي' };
 
 const statusLabelAr: Record<OrderStatus, string> = {
   pending: 'قيد المراجعة',

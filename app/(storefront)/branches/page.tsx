@@ -1,7 +1,7 @@
 import { getBranches } from '@/lib/data';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'فروعنا | مكتبة إنفينيتي' };
+export const metadata = { title: 'فروعنا | مركز إنفينيتي' };
 
 export default async function BranchesPage() {
   const branches = await getBranches();

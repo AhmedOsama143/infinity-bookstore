@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const book = await getBook(parseInt(id, 10));
   if (!book) return { title: 'كتاب غير موجود' };
-  const title = `${book.title_ar} | مكتبة إنفينيتي`;
+  const title = `${book.title_ar} | مركز إنفينيتي`;
   const description = book.description ?? `${book.title_ar} - ${book.teacher?.name_ar ?? ''}`.trim();
   const image = book.cover_url ?? undefined;
   return {

@@ -121,7 +121,7 @@ export default async function InvoicePage({ params }: Props) {
         </div>
 
         <footer className="mt-8 pt-4 border-t border-bg-light text-center text-xs text-[#888]">
-          شكرًا لتسوقك من مكتبة إنفينيتي 🌿
+          شكرًا لتسوقك من مركز إنفينيتي 🌿
         </footer>
       </article>
     </div>

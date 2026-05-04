@@ -100,6 +100,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       total,
       payment_status: 'pending',
       payment_method: 'cod',
+      payment_type: 'offline',
+      order_source: 'storefront',
       notes: input.notes ?? null,
     })
     .select('id, order_number')
@@ -131,7 +133,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     const html = `<!doctype html><html dir="rtl" lang="ar"><body style="font-family:Tajawal,Arial,sans-serif;background:#f2f2f7;padding:20px;margin:0">
       <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
         <div style="background:linear-gradient(135deg,#3c655a,#578e7e);padding:24px;color:#fff;text-align:center">
-          <h1 style="margin:0;font-size:20px">مكتبة <span style="color:#e3af64">إنفينيتي</span></h1>
+          <h1 style="margin:0;font-size:20px">مركز <span style="color:#e3af64">إنفينيتي</span></h1>
         </div>
         <div style="padding:28px;color:#161618;line-height:1.8">
           <h2 style="color:#3c655a;margin:0 0 12px">📚 شكرًا لطلبك!</h2>

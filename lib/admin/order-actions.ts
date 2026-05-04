@@ -2,9 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from './auth';
 import { sendEmail, orderStatusEmailHtml } from '@/lib/email';
-import type { OrderStatus } from '@/lib/types';
+import type { GradeLevel, OrderStatus, PaymentMethod, PaymentType } from '@/lib/types';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending:   ['confirmed', 'cancelled'],
@@ -49,4 +50,193 @@ export async function transitionOrder(orderId: string, next: OrderStatus, reason
   revalidatePath('/admin/orders');
   revalidatePath(`/admin/orders/${orderId}`);
   return { ok: true };
+}
+
+// ============================================================================
+// Manual order creation — staff entering an order from the dashboard.
+// ============================================================================
+
+export interface ManualOrderItemInput {
+  book_id: number;
+  quantity: number;
+}
+
+export interface ManualOrderInput {
+  // Customer details — server dedups by phone (matching phone reuses the
+  // existing student row, no match creates a guest with is_guest=true).
+  customer_full_name: string;
+  customer_phone: string;
+  customer_grade_level?: GradeLevel | null;
+
+  branch_id: string;
+  items: ManualOrderItemInput[];
+
+  // Required tags. payment_type is never auto-assumed — caller must choose.
+  payment_type: PaymentType;
+  payment_method: PaymentMethod;
+
+  // Counter sale → status=completed, payment_status=paid (immediate stock decrement).
+  // Phone order   → status=pending,   payment_status=pending (stock reserved, settled later).
+  sale_type: 'completed_at_counter' | 'pending_phone_order';
+
+  notes?: string | null;
+}
+
+export interface ManualOrderResult {
+  error?: string;
+  order_id?: string;
+  order_number?: string;
+  reused_existing_customer?: boolean;
+}
+
+export async function createManualOrder(input: ManualOrderInput): Promise<ManualOrderResult> {
+  const ctx = await requireAdmin();
+
+  // Validate the required tags up front — spec: never auto-assume payment_type.
+  if (input.payment_type !== 'online' && input.payment_type !== 'offline') {
+    return { error: 'يجب تحديد نوع الدفع: online أو offline' };
+  }
+  if (!input.branch_id) return { error: 'الفرع مطلوب' };
+
+  const name = input.customer_full_name?.trim();
+  const phone = input.customer_phone?.trim();
+  if (!name) return { error: 'اسم العميل مطلوب' };
+  if (!phone || phone.length < 6) return { error: 'رقم الهاتف غير صحيح' };
+
+  const items = (input.items ?? []).filter((i) => i.book_id && i.quantity > 0);
+  if (items.length === 0) return { error: 'يجب إضافة كتاب واحد على الأقل' };
+
+  // Branch managers can only create orders for their own branch.
+  if (ctx.role === 'branch_manager') {
+    if (!ctx.branchId) return { error: 'مدير الفرع غير مرتبط بفرع' };
+    if (input.branch_id !== ctx.branchId) {
+      return { error: 'لا يمكنك إنشاء طلب لفرع آخر' };
+    }
+  }
+
+  const admin = createAdminClient();
+
+  // Resolve customer: dedup by phone — reuse if any student already has it.
+  const { data: existing } = await admin
+    .from('students')
+    .select('id')
+    .eq('phone', phone)
+    .limit(1)
+    .maybeSingle();
+
+  let studentId: string;
+  let reusedExisting = false;
+  if (existing) {
+    studentId = existing.id;
+    reusedExisting = true;
+  } else {
+    const { data: created, error: createErr } = await admin
+      .from('students')
+      .insert({
+        full_name: name,
+        phone,
+        grade_level: input.customer_grade_level ?? null,
+        is_guest: true,
+      })
+      .select('id')
+      .single();
+    if (createErr || !created) {
+      return { error: createErr?.message ?? 'فشل إنشاء العميل' };
+    }
+    studentId = created.id;
+  }
+
+  // Re-fetch book prices server-side (don't trust the client).
+  const bookIds = Array.from(new Set(items.map((i) => i.book_id)));
+  const { data: dbBooks } = await admin
+    .from('books')
+    .select('id, final_price, is_active')
+    .in('id', bookIds);
+
+  const priceMap = new Map((dbBooks ?? []).map((b) => [b.id, b]));
+  for (const it of items) {
+    const b = priceMap.get(it.book_id);
+    if (!b || !b.is_active) {
+      return { error: `كتاب غير متاح في القائمة (${it.book_id})` };
+    }
+  }
+
+  const subtotal = items.reduce(
+    (s, i) => s + i.quantity * Number(priceMap.get(i.book_id)!.final_price),
+    0,
+  );
+
+  // Manual entry is always counter pickup, no shipping fee.
+  const total = subtotal;
+
+  const { data: order, error: orderErr } = await admin
+    .from('orders')
+    .insert({
+      student_id: studentId,
+      branch_id: input.branch_id,
+      fulfillment_type: 'pickup',
+      status: 'pending',
+      shipping_fee: 0,
+      subtotal,
+      total,
+      payment_method: input.payment_method,
+      payment_status: 'pending',
+      payment_type: input.payment_type,
+      order_source: 'dashboard',
+      notes: input.notes?.trim() || null,
+    })
+    .select('id, order_number')
+    .single();
+
+  if (orderErr || !order) {
+    return { error: orderErr?.message ?? 'فشل إنشاء الطلب' };
+  }
+
+  // Inserting items triggers stock reservation + the per-student book cap check.
+  const itemsPayload = items.map((i) => ({
+    order_id: order.id,
+    book_id: i.book_id,
+    quantity: i.quantity,
+    unit_price: Number(priceMap.get(i.book_id)!.final_price),
+  }));
+
+  const { error: itemsErr } = await admin.from('order_items').insert(itemsPayload);
+  if (itemsErr) {
+    await admin.from('orders').delete().eq('id', order.id);
+    return { error: translateOrderError(itemsErr.message) };
+  }
+
+  // Counter sale: transition pending → completed so settle_stock_on_order_status
+  // converts the reservation into a real stock deduction.
+  if (input.sale_type === 'completed_at_counter') {
+    const { error: updErr } = await admin
+      .from('orders')
+      .update({
+        status: 'completed',
+        payment_status: 'paid',
+        reservation_expires_at: null,
+      })
+      .eq('id', order.id);
+
+    if (updErr) {
+      return {
+        error: `الطلب أُنشئ لكن فشل تحويله إلى مكتمل: ${updErr.message}`,
+        order_id: order.id,
+        order_number: order.order_number,
+      };
+    }
+  }
+
+  revalidatePath('/admin/orders');
+  return {
+    order_id: order.id,
+    order_number: order.order_number,
+    reused_existing_customer: reusedExisting,
+  };
+}
+
+function translateOrderError(msg: string): string {
+  if (msg.includes('OUT_OF_STOCK')) return 'أحد الكتب غير متوفر بالكمية المطلوبة في هذا الفرع';
+  if (msg.includes('BOOK_CAP_EXCEEDED')) return 'تجاوز العميل الحد الأقصى للكتب المسموح بها';
+  return msg;
 }

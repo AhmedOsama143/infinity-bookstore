@@ -7,6 +7,8 @@ export type FulfillmentType = 'pickup' | 'delivery';
 export type OrderStatus = 'pending' | 'confirmed' | 'ready' | 'completed' | 'cancelled';
 export type PaymentMethod = 'cod' | 'card' | 'wallet' | 'fawry' | 'instapay' | 'bank_transfer';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+export type PaymentType = 'online' | 'offline';
+export type OrderSource = 'storefront' | 'dashboard';
 export type ShippingAreaType =
   | 'alexandria_city'
   | 'alexandria_outskirts'

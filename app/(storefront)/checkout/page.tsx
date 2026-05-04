@@ -5,7 +5,7 @@ import PageHeader from '@/components/storefront/page-header';
 import CheckoutView from '@/components/cart/checkout-view';
 import type { ShippingAreaType } from '@/lib/types';
 
-export const metadata = { title: 'إتمام الطلب | مكتبة إنفينيتي' };
+export const metadata = { title: 'إتمام الطلب | مركز إنفينيتي' };
 
 export default async function CheckoutPage() {
   const supa = await createClient();

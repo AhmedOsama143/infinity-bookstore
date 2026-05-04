@@ -2,7 +2,7 @@ import { getTeachers, getBooks } from '@/lib/data';
 import TeacherCard from '@/components/storefront/teacher-card';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'المدرسين | مكتبة إنفينيتي' };
+export const metadata = { title: 'المدرسين | مركز إنفينيتي' };
 
 export default async function TeachersPage() {
   const teachers = await getTeachers();

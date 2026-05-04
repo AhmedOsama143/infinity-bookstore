@@ -4,7 +4,7 @@ import TeacherCard from '@/components/storefront/teacher-card';
 import PageHeader from '@/components/storefront/page-header';
 import Link from 'next/link';
 
-export const metadata = { title: 'البحث | مكتبة إنفينيتي' };
+export const metadata = { title: 'البحث | مركز إنفينيتي' };
 
 interface PageProps { searchParams: Promise<{ q?: string }> }
 

@@ -18,6 +18,8 @@ CREATE TYPE order_status   AS ENUM ('pending', 'confirmed', 'ready', 'completed'
 CREATE TYPE payment_method AS ENUM ('cod', 'card', 'wallet', 'fawry', 'instapay', 'bank_transfer');
 CREATE TYPE payment_provider AS ENUM ('paymob', 'fawry', 'stripe', 'manual');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+CREATE TYPE payment_type   AS ENUM ('online', 'offline');
+CREATE TYPE order_source   AS ENUM ('storefront', 'dashboard');
 CREATE TYPE admin_role     AS ENUM ('admin', 'branch_manager');
 CREATE TYPE auth_provider  AS ENUM ('email', 'google', 'facebook');
 CREATE TYPE return_status  AS ENUM ('requested', 'approved', 'received', 'refunded', 'rejected');
@@ -105,9 +107,10 @@ CREATE TABLE branch_stock (
 CREATE INDEX idx_branch_stock_book   ON branch_stock(book_id);
 CREATE INDEX idx_branch_stock_branch ON branch_stock(branch_id);
 
--- Students (customers) — extends auth.users
+-- Students (customers). Registered users get id = auth.users.id via handle_new_user;
+-- guests (dashboard manual entry walk-ins) get a fresh UUID and is_guest=true.
 CREATE TABLE students (
-  id                    UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   full_name             TEXT,
   phone                 TEXT,
   email                 TEXT,
@@ -117,8 +120,10 @@ CREATE TABLE students (
   books_ordered_count   INTEGER NOT NULL DEFAULT 0,
   cap_override          INTEGER,
   auth_provider         auth_provider,
+  is_guest              BOOLEAN NOT NULL DEFAULT false,
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE INDEX idx_students_phone ON students(phone) WHERE phone IS NOT NULL;
 
 -- Admin users (owner + branch managers)
 CREATE TABLE admin_users (
@@ -149,6 +154,8 @@ CREATE TABLE orders (
   total                   DECIMAL(10, 2) NOT NULL CHECK (total >= 0),
   payment_status          payment_status NOT NULL DEFAULT 'pending',
   payment_method          payment_method NOT NULL DEFAULT 'cod',
+  payment_type            payment_type NOT NULL,
+  order_source            order_source NOT NULL DEFAULT 'storefront',
   reservation_expires_at  TIMESTAMPTZ,
   cancelled_at            TIMESTAMPTZ,
   cancelled_by            UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -161,6 +168,8 @@ CREATE INDEX idx_orders_student ON orders(student_id);
 CREATE INDEX idx_orders_branch  ON orders(branch_id);
 CREATE INDEX idx_orders_status  ON orders(status);
 CREATE INDEX idx_orders_created ON orders(created_at DESC);
+CREATE INDEX idx_orders_payment_type ON orders(payment_type);
+CREATE INDEX idx_orders_order_source ON orders(order_source);
 CREATE INDEX idx_orders_pending_reservation ON orders(reservation_expires_at) WHERE status = 'pending';
 
 -- Order items
@@ -891,7 +900,7 @@ INSERT INTO site_settings (id) VALUES (1)
 INSERT INTO branches (slug, name_ar, city, area, address_ar, phone, whatsapp, latitude, longitude, sort_order) VALUES
   ('tamlik',  'فرع التمليك',     'كفر الدوار',  'التمليك',       'البحيرة — كفر الدوار — التمليك — أمام مسجد الهدي',                            '+201203417049', '201203417049', 31.1489677, 30.1269855, 1),
   ('elgeish', 'فرع شارع الجيش',  'كفر الدوار',  'شارع الجيش',    'البحيرة — كفر الدوار — شارع الجيش — خلف بنك مصر، أمام مول الأصدقاء',        '+201558656542', '201558656542', 31.1324539, 30.1351109, 2),
-  ('escott',  'فرع إسكوت',       'الإسكندرية',  'سيدي بشر بحري', 'الإسكندرية — سيدي بشر بحري — شارع 17 — فوق النفق (منطقة إسكوت)',              '+201553950043', '201553950043', 31.2599754, 29.9891243, 3)
+  ('escott',  'فرع سيدي بشر',    'الإسكندرية',  'سيدي بشر بحري', 'الإسكندرية — سيدي بشر بحري — شارع 17 — فوق النفق (منطقة إسكوت)',              '+201553950043', '201553950043', 31.2599754, 29.9891243, 3)
 ON CONFLICT (slug) DO UPDATE SET
   name_ar    = EXCLUDED.name_ar,
   address_ar = EXCLUDED.address_ar,
@@ -928,7 +937,7 @@ UPDATE auth.users
 -- ============================================================================
 INSERT INTO site_content (key, title_ar, body_ar) VALUES
   ('about',   'من نحن',
-   E'مكتبة إنفينيتي مكتبة متخصصة في كتب المدرسين للمرحلة الثانوية.\nنخدم طلاب كفر الدوار والإسكندرية من ٣ فروع، مع التوصيل لكافة المحافظات.'),
+   E'مركز إنفينيتي مركز متخصص في كتب المدرسين للمرحلة الثانوية.\nنخدم طلاب كفر الدوار والإسكندرية من ٣ فروع، مع التوصيل لكافة المحافظات.'),
   ('faq',     'الأسئلة الشائعة', E'سيتم إضافة الأسئلة قريبًا.'),
   ('privacy', 'سياسة الخصوصية', E'سيتم إضافة سياسة الخصوصية قريبًا.'),
   ('terms',   'شروط الاستخدام', E'سيتم إضافة شروط الاستخدام قريبًا.'),

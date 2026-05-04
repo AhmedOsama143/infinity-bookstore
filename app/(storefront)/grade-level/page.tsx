@@ -5,7 +5,7 @@ import type { GradeLevel } from '@/lib/types';
 import BookCard from '@/components/storefront/book-card';
 import PageHeader from '@/components/storefront/page-header';
 
-export const metadata = { title: 'الصفوف الدراسية | مكتبة إنفينيتي' };
+export const metadata = { title: 'الصفوف الدراسية | مركز إنفينيتي' };
 
 const GRADES: GradeLevel[] = ['first_secondary', 'second_secondary', 'third_secondary'];
 

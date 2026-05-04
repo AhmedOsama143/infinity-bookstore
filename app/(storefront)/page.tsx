@@ -22,7 +22,7 @@ export default async function HomePage() {
             🚚 اطلب بـ {threshold} جنيه واحصل على شحن مجاني
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 sm:mb-4 leading-tight">
-            مكتبة إنفينيتي — كتبك في كل فرع
+            مركز إنفينيتي — كتبك في كل فرع
           </h1>
           <p className="text-sm sm:text-lg md:text-xl opacity-90 mb-6 sm:mb-8 max-w-2xl mx-auto">
             أفضل كتب المدرسين للمرحلة الثانوية. استلم من أقرب فرع أو اطلب للتوصيل لبابك.

@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatPrice } from '@/lib/utils';
 
-export const metadata = { title: 'تم تأكيد طلبك | مكتبة إنفينيتي' };
+export const metadata = { title: 'تم تأكيد طلبك | مركز إنفينيتي' };
 
 interface Props { params: Promise<{ id: string }> }
 

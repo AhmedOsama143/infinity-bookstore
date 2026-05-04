@@ -5,7 +5,7 @@ export default async function WhatsappFab() {
   const wa = settings?.support_whatsapp ?? '201104605272';
   return (
     <a
-      href={`https://wa.me/${wa}?text=${encodeURIComponent('مرحباً، أحتاج مساعدة في طلب من مكتبة إنفينيتي')}`}
+      href={`https://wa.me/${wa}?text=${encodeURIComponent('مرحباً، أحتاج مساعدة في طلب من مركز إنفينيتي')}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="تواصل واتساب"

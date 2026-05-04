@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import PageHeader from '@/components/storefront/page-header';
 import CartView from '@/components/cart/cart-view';
 
-export const metadata = { title: 'السلة | مكتبة إنفينيتي' };
+export const metadata = { title: 'السلة | مركز إنفينيتي' };
 
 export default async function CartPage() {
   const settings = await getSiteSettings();

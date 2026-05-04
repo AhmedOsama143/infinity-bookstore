@@ -7,7 +7,7 @@ import AccountNav from '@/components/storefront/account-nav';
 import { getAvailabilitySummary } from '@/lib/data';
 import type { BookWithTeacher } from '@/lib/types';
 
-export const metadata = { title: 'المفضلة | مكتبة إنفينيتي' };
+export const metadata = { title: 'المفضلة | مركز إنفينيتي' };
 
 export default async function WishlistPage() {
   const supa = await createClient();

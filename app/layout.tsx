@@ -2,15 +2,15 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'مكتبة إنفينيتي | Infinity Bookstore',
+  title: 'مركز إنفينيتي | Infinity Center',
   description:
-    'مكتبة إنفينيتي — كتب المدرسين للمرحلة الثانوية. فروعنا في كفر الدوار والإسكندرية. شحن مجاني على الطلبات فوق ٢٥٠٠ جنيه.',
+    'مركز إنفينيتي — كتب المدرسين للمرحلة الثانوية. فروعنا في كفر الدوار والإسكندرية. شحن مجاني على الطلبات فوق ٢٥٠٠ جنيه.',
   metadataBase: new URL('https://infinity-bookstore.vercel.app'),
   openGraph: {
-    title: 'مكتبة إنفينيتي | Infinity Bookstore',
+    title: 'مركز إنفينيتي | Infinity Center',
     description:
       'كتب المدرسين للمرحلة الثانوية في فروعنا بكفر الدوار والإسكندرية. شحن مجاني للطلبات فوق ٢٥٠٠ جنيه.',
-    siteName: 'مكتبة إنفينيتي',
+    siteName: 'مركز إنفينيتي',
     type: 'website',
     locale: 'ar_EG',
   },
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'BookStore',
-  name: 'مكتبة إنفينيتي',
-  alternateName: 'Infinity Bookstore',
+  name: 'مركز إنفينيتي',
+  alternateName: 'Infinity Center',
   url: 'https://infinity-bookstore.vercel.app',
   telephone: '+201104605272',
   areaServed: 'EG',

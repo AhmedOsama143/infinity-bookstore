@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createManualOrder } from '@/lib/admin/order-actions';
+import { createManualOrder, type OversellLine } from '@/lib/admin/order-actions';
 import { formatPrice } from '@/lib/utils';
 import type { GradeLevel, PaymentMethod, PaymentType } from '@/lib/types';
 
@@ -76,6 +76,12 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<ItemRow[]>([newItemRow()]);
 
+  // Oversell confirmation state — when the server returns
+  // requires_oversell_confirmation, we surface the per-line overage and
+  // resubmit with oversell_confirmed=true once staff acknowledges.
+  const [pendingOversells, setPendingOversells] = useState<OversellLine[] | null>(null);
+  const [staffNote, setStaffNote] = useState('');
+
   const priceById = useMemo(() => new Map(books.map((b) => [b.id, b])), [books]);
   const subtotal = useMemo(
     () =>
@@ -94,8 +100,7 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
     setItems((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== key) : rows));
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function submit(oversellConfirmed: boolean) {
     setErr(null);
     setOk(null);
 
@@ -122,28 +127,42 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
         payment_method: paymentMethod,
         sale_type: saleType,
         notes: notes || null,
+        oversell_confirmed: oversellConfirmed,
+        staff_note: staffNote.trim() || null,
       });
+      if (res.requires_oversell_confirmation && res.oversells) {
+        setPendingOversells(res.oversells);
+        return;
+      }
       if (res.error) {
         setErr(res.error);
+        setPendingOversells(null);
         return;
       }
       const reuseNote = res.reused_existing_customer
         ? ' — تم ربط الطلب بعميل موجود برقم نفس الهاتف'
         : '';
+      const oversellTag =
+        pendingOversells && pendingOversells.length > 0
+          ? ' — تم التسجيل مع علامة تجاوز مخزون'
+          : '';
       setOk(
-        `تم إنشاء الطلب ${res.order_number} ✓ — ${tagsLabel(paymentType, 'dashboard')}${reuseNote}`,
+        `تم إنشاء الطلب ${res.order_number} ✓ — ${tagsLabel(paymentType, 'dashboard')}${oversellTag}${reuseNote}`,
       );
       // Move on to the order detail after a brief moment so staff sees the tags.
       setTimeout(() => router.push(`/admin/orders/${res.order_id}`), 800);
     });
   }
 
-  // Books available at the selected branch (qty - reserved > 0).
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submit(false);
+  }
+
+  // Phase B: every active book is selectable; the available count is shown
+  // alongside the row so staff can knowingly oversell a low-stock SKU.
   const branchAvailable = available[branchId] ?? {};
-  const selectableBooks = useMemo(
-    () => books.filter((b) => (branchAvailable[b.id] ?? 0) > 0),
-    [books, branchAvailable],
-  );
+  const selectableBooks = books;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
@@ -238,16 +257,11 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
           </button>
         </div>
 
-        {selectableBooks.length === 0 && (
-          <div className="text-sm text-[#666] mb-3">
-            لا توجد كتب متاحة في هذا الفرع حاليًا.
-          </div>
-        )}
-
         <div className="space-y-3">
           {items.map((row) => {
             const stockLeft = row.book_id ? branchAvailable[row.book_id] ?? 0 : 0;
             const book = row.book_id ? priceById.get(row.book_id) : null;
+            const willOversell = !!row.book_id && row.quantity > stockLeft;
             return (
               <div key={row.key} className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-12 md:col-span-7">
@@ -265,12 +279,17 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
                     className={inputCls}
                   >
                     <option value="">— اختر كتابًا —</option>
-                    {selectableBooks.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title_ar}
-                        {b.teacher ? ` — ${b.teacher.name_ar}` : ''} ({formatPrice(Number(b.final_price))})
-                      </option>
-                    ))}
+                    {selectableBooks.map((b) => {
+                      const stock = branchAvailable[b.id] ?? 0;
+                      return (
+                        <option key={b.id} value={b.id}>
+                          {b.title_ar}
+                          {b.teacher ? ` — ${b.teacher.name_ar}` : ''} ({formatPrice(Number(b.final_price))})
+                          {' • '}
+                          {stock > 0 ? `متاح ${stock}` : 'نفد المخزون'}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div className="col-span-6 md:col-span-3">
@@ -280,13 +299,17 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
                   <input
                     type="number"
                     min={1}
-                    max={stockLeft || undefined}
                     value={row.quantity}
                     onChange={(e) =>
                       setItem(row.key, { quantity: Math.max(1, Number(e.target.value) || 1) })
                     }
-                    className={inputCls}
+                    className={`${inputCls} ${willOversell ? 'border-accent-dark text-accent-dark' : ''}`}
                   />
+                  {willOversell && (
+                    <p className="text-[0.7rem] text-accent-dark mt-1 leading-tight">
+                      ⚠ يتجاوز المخزون بـ {row.quantity - stockLeft} نسخة — سيُعتبر طلب مؤجل.
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-4 md:col-span-1 text-sm font-bold text-left">
                   {book ? formatPrice(Number(book.final_price) * row.quantity) : '—'}
@@ -404,6 +427,57 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
         </Field>
       </section>
 
+      {pendingOversells && pendingOversells.length > 0 && (
+        <section className="card border-2 border-accent-dark/50 bg-accent/5 p-5">
+          <h2 className="font-bold mb-3 text-accent-dark">
+            <i className="fa-solid fa-triangle-exclamation ml-2" />
+            تجاوز المخزون — يحتاج تأكيد
+          </h2>
+          <p className="text-sm mb-3 text-ink/80">
+            هذا الطلب يتجاوز الكميات المتاحة في الفرع. عند التأكيد سيُسجَّل
+            كطلب مؤجل (backorder) وسيُحفَظ في سجل التدقيق مع ملاحظتك.
+          </p>
+          <ul className="text-sm space-y-1 mb-4">
+            {pendingOversells.map((o) => (
+              <li key={o.book_id} className="flex justify-between gap-3">
+                <span className="text-ink/90">
+                  {o.title_ar ?? `كتاب #${o.book_id}`}
+                </span>
+                <span className="font-bold text-accent-dark whitespace-nowrap">
+                  متاح {o.available_stock} / مطلوب {o.requested_qty} → عجز {o.overage}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Field label="ملاحظة تدقيق (اختياري — تُرفق بسجل القرار)">
+            <textarea
+              rows={2}
+              value={staffNote}
+              onChange={(e) => setStaffNote(e.target.value)}
+              className={inputCls}
+              placeholder="مثلاً: نسخ في الطريق من المورد، أو بيع داخل المعرض"
+            />
+          </Field>
+          <div className="flex gap-3 mt-4 justify-end">
+            <button
+              type="button"
+              onClick={() => setPendingOversells(null)}
+              className="btn bg-white text-ink hover:bg-bg-light px-5 py-2"
+            >
+              تعديل الكميات
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => submit(true)}
+              className="btn btn-primary px-6 py-2 disabled:opacity-50"
+            >
+              {busy ? 'جاري الحفظ...' : 'تأكيد التجاوز وإنشاء الطلب'}
+            </button>
+          </div>
+        </section>
+      )}
+
       <div className="flex gap-3 justify-end">
         <button
           type="button"
@@ -414,7 +488,7 @@ export default function ManualOrderForm({ branches, books, available, defaultBra
         </button>
         <button
           type="submit"
-          disabled={busy}
+          disabled={busy || !!pendingOversells}
           className="btn btn-primary px-8 py-2.5 disabled:opacity-50"
         >
           {busy ? 'جاري الحفظ...' : 'حفظ الطلب'}

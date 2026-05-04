@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { dropAllCartHolds, dropCartHold } from '@/lib/stock/integrity';
 import type { CartItem } from '@/lib/cart/types';
 
 interface CartContextValue {
@@ -10,6 +11,8 @@ interface CartContextValue {
   add: (item: CartItem) => void;
   remove: (bookId: number) => void;
   setQuantity: (bookId: number, quantity: number) => void;
+  /** Set the absolute quantity for a line, creating it if missing. */
+  upsertQuantity: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
   clear: () => void;
   isHydrated: boolean;
 }
@@ -52,11 +55,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const remove = useCallback((bookId: number) => {
     setItems((prev) => prev.filter((p) => p.book_id !== bookId));
+    // Fire-and-forget: drop the soft-hold so other shoppers regain availability.
+    void dropCartHold(bookId).catch(() => {});
   }, []);
 
   const setQuantity = useCallback((bookId: number, quantity: number) => {
     if (quantity <= 0) {
       setItems((prev) => prev.filter((p) => p.book_id !== bookId));
+      void dropCartHold(bookId).catch(() => {});
     } else {
       setItems((prev) =>
         prev.map((p) => (p.book_id === bookId ? { ...p, quantity } : p))
@@ -64,7 +70,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const clear = useCallback(() => setItems([]), []);
+  const upsertQuantity = useCallback(
+    (item: Omit<CartItem, 'quantity'>, quantity: number) => {
+      if (quantity <= 0) {
+        setItems((prev) => prev.filter((p) => p.book_id !== item.book_id));
+        return;
+      }
+      setItems((prev) => {
+        const existing = prev.find((p) => p.book_id === item.book_id);
+        if (existing) {
+          return prev.map((p) => (p.book_id === item.book_id ? { ...p, quantity } : p));
+        }
+        return [...prev, { ...item, quantity }];
+      });
+    },
+    []
+  );
+
+  const clear = useCallback(() => {
+    setItems([]);
+    void dropAllCartHolds().catch(() => {});
+  }, []);
 
   const { totalItems, subtotal } = useMemo(() => {
     return items.reduce(
@@ -83,6 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     add,
     remove,
     setQuantity,
+    upsertQuantity,
     clear,
     isHydrated,
   };

@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useCart } from './cart-provider';
 import { fallbackCover, formatPrice } from '@/lib/utils';
+import { revalidateCart, validateStock } from '@/lib/stock/integrity';
 
 interface Props {
   freeShippingThreshold: number;
@@ -12,13 +14,136 @@ interface Props {
   cap: number;
 }
 
-export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrdered, cap }: Props) {
-  const { items, subtotal, totalItems, setQuantity, remove, isHydrated } = useCart();
+interface LineNotice {
+  book_id: number;
+  kind: 'block' | 'adjust' | 'removed';
+  message: string;
+}
 
-  if (!isHydrated) {
+export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrdered, cap }: Props) {
+  const { items, subtotal, totalItems, setQuantity, remove, upsertQuantity, isHydrated } = useCart();
+  const [openingNotices, setOpeningNotices] = useState<LineNotice[]>([]);
+  const [rowNotices, setRowNotices] = useState<Record<number, LineNotice>>({});
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [isRevalidating, setIsRevalidating] = useState(false);
+  const [, startTransition] = useTransition();
+  const revalidatedOnce = useRef(false);
+
+  // On-mount re-validation: every cart line is verified against live stock.
+  // Adjustments and removals are applied before the user can interact.
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (revalidatedOnce.current) return;
+    if (items.length === 0) {
+      revalidatedOnce.current = true;
+      return;
+    }
+    revalidatedOnce.current = true;
+    setIsRevalidating(true);
+
+    const snapshot = items.map((i) => ({ book_id: i.book_id, quantity: i.quantity, title_ar: i.title_ar }));
+    revalidateCart(snapshot.map((s) => ({ book_id: s.book_id, quantity: s.quantity })))
+      .then((decisions) => {
+        const notices: LineNotice[] = [];
+        for (const { book_id, decision } of decisions) {
+          const titleHint = snapshot.find((s) => s.book_id === book_id)?.title_ar ?? '';
+          if (decision.decision === 'allow') continue;
+          if (decision.decision === 'block') {
+            // Out of stock or delisted — drop the line.
+            remove(book_id);
+            notices.push({
+              book_id,
+              kind: 'removed',
+              message: decision.user_message ?? `«${titleHint}» لم يعد متاحًا — تمت إزالته من السلة.`,
+            });
+            continue;
+          }
+          if (decision.decision === 'adjust') {
+            setQuantity(book_id, decision.final_qty);
+            notices.push({
+              book_id,
+              kind: 'adjust',
+              message: decision.user_message ?? `تم تعديل كمية «${titleHint}» حسب المتاح.`,
+            });
+          }
+        }
+        if (notices.length > 0) setOpeningNotices(notices);
+      })
+      .catch(() => {
+        // Silent — server action will retry on checkout.
+      })
+      .finally(() => setIsRevalidating(false));
+  }, [isHydrated, items, remove, setQuantity]);
+
+  function increment(bookId: number, currentQty: number) {
+    const item = items.find((i) => i.book_id === bookId);
+    if (!item) return;
+    setRowNotices((prev) => {
+      const next = { ...prev };
+      delete next[bookId];
+      return next;
+    });
+    startTransition(async () => {
+      const result = await validateStock({
+        actor_type: 'customer',
+        action: 'increment',
+        book_id: bookId,
+        requested_qty: 1,
+        current_in_cart: currentQty,
+        touchpoint: 'cart_increment',
+      });
+      if (result.decision === 'allow') {
+        upsertQuantity(
+          {
+            book_id: item.book_id,
+            title_ar: item.title_ar,
+            cover_url: item.cover_url,
+            unit_price: item.unit_price,
+            teacher_name: item.teacher_name,
+          },
+          result.final_qty
+        );
+        return;
+      }
+      if (result.decision === 'adjust') {
+        upsertQuantity(
+          {
+            book_id: item.book_id,
+            title_ar: item.title_ar,
+            cover_url: item.cover_url,
+            unit_price: item.unit_price,
+            teacher_name: item.teacher_name,
+          },
+          result.final_qty
+        );
+        setRowNotices((prev) => ({
+          ...prev,
+          [bookId]: {
+            book_id: bookId,
+            kind: 'adjust',
+            message: result.user_message ?? 'تم تعديل الكمية حسب المتاح.',
+          },
+        }));
+        return;
+      }
+      setRowNotices((prev) => ({
+        ...prev,
+        [bookId]: {
+          book_id: bookId,
+          kind: 'block',
+          message: result.user_message ?? 'لا يمكن إضافة المزيد من هذا الكتاب.',
+        },
+      }));
+    });
+  }
+
+  if (!isHydrated || isRevalidating) {
     return (
       <div className="text-center text-[#666] py-16">
         <i className="fa-solid fa-spinner fa-spin text-3xl" />
+        {isRevalidating && (
+          <p className="mt-3 text-sm">نتأكد من توفر كتبك...</p>
+        )}
       </div>
     );
   }
@@ -28,6 +153,13 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
       <div className="card p-12 text-center">
         <i className="fa-solid fa-cart-shopping text-5xl text-primary-light mb-4 block" />
         <h2 className="text-xl font-bold mb-2">السلة فارغة</h2>
+        {openingNotices.length > 0 && (
+          <div className="text-sm text-danger mb-4 space-y-1">
+            {openingNotices.map((n) => (
+              <p key={n.book_id}>{n.message}</p>
+            ))}
+          </div>
+        )}
         <p className="text-[#666] mb-2">✨ أضف كتبًا بقيمة {freeShippingThreshold} جنيه واستمتع بالشحن المجاني</p>
         <Link href="/books" className="btn btn-primary mt-4">تصفح الكتب</Link>
       </div>
@@ -38,11 +170,34 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
   const shippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const wouldExceedCap = alreadyOrdered + totalItems > cap;
   const overCapBy = alreadyOrdered + totalItems - cap;
+  const cartChanged = openingNotices.length > 0;
+  const checkoutBlocked = wouldExceedCap || (cartChanged && !acknowledged);
 
   return (
     <div className="grid lg:grid-cols-[1fr_350px] gap-6 lg:gap-8 items-start">
       {/* Items */}
       <div className="space-y-3 sm:space-y-4">
+        {cartChanged && !acknowledged && (
+          <div className="card border border-accent/40 bg-accent/5 p-4">
+            <h3 className="font-bold text-primary-dark mb-2">
+              <i className="fa-solid fa-circle-info ml-1 text-accent-dark" />
+              تم تحديث السلة
+            </h3>
+            <ul className="text-sm space-y-1 mb-3 text-ink/80">
+              {openingNotices.map((n) => (
+                <li key={n.book_id}>• {n.message}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setAcknowledged(true)}
+              className="btn btn-primary text-sm py-2 px-5"
+            >
+              فهمت — متابعة
+            </button>
+          </div>
+        )}
+
         {items.map((item) => (
           <div key={item.book_id} className="card p-3 sm:p-5">
             <div className="flex gap-3 sm:gap-4 items-start">
@@ -89,7 +244,7 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
                     <span className="font-bold min-w-[24px] text-center text-sm">{item.quantity}</span>
                     <button
                       type="button"
-                      onClick={() => setQuantity(item.book_id, item.quantity + 1)}
+                      onClick={() => increment(item.book_id, item.quantity)}
                       aria-label="زد الكمية"
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-[#ddd] hover:border-primary hover:text-primary transition-colors text-sm"
                     >
@@ -100,6 +255,19 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
                     {formatPrice(item.quantity * item.unit_price)}
                   </div>
                 </div>
+
+                {rowNotices[item.book_id] && (
+                  <p
+                    role="status"
+                    className={`mt-2 text-[0.72rem] px-2 py-1 rounded-s ${
+                      rowNotices[item.book_id].kind === 'adjust'
+                        ? 'bg-accent/10 text-accent-dark border border-accent/30'
+                        : 'bg-danger/10 text-danger border border-danger/30'
+                    }`}
+                  >
+                    {rowNotices[item.book_id].message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -154,10 +322,17 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
           </div>
         )}
 
+        {cartChanged && !acknowledged && (
+          <div className="bg-accent/10 border border-accent/30 text-accent-dark text-sm p-3 rounded-s mb-4">
+            راجع التحديثات أعلاه قبل المتابعة.
+          </div>
+        )}
+
         {isSignedIn ? (
           <Link
             href="/checkout"
-            className={`btn btn-primary w-full py-3 text-base text-center ${wouldExceedCap ? 'opacity-50 pointer-events-none' : ''}`}
+            aria-disabled={checkoutBlocked}
+            className={`btn btn-primary w-full py-3 text-base text-center ${checkoutBlocked ? 'opacity-50 pointer-events-none' : ''}`}
           >
             متابعة للدفع
             <i className="fa-solid fa-arrow-left mr-2" />

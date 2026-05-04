@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from './cart-provider';
@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { computeShipping } from '@/lib/cart/shipping';
 import { placeOrder } from '@/lib/cart/order-actions';
 import { checkCartAvailability, type BranchAvailability } from '@/lib/data/cart-lookups';
+import { revalidateCart } from '@/lib/stock/integrity';
 import type { ShippingAreaType } from '@/lib/types';
 
 interface BranchOption {
@@ -45,7 +46,7 @@ export default function CheckoutView({
   student,
 }: Props) {
   const router = useRouter();
-  const { items, subtotal, totalItems, clear, isHydrated } = useCart();
+  const { items, subtotal, totalItems, clear, setQuantity, remove, isHydrated } = useCart();
 
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [branchId, setBranchId] = useState<string>('');
@@ -58,6 +59,42 @@ export default function CheckoutView({
   const [availability, setAvailability] = useState<BranchAvailability[]>([]);
   const [isSubmitting, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [stockNotices, setStockNotices] = useState<string[]>([]);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const revalidatedOnce = useRef(false);
+
+  // Pre-checkout integrity pass: catch sold-out / delisted books before
+  // the user picks a branch. Adjusts or removes lines and forces an explicit
+  // ack so we never silently advance them to place-order.
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (revalidatedOnce.current) return;
+    if (items.length === 0) {
+      revalidatedOnce.current = true;
+      return;
+    }
+    revalidatedOnce.current = true;
+    const snapshot = items.map((i) => ({ book_id: i.book_id, quantity: i.quantity, title_ar: i.title_ar }));
+    revalidateCart(
+      snapshot.map((s) => ({ book_id: s.book_id, quantity: s.quantity })),
+      'checkout_entry'
+    )
+      .then((decisions) => {
+        const messages: string[] = [];
+        for (const { book_id, decision } of decisions) {
+          if (decision.decision === 'allow') continue;
+          if (decision.decision === 'block') {
+            remove(book_id);
+            messages.push(decision.user_message ?? `كتاب لم يعد متاحًا — تمت إزالته.`);
+          } else if (decision.decision === 'adjust') {
+            setQuantity(book_id, decision.final_qty);
+            messages.push(decision.user_message ?? `تم تعديل الكمية حسب المتاح.`);
+          }
+        }
+        if (messages.length > 0) setStockNotices(messages);
+      })
+      .catch(() => {});
+  }, [isHydrated, items, remove, setQuantity]);
 
   // Check branch availability whenever items change
   useEffect(() => {
@@ -89,6 +126,7 @@ export default function CheckoutView({
   const total = subtotal + quote.fee;
 
   const wouldExceedCap = alreadyOrdered + totalItems > cap;
+  const stockChanged = stockNotices.length > 0;
   const canSubmit =
     !wouldExceedCap &&
     isHydrated &&
@@ -96,7 +134,8 @@ export default function CheckoutView({
     !!branchId &&
     (fulfillment === 'pickup' || (areaType && governorate && address)) &&
     !!fullName &&
-    !!phone;
+    !!phone &&
+    (!stockChanged || acknowledged);
 
   const selectedBranchAvail = availability.find((a) => a.branch_id === branchId);
 
@@ -137,6 +176,27 @@ export default function CheckoutView({
   return (
     <div className="grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
       <div className="space-y-6">
+        {stockChanged && !acknowledged && (
+          <div className="card border border-accent/40 bg-accent/5 p-4">
+            <h3 className="font-bold text-primary-dark mb-2">
+              <i className="fa-solid fa-circle-info ml-1 text-accent-dark" />
+              تم تحديث السلة قبل المتابعة
+            </h3>
+            <ul className="text-sm space-y-1 mb-3 text-ink/80">
+              {stockNotices.map((msg, i) => (
+                <li key={i}>• {msg}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setAcknowledged(true)}
+              className="btn btn-primary text-sm py-2 px-5"
+            >
+              فهمت — متابعة الدفع
+            </button>
+          </div>
+        )}
+
         {/* Fulfillment */}
         <div className="card p-6">
           <h3 className="font-bold text-primary-dark mb-4">طريقة الاستلام</h3>

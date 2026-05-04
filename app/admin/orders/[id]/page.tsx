@@ -18,7 +18,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const { data: order } = await supa
     .from('orders')
     .select(
-      'id, order_number, status, total, subtotal, shipping_fee, fulfillment_type, payment_status, payment_method, shipping_governorate, shipping_address, notes, reservation_expires_at, cancelled_at, cancel_reason, created_at, updated_at, branch:branches(id, name_ar, address_ar, phone, whatsapp), student:students(id, full_name, phone, email, governorate, address), items:order_items(quantity, unit_price, book:books(id, title_ar))'
+      'id, order_number, status, total, subtotal, shipping_fee, fulfillment_type, payment_status, payment_method, shipping_governorate, shipping_address, notes, reservation_expires_at, cancelled_at, cancel_reason, created_at, updated_at, branch:branches(id, name_ar, address_ar, phone, whatsapp), student:students(id, full_name, phone, email, governorate, address), items:order_items(quantity, oversold_quantity, unit_price, book:books(id, title_ar))'
     )
     .eq('id', id)
     .maybeSingle();
@@ -59,8 +59,25 @@ export default async function OrderDetailPage({ params }: Props) {
           )}
 
           {/* Items */}
+          {(() => {
+            const orderItems = (order as any).items as Array<{
+              quantity: number;
+              oversold_quantity: number;
+              unit_price: number;
+              book: { id: number; title_ar: string };
+            }>;
+            const hasOversell = orderItems.some((it) => (it.oversold_quantity ?? 0) > 0);
+            return (
           <div className="card p-5">
-            <h3 className="font-bold text-primary-dark mb-4">الكتب المطلوبة</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-primary-dark">الكتب المطلوبة</h3>
+              {hasOversell && (
+                <span className="bg-accent/10 text-accent-dark border border-accent/30 px-3 py-1 rounded-pill text-xs font-bold">
+                  <i className="fa-solid fa-triangle-exclamation ml-1" />
+                  طلب مؤجل (تجاوز مخزون)
+                </span>
+              )}
+            </div>
             <table className="w-full text-sm">
               <thead className="text-xs text-[#666] border-b border-bg-light">
                 <tr>
@@ -71,18 +88,26 @@ export default async function OrderDetailPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {(order as any).items.map((it: any, i: number) => (
+                {orderItems.map((it, i) => {
+                  const oversold = it.oversold_quantity ?? 0;
+                  return (
                   <tr key={i} className="border-b border-bg-light last:border-0">
                     <td className="py-3">
                       <Link href={`/admin/books`} className="hover:text-primary">
                         {it.book.title_ar}
                       </Link>
+                      {oversold > 0 && (
+                        <span className="block text-[0.7rem] text-accent-dark mt-0.5">
+                          منها {oversold} مؤجلة (لم تُخصم من المخزون).
+                        </span>
+                      )}
                     </td>
                     <td className="py-3">{formatPrice(Number(it.unit_price))}</td>
                     <td className="py-3">{it.quantity}</td>
                     <td className="py-3 text-left font-bold">{formatPrice(Number(it.unit_price) * it.quantity)}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             <div className="border-t border-bg-light mt-4 pt-4 space-y-1 text-sm">
@@ -91,6 +116,8 @@ export default async function OrderDetailPage({ params }: Props) {
               <div className="flex justify-between text-lg pt-2 mt-2 border-t border-bg-light"><span className="font-bold">الإجمالي</span><span className="font-extrabold text-accent-dark">{formatPrice(Number(order.total))}</span></div>
             </div>
           </div>
+            );
+          })()}
 
           {order.notes && (
             <div className="card p-5">

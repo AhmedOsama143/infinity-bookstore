@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from './auth';
 import { sendEmail, orderStatusEmailHtml } from '@/lib/email';
+import { validateStock } from '@/lib/stock/integrity';
 import type { GradeLevel, OrderStatus, PaymentMethod, PaymentType } from '@/lib/types';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -80,6 +81,22 @@ export interface ManualOrderInput {
   sale_type: 'completed_at_counter' | 'pending_phone_order';
 
   notes?: string | null;
+
+  // Staff oversell flow: when validateStock returns warn_and_allow for any
+  // item, the form must round-trip with oversell_confirmed=true before the
+  // order is actually written. The optional staff_note is attached to the
+  // stock_decisions audit row for procurement / reconciliation.
+  oversell_confirmed?: boolean;
+  staff_note?: string | null;
+}
+
+export interface OversellLine {
+  book_id: number;
+  title_ar: string | null;
+  requested_qty: number;
+  available_stock: number;
+  overage: number;
+  message: string;
 }
 
 export interface ManualOrderResult {
@@ -87,6 +104,9 @@ export interface ManualOrderResult {
   order_id?: string;
   order_number?: string;
   reused_existing_customer?: boolean;
+  /** Set when staff must confirm an overage before the order is created. */
+  requires_oversell_confirmation?: boolean;
+  oversells?: OversellLine[];
 }
 
 export async function createManualOrder(input: ManualOrderInput): Promise<ManualOrderResult> {
@@ -168,6 +188,49 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
 
   // Manual entry is always counter pickup, no shipping fee.
   const total = subtotal;
+
+  // Stock Integrity gate: every line goes through validateStock(actor='staff').
+  // Each call writes a stock_decisions row, so the audit trail is intact even
+  // when the trigger ultimately handles the oversold_quantity bookkeeping.
+  // We aggregate by book_id so the same SKU appearing twice doesn't double-warn.
+  const aggregated = new Map<number, number>();
+  for (const it of items) {
+    aggregated.set(it.book_id, (aggregated.get(it.book_id) ?? 0) + it.quantity);
+  }
+  const oversells: OversellLine[] = [];
+  for (const [bookId, qty] of aggregated.entries()) {
+    const decision = await validateStock({
+      actor_type: 'staff',
+      action: 'set_quantity',
+      book_id: bookId,
+      requested_qty: qty,
+      current_in_cart: 0,
+      branch_id: input.branch_id,
+      touchpoint: 'manual_order',
+      note: input.staff_note ?? null,
+    });
+    if (decision.decision === 'block') {
+      // Only fires for delisted/missing books — staff oversell can't otherwise block.
+      return { error: decision.user_message ?? 'كتاب غير متاح' };
+    }
+    if (decision.decision === 'warn_and_allow') {
+      oversells.push({
+        book_id: bookId,
+        title_ar: decision.title_ar,
+        requested_qty: decision.effective_qty,
+        available_stock: decision.available_stock,
+        overage: decision.effective_qty - decision.available_stock,
+        message: decision.user_message ?? '',
+      });
+    }
+  }
+
+  if (oversells.length > 0 && !input.oversell_confirmed) {
+    return {
+      requires_oversell_confirmation: true,
+      oversells,
+    };
+  }
 
   const { data: order, error: orderErr } = await admin
     .from('orders')

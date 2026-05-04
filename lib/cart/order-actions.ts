@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email';
+import { releaseAllHoldsForUser } from '@/lib/stock/holds';
 import type { CartItem } from './types';
 import type { ShippingAreaType, FulfillmentType } from '@/lib/types';
 import { computeShipping } from './shipping';
@@ -125,8 +126,14 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   if (itemsErr) {
     // Roll back the order on item failure (stock reservation also rolls back via trigger)
     await admin.from('orders').delete().eq('id', order.id);
-    return { error: translateOrderError(itemsErr.message) };
+    return {
+      error: translateOrderError(itemsErr.message, priceMap),
+    };
   }
+
+  // Order is in. The per-branch reservation now supersedes the cart-level
+  // soft-hold; drop the user's holds so other shoppers regain visibility.
+  void releaseAllHoldsForUser(user.id).catch(() => {});
 
   // Confirmation email — fire-and-forget so the checkout response isn't blocked.
   if (user.email) {
@@ -156,8 +163,27 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   return { order_id: order.id, order_number: order.order_number };
 }
 
-function translateOrderError(msg: string): string {
-  if (msg.includes('OUT_OF_STOCK')) return 'عذرًا، أحد الكتب لم يعد متوفرًا في الفرع المختار';
+interface BookLookup {
+  id?: number;
+  title_ar?: string | null;
+}
+
+function translateOrderError(msg: string, priceMap?: Map<number, BookLookup>): string {
+  if (msg.includes('OUT_OF_STOCK')) {
+    // Trigger format: "OUT_OF_STOCK: book <id> not available at branch <uuid> (need <n>, avail <n>)"
+    const match = msg.match(/book\s+(\d+)/i);
+    const offendingId = match ? Number(match[1]) : null;
+    const need = msg.match(/need\s+(\d+)/i)?.[1];
+    const avail = msg.match(/avail\s+(\d+)/i)?.[1];
+    const title = offendingId && priceMap ? priceMap.get(offendingId)?.title_ar : null;
+    if (title && need && avail) {
+      return `«${title}» لم يعد متوفرًا بالكمية المطلوبة في هذا الفرع (طلبت ${need}، المتاح ${avail}). راجع السلة وأعد المحاولة.`;
+    }
+    if (title) {
+      return `«${title}» لم يعد متوفرًا بالكمية المطلوبة في هذا الفرع. راجع السلة وأعد المحاولة.`;
+    }
+    return 'أحد الكتب لم يعد متوفرًا بالكمية المطلوبة في هذا الفرع. راجع السلة وأعد المحاولة.';
+  }
   if (msg.includes('BOOK_CAP_EXCEEDED')) return 'تجاوزت الحد الأقصى للكتب (10)';
   return msg;
 }

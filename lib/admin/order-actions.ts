@@ -12,7 +12,7 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending:   ['confirmed', 'cancelled'],
   confirmed: ['ready', 'cancelled'],
   ready:     ['completed', 'cancelled'],
-  completed: [],
+  completed: ['cancelled'],
   cancelled: [],
 };
 

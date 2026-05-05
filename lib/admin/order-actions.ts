@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from './auth';
 import { sendEmail, orderStatusEmailHtml } from '@/lib/email';
 import { validateStock } from '@/lib/stock/integrity';
-import type { GradeLevel, OrderStatus, PaymentMethod, PaymentType } from '@/lib/types';
+import type { GradeLevel, OrderStatus, PaymentMethod, PaymentStatus, PaymentType } from '@/lib/types';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending:   ['confirmed', 'cancelled'],
@@ -47,6 +47,36 @@ export async function transitionOrder(orderId: string, next: OrderStatus, reason
     });
     sendEmail({ to: student.email, subject, html }).catch(() => {});
   }
+
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true };
+}
+
+export async function setOrderPaymentStatus(orderId: string, next: PaymentStatus) {
+  const ctx = await requireAdmin();
+  const supa = await createClient();
+
+  const { data: order } = await supa
+    .from('orders')
+    .select('payment_status, payment_type, branch_id')
+    .eq('id', orderId)
+    .maybeSingle();
+  if (!order) return { error: 'الطلب غير موجود' };
+
+  if (ctx.role === 'branch_manager' && order.branch_id !== ctx.branchId) {
+    return { error: 'لا يمكنك تعديل طلب لفرع آخر' };
+  }
+
+  if (order.payment_type !== 'offline') {
+    return { error: 'لا يمكن تعديل حالة الدفع للطلبات الإلكترونية يدوياً' };
+  }
+
+  const { error } = await supa
+    .from('orders')
+    .update({ payment_status: next })
+    .eq('id', orderId);
+  if (error) return { error: error.message };
 
   revalidatePath('/admin/orders');
   revalidatePath(`/admin/orders/${orderId}`);

@@ -350,7 +350,8 @@ export default async function OrdersPage({ searchParams }: Props) {
               <th className="text-right p-4">طريقة الدفع</th>
               <th className="text-right p-4">حالة الدفع</th>
               <th className="text-right p-4">الحالة</th>
-              <th className="text-left p-4">المبلغ</th>
+              <th className="text-right p-4">المبلغ</th>
+              <th className="text-center p-4">الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -386,11 +387,20 @@ export default async function OrdersPage({ searchParams }: Props) {
                   </span>
                 </td>
                 <td className="p-4"><StatusPill status={o.status} /></td>
-                <td className="p-4 text-left font-bold">{formatPrice(Number(o.total))}</td>
+                <td className="p-4 font-bold">{formatPrice(Number(o.total))}</td>
+                <td className="p-4 text-center">
+                  <Link
+                    href={`/admin/orders/${o.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary-light text-primary-dark hover:bg-primary hover:text-white text-xs font-bold whitespace-nowrap transition-colors"
+                  >
+                    <i className="fa-solid fa-eye" />
+                    تفاصيل
+                  </Link>
+                </td>
               </tr>
             ))}
             {(!orders || orders.length === 0) && (
-              <tr><td colSpan={10} className="p-12 text-center text-[#666]">لا توجد طلبات بهذه المواصفات.</td></tr>
+              <tr><td colSpan={11} className="p-12 text-center text-[#666]">لا توجد طلبات بهذه المواصفات.</td></tr>
             )}
           </tbody>
         </table>

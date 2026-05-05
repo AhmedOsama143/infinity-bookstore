@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import PageShell from '@/components/admin/page-shell';
 import StatusPill from '@/components/admin/status-pill';
 import OrderActionsBar from '@/components/admin/order-actions-bar';
+import PaymentStatusToggle from '@/components/admin/payment-status-toggle';
 import { formatPrice } from '@/lib/utils';
 import { requireAdmin } from '@/lib/admin/auth';
-import type { OrderStatus } from '@/lib/types';
+import type { OrderStatus, PaymentStatus } from '@/lib/types';
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -18,7 +19,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const { data: order } = await supa
     .from('orders')
     .select(
-      'id, order_number, status, total, subtotal, shipping_fee, fulfillment_type, payment_status, payment_method, shipping_governorate, shipping_address, notes, reservation_expires_at, cancelled_at, cancel_reason, created_at, updated_at, branch:branches(id, name_ar, address_ar, phone, whatsapp), student:students(id, full_name, phone, email, governorate, address), items:order_items(quantity, oversold_quantity, unit_price, book:books(id, title_ar))'
+      'id, order_number, status, total, subtotal, shipping_fee, fulfillment_type, payment_status, payment_method, payment_type, shipping_governorate, shipping_address, notes, reservation_expires_at, cancelled_at, cancel_reason, created_at, updated_at, branch:branches(id, name_ar, address_ar, phone, whatsapp), student:students(id, full_name, phone, email, governorate, address), items:order_items(quantity, oversold_quantity, unit_price, book:books(id, title_ar))'
     )
     .eq('id', id)
     .maybeSingle();
@@ -177,6 +178,12 @@ export default async function OrderDetailPage({ params }: Props) {
               <div className="flex justify-between"><dt className="text-[#666]">الطريقة</dt><dd className="font-bold">{order.payment_method === 'cod' ? 'كاش عند الاستلام' : order.payment_method}</dd></div>
               <div className="flex justify-between"><dt className="text-[#666]">الحالة</dt><dd className="font-bold">{order.payment_status === 'paid' ? '✅ مدفوع' : '⏳ غير مدفوع'}</dd></div>
             </dl>
+            {(order as any).payment_type === 'offline' && order.status !== 'cancelled' && (
+              <PaymentStatusToggle
+                orderId={order.id}
+                current={order.payment_status as PaymentStatus}
+              />
+            )}
           </div>
         </aside>
       </div>

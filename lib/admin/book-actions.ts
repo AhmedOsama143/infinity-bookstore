@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { requireFullAdmin } from './auth';
 import type { GradeLevel, BookType } from '@/lib/types';
 
@@ -76,14 +77,16 @@ function parsePayload(formData: FormData, includeId = false): BookPayload | stri
 async function uploadCoverIfPresent(formData: FormData, bookId: number): Promise<string | null> {
   const file = formData.get('cover');
   if (!(file instanceof File) || file.size === 0) return null;
-  const supa = await createClient();
+  // Storage bucket has no INSERT policy for the anon-cookie session; use the
+  // service-role client. Safe: caller already gated by requireFullAdmin().
+  const supa = createAdminClient();
   const ext = file.name.split('.').pop() ?? 'jpg';
   const path = `book_${bookId}.${ext}`;
   const { error } = await supa.storage
     .from('book-covers')
     .upload(path, file, { upsert: true, contentType: file.type });
   if (error) throw error;
-  return supa.storage.from('book-covers').getPublicUrl(path).data.publicUrl;
+  return `${supa.storage.from('book-covers').getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
 }
 
 export async function createBook(formData: FormData): Promise<BookActionResult> {
@@ -171,7 +174,7 @@ export async function updateBook(formData: FormData): Promise<BookActionResult> 
   revalidatePath('/admin/books');
   revalidatePath(`/admin/books/${parsed.id}/edit`);
   revalidatePath(`/books/${parsed.id}`);
-  return { book_id: parsed.id };
+  redirect('/admin/books');
 }
 
 export async function deleteBook(bookId: number) {

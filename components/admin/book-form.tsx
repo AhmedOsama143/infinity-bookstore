@@ -38,7 +38,7 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
     const fd = new FormData(e.currentTarget);
     start(async () => {
       const res = mode === 'new' ? await createBook(fd) : await updateBook(fd);
-      setMsg(res.error ? { type: 'err', text: res.error } : { type: 'ok', text: '✓ تم الحفظ' });
+      setMsg(res?.error ? { type: 'err', text: res.error } : { type: 'ok', text: '✓ تم الحفظ' });
     });
   }
 

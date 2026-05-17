@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { requireFullAdmin } from './auth';
 
 interface TeacherPayload {
@@ -42,7 +43,10 @@ function parsePayload(formData: FormData, includeId = false): TeacherPayload | s
 async function uploadPhoto(formData: FormData, teacherId: number): Promise<string | null> {
   const file = formData.get('photo');
   if (!(file instanceof File) || file.size === 0) return null;
-  const supa = await createClient();
+  // Storage bucket has no INSERT policy for the anon-cookie session; use the
+  // service-role client. Safe: createTeacher/updateTeacher are gated by
+  // requireFullAdmin() before this runs.
+  const supa = createAdminClient();
   const ext = file.name.split('.').pop() ?? 'jpg';
   const path = `teacher_${teacherId}.${ext}`;
   const { error } = await supa.storage.from('teacher-photos').upload(path, file, {
@@ -50,7 +54,7 @@ async function uploadPhoto(formData: FormData, teacherId: number): Promise<strin
     contentType: file.type,
   });
   if (error) throw error;
-  return supa.storage.from('teacher-photos').getPublicUrl(path).data.publicUrl;
+  return `${supa.storage.from('teacher-photos').getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
 }
 
 export async function createTeacher(formData: FormData) {

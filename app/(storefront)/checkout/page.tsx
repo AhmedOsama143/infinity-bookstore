@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getBranches, getSiteSettings } from '@/lib/data';
 import PageHeader from '@/components/storefront/page-header';
 import CheckoutView from '@/components/cart/checkout-view';
+import { getPublicFawryConfig } from '@/lib/fawry/config';
 import type { ShippingAreaType } from '@/lib/types';
 
 export const metadata = { title: 'إتمام الطلب | مركز إنفينيتي' };
@@ -25,6 +26,8 @@ export default async function CheckoutPage() {
 
   const rateMap: Record<string, number> = {};
   for (const r of rates ?? []) rateMap[r.area_type] = Number(r.price);
+
+  const fawry = getPublicFawryConfig();
 
   return (
     <>
@@ -50,6 +53,8 @@ export default async function CheckoutPage() {
               governorate: student?.governorate ?? '',
               address: student?.address ?? '',
             }}
+            fawryJsUrl={fawry.pluginJsUrl}
+            fawryCssUrl={fawry.pluginCssUrl}
           />
         </div>
       </section>

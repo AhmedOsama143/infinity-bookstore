@@ -9,6 +9,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
+    "seed:fawry": "tsx scripts/seed-fawry-test.ts",
+    "test:fawry": "tsx scripts/fawry-signature.test.ts",
     "db:push": "supabase db push",
     "db:link": "supabase link --project-ref bdljzgvjrkfusqtozipa"
   },
@@ -17,7 +19,8 @@
     "@supabase/supabase-js": "^2.48.1",
     "next": "^15.5.15",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

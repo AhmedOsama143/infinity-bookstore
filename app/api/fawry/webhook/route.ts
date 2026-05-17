@@ -1,0 +1,270 @@
+/**
+ * POST /api/fawry/webhook — Fawry Server Notification V2 receiver.
+ *
+ * Slice 5 of the integration. This endpoint is the *only* authoritative source
+ * for marking an order paid, failed, or expired. The browser-redirect to
+ * /checkout/result is for UX only.
+ *
+ * Contract:
+ *   • Public (no auth) but signature-verified with FAWRY_SECURE_KEY.
+ *   • Always returns 200, even on signature failure or unknown order —
+ *     anything else triggers Fawry retry storms that don't help us.
+ *   • Insert into payment_events FIRST so an audit trail survives any
+ *     downstream failure. Idempotency is enforced by the partial unique index
+ *     uq_payment_events_webhook_idem from migration 019: a retry with the
+ *     same (merchant_ref_number, orderStatus) and a valid signature raises
+ *     23505, which we treat as "already seen, ack and exit".
+ *
+ * Status mapping:
+ *   PAID                     → payment_status='paid'  (order.status left alone)
+ *   FAILED / EXPIRED / CANCELED → payment_status='failed' | 'expired'
+ *                              AND order.status='cancelled' if still pending,
+ *                              which trips the migration-015 trigger to
+ *                              release branch stock back to inventory.
+ *   REFUNDED                 → payment_status='refunded' (slice 10 owns the
+ *                              staff-initiated refund flow; this only handles
+ *                              webhook-reported refunds for audit symmetry).
+ *   NEW / PARTIAL_REFUNDED   → logged, no order mutation.
+ */
+import { NextResponse, type NextRequest } from 'next/server';
+import { z } from 'zod';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyCallback } from '@/lib/fawry/signing';
+import { getFawryConfig } from '@/lib/fawry/config';
+import { mapFawryStatus, isFailureBranch } from '@/lib/fawry/status';
+import { logFunnelEvent } from '@/lib/analytics/server';
+import type { FawryServerNotificationV2 } from '@/lib/fawry/types';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+// Minimal shape validation. We only enforce the fields the signature/business
+// logic actually reads — anything else passes through into raw_payload so the
+// audit row stays faithful to what Fawry sent us.
+const NotificationSchema = z
+  .object({
+    requestId: z.string(),
+    fawryRefNumber: z.string().min(1),
+    merchantRefNumber: z.string().min(1),
+    paymentAmount: z.number(),
+    orderAmount: z.number(),
+    fawryFees: z.number().optional(),
+    shippingFees: z.number().optional(),
+    orderStatus: z.enum([
+      'NEW',
+      'PAID',
+      'CANCELED',
+      'REFUNDED',
+      'EXPIRED',
+      'PARTIAL_REFUNDED',
+      'FAILED',
+    ]),
+    paymentMethod: z.string().min(1),
+    paymentTime: z.number().optional(),
+    paymentRefrenceNumber: z.string().optional(),
+    messageSignature: z.string().min(1),
+  })
+  .passthrough();
+
+function ok() {
+  // Plain 200 — Fawry only cares that it's not a retry-trigger response.
+  return NextResponse.json({ ok: true });
+}
+
+export async function POST(request: NextRequest) {
+  // 1. Parse. Any failure here is logged to stderr — we can't even write an
+  //    audit row without a merchant_ref_number, so the best we can do is ack.
+  let parsedRaw: unknown;
+  try {
+    parsedRaw = await request.json();
+  } catch {
+    console.error('[fawry/webhook] body was not valid JSON');
+    return ok();
+  }
+
+  const parsed = NotificationSchema.safeParse(parsedRaw);
+  if (!parsed.success) {
+    console.error(
+      '[fawry/webhook] payload failed shape validation:',
+      parsed.error.issues
+    );
+    return ok();
+  }
+  const notif = parsed.data as FawryServerNotificationV2;
+
+  let config;
+  try {
+    config = getFawryConfig();
+  } catch (err) {
+    console.error(
+      '[fawry/webhook] Fawry env not configured:',
+      err instanceof Error ? err.message : err
+    );
+    return ok();
+  }
+
+  const signatureValid = verifyCallback(notif, config.secureKey);
+  const admin = createAdminClient();
+
+  // 2. Audit row. For invalid sigs the partial unique index doesn't fire, so
+  //    every bad attempt is recorded distinctly. For valid sigs the index
+  //    enforces (merchant_ref_number, orderStatus) uniqueness — a retry of an
+  //    already-processed webhook collides on 23505 and we exit early.
+  const insertEvent = await admin
+    .from('payment_events')
+    .insert({
+      merchant_ref_number: notif.merchantRefNumber,
+      event_type: 'webhook',
+      raw_payload: notif,
+      signature_provided: notif.messageSignature,
+      signature_valid: signatureValid,
+      fawry_status_code: notif.orderStatus,
+      processed: false,
+    })
+    .select('id')
+    .single();
+
+  if (insertEvent.error) {
+    if (insertEvent.error.code === '23505') {
+      // Already processed (or processing) a webhook for this (ref, status).
+      // Fawry retried — ack and move on.
+      return ok();
+    }
+    console.error(
+      '[fawry/webhook] failed to log audit row:',
+      insertEvent.error.message
+    );
+    return ok();
+  }
+
+  const eventId = insertEvent.data.id;
+
+  // 3. Reject invalid signatures AFTER logging them.
+  if (!signatureValid) {
+    return ok();
+  }
+
+  // 4. Look up the order. Service-role read so RLS doesn't get in the way.
+  const { data: order, error: orderErr } = await admin
+    .from('orders')
+    .select('id, status, payment_status, payment_method, student_id, total')
+    .eq('merchant_ref_number', notif.merchantRefNumber)
+    .maybeSingle();
+
+  if (orderErr) {
+    await admin
+      .from('payment_events')
+      .update({ error_message: `order_lookup_failed: ${orderErr.message}` })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  if (!order) {
+    // Unknown merchantRefNumber — could be a stale sandbox order, a mistakenly
+    // pointed webhook from another environment, or a test ping. Log and ack.
+    await admin
+      .from('payment_events')
+      .update({ error_message: 'order_not_found' })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  // 5. Map Fawry status to our payment_status. Some statuses (NEW,
+  //    PARTIAL_REFUNDED) don't drive a state transition — we still mark the
+  //    audit row processed so reconciliation jobs don't pick it up later.
+  const targetStatus = mapFawryStatus(notif.orderStatus);
+  if (targetStatus === null) {
+    await admin
+      .from('payment_events')
+      .update({
+        order_id: order.id,
+        processed: true,
+        error_message: `no_transition_for:${notif.orderStatus}`,
+      })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  // 6. Order-level idempotency: if the order is already where the webhook
+  //    wants to put it, this is a same-status retry that slipped past the
+  //    unique index (e.g. the signature differed because Fawry re-sent with
+  //    different optional fields). Treat as no-op.
+  if (order.payment_status === targetStatus) {
+    await admin
+      .from('payment_events')
+      .update({ order_id: order.id, processed: true })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  // 7. Build the update. Money fields come straight off the webhook — never
+  //    recomputed client-side.
+  const update: Record<string, unknown> = {
+    payment_status: targetStatus,
+    payment_method_detail: notif.paymentMethod,
+    fawry_ref_number: notif.fawryRefNumber,
+    fawry_fees: notif.fawryFees ?? 0,
+    payment_amount: notif.paymentAmount,
+  };
+
+  if (notif.orderStatus === 'PAID') {
+    update.payment_paid_at = notif.paymentTime
+      ? new Date(notif.paymentTime).toISOString()
+      : new Date().toISOString();
+  }
+
+  // Failure modes flip order.status='cancelled', which is what the
+  // migration-015/018 trigger watches to release the branch reservation.
+  // Only cancel if the order is still pending; once staff have advanced it
+  // (confirmed/ready/completed), a late Fawry "FAILED" shouldn't yank the
+  // workflow out from under them — that's a manual support case.
+  if (isFailureBranch(notif.orderStatus) && order.status === 'pending') {
+    update.status = 'cancelled';
+  }
+
+  // 8. Commit the order update. If this fails we keep the audit row with
+  //    processed=false and an error_message so a reconciliation pass (slice 7)
+  //    can replay it later.
+  const { error: updateErr } = await admin
+    .from('orders')
+    .update(update)
+    .eq('id', order.id);
+
+  if (updateErr) {
+    await admin
+      .from('payment_events')
+      .update({
+        order_id: order.id,
+        error_message: `order_update_failed: ${updateErr.message}`,
+      })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  // 9. Done. Mark the audit row processed so reconciliation skips it.
+  await admin
+    .from('payment_events')
+    .update({ order_id: order.id, processed: true })
+    .eq('id', eventId);
+
+  // 10. Conversion log. Only fire on the PAID transition (already gated by
+  //     the idempotency check at step 6 — a duplicate PAID webhook returns
+  //     before reaching here). Funnel events are best-effort; never let an
+  //     analytics failure break the webhook ACK.
+  if (notif.orderStatus === 'PAID') {
+    void logFunnelEvent(admin, {
+      event: 'purchase',
+      user_id: order.student_id ?? null,
+      order_id: order.id,
+      value: Number(notif.paymentAmount ?? order.total ?? 0),
+      props: {
+        payment_method: 'fawry',
+        payment_method_detail: notif.paymentMethod,
+        fawry_ref_number: notif.fawryRefNumber,
+        fawry_fees: notif.fawryFees ?? 0,
+      },
+    });
+  }
+
+  return ok();
+}

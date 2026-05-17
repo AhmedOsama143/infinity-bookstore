@@ -10,6 +10,10 @@ import { placeOrder } from '@/lib/cart/order-actions';
 import { checkCartAvailability, type BranchAvailability } from '@/lib/data/cart-lookups';
 import { revalidateCart } from '@/lib/stock/integrity';
 import type { ShippingAreaType } from '@/lib/types';
+import PaymentMethodPicker, { type PaymentChoice } from './payment-method-picker';
+import { useFawryScript } from '@/lib/fawry/use-fawry-script';
+import type { FawryChargeRequest } from '@/lib/fawry/types';
+import { trackAddPaymentInfo, trackBeginCheckout } from '@/lib/analytics/gtm';
 
 interface BranchOption {
   id: string;
@@ -27,6 +31,8 @@ interface Props {
   cap: number;
   alreadyOrdered: number;
   student: { full_name: string; phone: string; governorate: string; address: string };
+  fawryJsUrl: string;
+  fawryCssUrl: string;
 }
 
 const AREA_OPTIONS: { value: ShippingAreaType; label: string }[] = [
@@ -44,6 +50,8 @@ export default function CheckoutView({
   cap,
   alreadyOrdered,
   student,
+  fawryJsUrl,
+  fawryCssUrl,
 }: Props) {
   const router = useRouter();
   const { items, subtotal, totalItems, clear, setQuantity, remove, isHydrated } = useCart();
@@ -62,6 +70,28 @@ export default function CheckoutView({
   const [stockNotices, setStockNotices] = useState<string[]>([]);
   const [acknowledged, setAcknowledged] = useState(false);
   const revalidatedOnce = useRef(false);
+
+  const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>({ kind: 'cod' });
+  const fawryReady = useFawryScript(fawryJsUrl, fawryCssUrl);
+  const beginCheckoutFired = useRef(false);
+  // Stable per-checkout-attempt key. Retries within this session reuse the
+  // same order rather than racing two pending orders against the same cart.
+  const idempotencyKey = useRef<string>(
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `ck-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
+
+  // Fire begin_checkout once per visit, after hydration and only when there's
+  // a real cart. Skip when revalidation later empties the cart — those users
+  // never actually got to "begin checkout" semantically.
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (beginCheckoutFired.current) return;
+    if (items.length === 0) return;
+    beginCheckoutFired.current = true;
+    trackBeginCheckout(items, subtotal);
+  }, [isHydrated, items, subtotal]);
 
   // Pre-checkout integrity pass: catch sold-out / delisted books before
   // the user picks a branch. Adjusts or removes lines and forces an explicit
@@ -127,6 +157,7 @@ export default function CheckoutView({
 
   const wouldExceedCap = alreadyOrdered + totalItems > cap;
   const stockChanged = stockNotices.length > 0;
+  const isFawry = paymentChoice.kind === 'fawry';
   const canSubmit =
     !wouldExceedCap &&
     isHydrated &&
@@ -135,28 +166,94 @@ export default function CheckoutView({
     (fulfillment === 'pickup' || (areaType && governorate && address)) &&
     !!fullName &&
     !!phone &&
-    (!stockChanged || acknowledged);
+    (!stockChanged || acknowledged) &&
+    (!isFawry || fawryReady);
 
   const selectedBranchAvail = availability.find((a) => a.branch_id === branchId);
 
+  async function handleFawryCheckout(method: Extract<PaymentChoice, { kind: 'fawry' }>['method']) {
+    if (typeof window === 'undefined' || !window.FawryPay) {
+      setSubmitError('فشل تحميل بوابة فوري. حدّث الصفحة وحاول مرة أخرى.');
+      return;
+    }
+
+    // 1. Create the pending order. Idempotency-Key locks retries within this
+    //    session to the same order so a double-click doesn't double-reserve.
+    const createRes = await fetch('/api/orders/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey.current,
+      },
+      body: JSON.stringify({
+        items: items.map((i) => ({ book_id: i.book_id, quantity: i.quantity })),
+        branch_id: branchId,
+        fulfillment,
+        shipping:
+          fulfillment === 'delivery'
+            ? { governorate, address, area_type: areaType }
+            : undefined,
+        notes: notes || undefined,
+      }),
+    });
+    const createJson = await createRes.json().catch(() => null);
+    if (!createRes.ok || !createJson?.ok) {
+      setSubmitError(createJson?.error?.message ?? 'فشل إنشاء الطلب');
+      return;
+    }
+    const orderId: string = createJson.data.orderId;
+
+    // 2. Get the signed Fawry payload for this order + chosen sub-method.
+    const chargeRes = await fetch('/api/fawry/charge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId, payment_method: method }),
+    });
+    const chargeJson = await chargeRes.json().catch(() => null);
+    if (!chargeRes.ok || !chargeJson?.ok) {
+      setSubmitError(chargeJson?.error?.message ?? 'فشل تجهيز عملية الدفع');
+      return;
+    }
+    const payload: FawryChargeRequest = chargeJson.data;
+
+    // 3. Hand off to the Fawry plugin. It will redirect on completion to the
+    //    returnUrl baked into the payload (/checkout/result?orderId=...).
+    //    We deliberately don't clear the cart here — the user might cancel
+    //    inside the popup, in which case we want them back on this page with
+    //    items intact. The result page clears on confirmed PAID.
+    window.FawryPay.checkout(payload, { locale: 'ar', mode: 'POPUP' });
+  }
+
   function handleSubmit() {
     setSubmitError(null);
-    startTransition(async () => {
-      const res = await placeOrder({
-        items,
-        fulfillment,
-        branch_id: branchId,
-        shipping_governorate: fulfillment === 'delivery' ? governorate : undefined,
-        shipping_address: fulfillment === 'delivery' ? address : undefined,
-        shipping_area_type: fulfillment === 'delivery' ? (areaType as ShippingAreaType) : undefined,
-        notes: notes || undefined,
+    const paymentType =
+      paymentChoice.kind === 'cod' ? 'cod' : `fawry_${paymentChoice.tile}`;
+    trackAddPaymentInfo(items, subtotal, paymentType);
+    if (paymentChoice.kind === 'cod') {
+      startTransition(async () => {
+        const res = await placeOrder({
+          items,
+          fulfillment,
+          branch_id: branchId,
+          shipping_governorate: fulfillment === 'delivery' ? governorate : undefined,
+          shipping_address: fulfillment === 'delivery' ? address : undefined,
+          shipping_area_type: fulfillment === 'delivery' ? (areaType as ShippingAreaType) : undefined,
+          notes: notes || undefined,
+        });
+        if (res.error) {
+          setSubmitError(res.error);
+          return;
+        }
+        clear();
+        router.push(`/orders/${res.order_id}/success`);
       });
-      if (res.error) {
-        setSubmitError(res.error);
-        return;
-      }
-      clear();
-      router.push(`/orders/${res.order_id}/success`);
+      return;
+    }
+    // Fawry path — runs outside startTransition because the Fawry plugin
+    // navigates the page itself; we don't want the transition to keep the
+    // button stuck in pending state if the user cancels inside the popup.
+    startTransition(async () => {
+      await handleFawryCheckout(paymentChoice.method);
     });
   }
 
@@ -347,6 +444,12 @@ export default function CheckoutView({
             />
           </div>
         </div>
+
+        <PaymentMethodPicker
+          selected={paymentChoice}
+          onSelect={setPaymentChoice}
+          disabled={isSubmitting}
+        />
       </div>
 
       {/* Summary */}
@@ -383,7 +486,9 @@ export default function CheckoutView({
         </div>
 
         <div className="bg-primary-light text-primary-dark text-xs p-3 rounded-s mb-4">
-          💰 الدفع: كاش عند الاستلام
+          {paymentChoice.kind === 'cod'
+            ? '💰 الدفع: كاش عند الاستلام'
+            : '🔒 الدفع آمن عبر بوابة فوري'}
         </div>
 
         {submitError && (
@@ -404,8 +509,18 @@ export default function CheckoutView({
           disabled={!canSubmit || isSubmitting}
           className="btn btn-primary w-full py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'جاري تأكيد الطلب...' : 'أكّد الطلب'}
-          {!isSubmitting && <i className="fa-solid fa-check mr-2" />}
+          {isSubmitting
+            ? isFawry
+              ? 'جاري تجهيز الدفع...'
+              : 'جاري تأكيد الطلب...'
+            : isFawry
+              ? !fawryReady
+                ? 'جاري تحميل بوابة فوري...'
+                : 'ادفع الآن'
+              : 'أكّد الطلب'}
+          {!isSubmitting && (
+            <i className={`fa-solid ${isFawry ? 'fa-lock' : 'fa-check'} mr-2`} />
+          )}
         </button>
 
         <p className="text-xs text-[#666] mt-3 leading-relaxed">

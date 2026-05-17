@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email';
 import { releaseAllHoldsForUser } from '@/lib/stock/holds';
+import { logFunnelEvent } from '@/lib/analytics/server';
 import type { CartItem } from './types';
 import type { ShippingAreaType, FulfillmentType } from '@/lib/types';
 import { computeShipping } from './shipping';
@@ -134,6 +135,23 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   // Order is in. The per-branch reservation now supersedes the cart-level
   // soft-hold; drop the user's holds so other shoppers regain visibility.
   void releaseAllHoldsForUser(user.id).catch(() => {});
+
+  // Server-side conversion log. COD orders are conversions the moment they're
+  // placed (payment happens later, in person) — match how we count them in
+  // the operations dashboard.
+  void logFunnelEvent(admin, {
+    event: 'purchase',
+    user_id: user.id,
+    order_id: order.id,
+    value: total,
+    props: {
+      payment_method: 'cod',
+      fulfillment: input.fulfillment,
+      items_count: cartQty,
+      subtotal,
+      shipping_fee: quote.fee,
+    },
+  });
 
   // Confirmation email — fire-and-forget so the checkout response isn't blocked.
   if (user.email) {

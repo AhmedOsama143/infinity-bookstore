@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// OAuth callback — Supabase redirects here with ?code=... after Google/Facebook login.
+// OAuth callback — Supabase redirects here with ?code=... after Google login.
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');

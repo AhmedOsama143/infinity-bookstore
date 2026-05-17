@@ -61,7 +61,7 @@ function assertFalse(cond: boolean, label = 'condition'): void {
 }
 
 const sha256 = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
-const money = (n: number) => n.toFixed(2);
+const money = (n: number | string) => (typeof n === 'string' ? Number(n) : n).toFixed(2);
 
 // ============================================================================
 // mapFawryStatus

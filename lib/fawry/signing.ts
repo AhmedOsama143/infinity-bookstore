@@ -17,12 +17,21 @@ import type {
   FawryServerNotificationV2,
 } from './types';
 
-/** Format a number as a Fawry-style two-decimal string for signature input. */
-export function toFawryAmount(n: number): string {
-  if (!Number.isFinite(n)) {
+/**
+ * Format a Fawry-style two-decimal amount for signature input and DB storage.
+ *
+ * Accepts number OR string because Fawry's wire format is inconsistent:
+ * charge responses are always strings, webhooks are usually numbers, and
+ * older sandbox payloads sometimes mix them. Normalising here keeps the
+ * "no floats anywhere for money" rule from CLAUDE.md while still working
+ * with whatever shape Fawry sends.
+ */
+export function toFawryAmount(n: number | string): string {
+  const num = typeof n === 'string' ? Number(n) : n;
+  if (!Number.isFinite(num)) {
     throw new TypeError(`toFawryAmount: not a finite number: ${n}`);
   }
-  return n.toFixed(2);
+  return num.toFixed(2);
 }
 
 /** Optional-string concatenation: undefined/null become "". */
@@ -169,8 +178,26 @@ export function verifyCallback(
 }
 
 // ============================================================================
-// 4. Refund — signed by us, sent to Fawry's server-to-server refund API.
+// 4. Status query — signed by us, sent to Fawry's GET /payments/status/v2.
 //    See SIGNING_REFERENCE.md §4.
+// ============================================================================
+
+export interface SignStatusRequestInput {
+  merchantCode: string;
+  merchantRefNumber: string;
+}
+
+export function signStatusRequest(
+  input: SignStatusRequestInput,
+  secureKey: string
+): string {
+  const raw = input.merchantCode + input.merchantRefNumber + secureKey;
+  return sha256Hex(raw);
+}
+
+// ============================================================================
+// 5. Refund — signed by us, sent to Fawry's server-to-server refund API.
+//    See SIGNING_REFERENCE.md §5.
 // ============================================================================
 
 export interface SignRefundInput {

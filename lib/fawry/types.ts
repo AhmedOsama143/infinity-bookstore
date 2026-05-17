@@ -116,10 +116,14 @@ export interface FawryServerNotificationV2 {
   customerMobile?: string;
   customerMail?: string;
   customerMerchantId?: string;
-  paymentAmount: number;
-  orderAmount: number;
-  fawryFees?: number;
-  shippingFees?: number;
+  // Amount fields are number-or-string on the wire. Fawry's webhook usually
+  // sends numbers but some sandbox flows send strings. Normalise via
+  // toFawryAmount before persisting so we obey the "no floats" rule from
+  // CLAUDE.md §Money.
+  paymentAmount: number | string;
+  orderAmount: number | string;
+  fawryFees?: number | string;
+  shippingFees?: number | string;
   orderStatus: FawryOrderStatus;
   /** Wire form: 'PAYATFAWRY' | 'CARD' | 'MWALLET' | 'VALU' | etc. */
   paymentMethod: string;
@@ -135,7 +139,7 @@ export interface FawryServerNotificationV2 {
   messageSignature: string;
   threeDSInfo?: Record<string, unknown>;
   invoiceInfo?: Record<string, unknown>;
-  installmentInterestAmount?: number;
+  installmentInterestAmount?: number | string;
   installmentMonths?: number;
 }
 

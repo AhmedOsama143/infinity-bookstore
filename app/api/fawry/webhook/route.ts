@@ -29,11 +29,26 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { verifyCallback } from '@/lib/fawry/signing';
+import { toFawryAmount, verifyCallback } from '@/lib/fawry/signing';
 import { getFawryConfig } from '@/lib/fawry/config';
 import { mapFawryStatus, isFailureBranch } from '@/lib/fawry/status';
 import { logFunnelEvent } from '@/lib/analytics/server';
-import type { FawryServerNotificationV2 } from '@/lib/fawry/types';
+import type { FawryPaymentMethod, FawryServerNotificationV2 } from '@/lib/fawry/types';
+
+// Allow-list for payment_method_detail. Anything Fawry sends outside this
+// gets stashed into error_message instead of polluting the staff UI.
+const KNOWN_PAYMENT_METHODS: ReadonlySet<string> = new Set<FawryPaymentMethod | string>([
+  'PAYATFAWRY',
+  'MWALLET',
+  'CARD',
+  'VALU',
+  'CashOnDelivery',
+]);
+
+// z.union of number and string for any field that Fawry sometimes serialises
+// as a string and sometimes as a number (every amount field falls in this
+// bucket — see CLAUDE.md §Money).
+const FawryAmount = z.union([z.number(), z.string()]);
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -46,10 +61,10 @@ const NotificationSchema = z
     requestId: z.string(),
     fawryRefNumber: z.string().min(1),
     merchantRefNumber: z.string().min(1),
-    paymentAmount: z.number(),
-    orderAmount: z.number(),
-    fawryFees: z.number().optional(),
-    shippingFees: z.number().optional(),
+    paymentAmount: FawryAmount,
+    orderAmount: FawryAmount,
+    fawryFees: FawryAmount.optional(),
+    shippingFees: FawryAmount.optional(),
     orderStatus: z.enum([
       'NEW',
       'PAID',
@@ -169,6 +184,22 @@ export async function POST(request: NextRequest) {
     return ok();
   }
 
+  // 4a. P0-2: defence-in-depth against environment/webhook misconfiguration.
+  //     If a non-Fawry order (COD) ever shows up here, we refuse to touch it.
+  //     UUID collisions are vanishingly unlikely, but a stray webhook from a
+  //     different environment pointed at our dashboard could otherwise mark a
+  //     cash order paid.
+  if (order.payment_method !== 'fawry') {
+    await admin
+      .from('payment_events')
+      .update({
+        order_id: order.id,
+        error_message: `not_fawry_order:${order.payment_method}`,
+      })
+      .eq('id', eventId);
+    return ok();
+  }
+
   // 5. Map Fawry status to our payment_status. Some statuses (NEW,
   //    PARTIAL_REFUNDED) don't drive a state transition — we still mark the
   //    audit row processed so reconciliation jobs don't pick it up later.
@@ -197,15 +228,61 @@ export async function POST(request: NextRequest) {
     return ok();
   }
 
-  // 7. Build the update. Money fields come straight off the webhook — never
-  //    recomputed client-side.
+  // 6a. P0-1: amount sanity check before the PAID transition. The signature
+  //     proves Fawry sent the payload, but it doesn't prove the customer paid
+  //     the right amount — a webhook replay against a re-priced order, or a
+  //     Fawry-side bug, could mark us paid for less than we computed. On
+  //     mismatch we log and bail (no flip), and surface to staff via the
+  //     payment_events audit row.
+  if (notif.orderStatus === 'PAID') {
+    const expected = toFawryAmount(Number(order.total));
+    const received = toFawryAmount(notif.orderAmount);
+    if (expected !== received) {
+      await admin
+        .from('payment_events')
+        .update({
+          order_id: order.id,
+          error_message: `amount_mismatch: expected=${expected} received=${received}`,
+        })
+        .eq('id', eventId);
+      return ok();
+    }
+  }
+
+  // 6b. P0-3: staff may have cancelled the order in the dashboard before
+  //     Fawry's PAID webhook arrived (common with kiosk references that can
+  //     take hours). Flipping payment_status=paid on a cancelled order leaves
+  //     us in an inconsistent state — stock released, but the customer shows
+  //     as paid. Refuse, log, escalate to support (likely a refund).
+  if (notif.orderStatus === 'PAID' && order.status === 'cancelled') {
+    await admin
+      .from('payment_events')
+      .update({
+        order_id: order.id,
+        error_message: 'paid_after_cancel',
+      })
+      .eq('id', eventId);
+    return ok();
+  }
+
+  // 7. Build the update. Money fields are normalised through toFawryAmount
+  //    so the row holds the canonical two-decimal string, matching the
+  //    DECIMAL column and the "no floats" rule (CLAUDE.md §Money).
   const update: Record<string, unknown> = {
     payment_status: targetStatus,
-    payment_method_detail: notif.paymentMethod,
+    payment_method_detail: KNOWN_PAYMENT_METHODS.has(notif.paymentMethod)
+      ? notif.paymentMethod
+      : null,
     fawry_ref_number: notif.fawryRefNumber,
-    fawry_fees: notif.fawryFees ?? 0,
-    payment_amount: notif.paymentAmount,
+    fawry_fees: notif.fawryFees != null ? toFawryAmount(notif.fawryFees) : '0.00',
+    payment_amount: toFawryAmount(notif.paymentAmount),
   };
+
+  // P2-4: stash unrecognised payment methods in error_message so the audit
+  // trail captures them without polluting the staff UI's expected enum.
+  if (!KNOWN_PAYMENT_METHODS.has(notif.paymentMethod)) {
+    update.payment_method_detail = null;
+  }
 
   if (notif.orderStatus === 'PAID') {
     update.payment_paid_at = notif.paymentTime
@@ -261,7 +338,7 @@ export async function POST(request: NextRequest) {
         payment_method: 'fawry',
         payment_method_detail: notif.paymentMethod,
         fawry_ref_number: notif.fawryRefNumber,
-        fawry_fees: notif.fawryFees ?? 0,
+        fawry_fees: Number(notif.fawryFees ?? 0),
       },
     });
   }

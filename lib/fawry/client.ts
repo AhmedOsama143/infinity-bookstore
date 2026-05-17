@@ -8,8 +8,13 @@
  * Server-side only. Reads `getFawryConfig()` for the merchant code, return
  * URL, and secure key.
  */
-import { attachChargeSignature } from './signing';
-import type { FawryChargeItem, FawryChargeRequest, FawryPaymentMethod } from './types';
+import { attachChargeSignature, signStatusRequest } from './signing';
+import type {
+  FawryChargeItem,
+  FawryChargeRequest,
+  FawryOrderStatus,
+  FawryPaymentMethod,
+} from './types';
 import { getFawryConfig, type FawryConfig } from './config';
 
 export interface BuildChargeRequestInput {
@@ -60,6 +65,11 @@ export function buildChargeRequest(
     chargeItems: input.items,
     paymentMethod: input.paymentMethod,
     returnUrl: input.returnUrlOverride ?? config.returnUrl,
+    // Per-request webhook URL override. Fawry honours this even when a
+    // dashboard URL is set, so it doubles as a way to point sandbox traffic
+    // at an ngrok tunnel without touching the Fawry dashboard. When the env
+    // var is unset (production), the dashboard URL is the only source.
+    orderWebHookUrl: config.webhookUrl ?? undefined,
   };
 
   return attachChargeSignature(unsigned, config.secureKey);
@@ -86,4 +96,62 @@ export function chargeItemsFromCart(
     price: l.unitPrice,
     imageUrl: l.coverUrl ?? undefined,
   }));
+}
+
+/**
+ * The interesting subset of Fawry's payment-status response. We only model
+ * the fields the reconciliation path actually reads — the full response has
+ * dozens of optional bookkeeping fields we don't care about. Other fields
+ * pass through untouched in `raw` for auditing.
+ */
+export interface FawryStatusResponse {
+  type?: string;
+  merchantRefNumber: string;
+  fawryRefNumber?: string;
+  paymentAmount?: number | string;
+  orderAmount?: number | string;
+  fawryFees?: number | string;
+  paymentMethod?: string;
+  orderStatus?: FawryOrderStatus;
+  paymentTime?: number;
+  statusCode?: number | string;
+  statusDescription?: string;
+  // Anything else Fawry returns.
+  [key: string]: unknown;
+}
+
+/**
+ * GET /ECommerceWeb/api/payments/status/v2 — server-to-server poll of an
+ * order's current Fawry state. Used by Slice 7's reconciliation route when
+ * the result-page poll loop times out (typically because Fawry's webhook
+ * fell behind, common on wallet pushes).
+ *
+ * Returns the parsed body. Throws on network / non-2xx — callers convert
+ * to an audit row rather than failing the request.
+ */
+export async function fetchPaymentStatus(
+  merchantRefNumber: string,
+  config: FawryConfig = getFawryConfig()
+): Promise<FawryStatusResponse> {
+  const signature = signStatusRequest(
+    { merchantCode: config.merchantCode, merchantRefNumber },
+    config.secureKey
+  );
+  const url = new URL('/ECommerceWeb/api/payments/status/v2', config.baseUrl);
+  url.searchParams.set('merchantCode', config.merchantCode);
+  url.searchParams.set('merchantRefNumber', merchantRefNumber);
+  url.searchParams.set('signature', signature);
+
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    // Status calls are reconciliation glue; if Fawry is slow we'd rather
+    // surface the timeout than block the result page indefinitely.
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`fawry_status_http_${res.status}`);
+  }
+  return (await res.json()) as FawryStatusResponse;
 }

@@ -115,6 +115,12 @@ export async function POST(request: NextRequest) {
       .eq('idempotency_key', idempotencyKey)
       .maybeSingle();
     if (prior) {
+      // P2-1: the original order has already reserved branch stock via the
+      // migration-015 trigger, so the cart-level soft-holds are redundant.
+      // The non-replay path drops them at the end of this handler — mirror
+      // that here so a retry within the hold window doesn't leave stale holds
+      // alive until they naturally expire.
+      void releaseAllHoldsForUser(user.id).catch(() => {});
       return ok(
         {
           orderId: prior.id,

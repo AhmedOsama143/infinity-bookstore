@@ -67,7 +67,17 @@ fawryRefNumber
 + secureKey
 ```
 
-## 4. Refund — signed by us, sent to Fawry's server-to-server refund API
+## 4. Status query — signed by us, sent to Fawry's `GET /payments/status/v2`
+
+Used by `lib/fawry/signing.ts → signStatusRequest`. Slice 7 wires the actual call so the result page can reconcile when the webhook is delayed.
+
+```
+merchantCode
++ merchantRefNumber
++ secureKey
+```
+
+## 5. Refund — signed by us, sent to Fawry's server-to-server refund API
 
 Used by `lib/fawry/signing.ts → signRefund`. Slice 10 wires the actual API call.
 

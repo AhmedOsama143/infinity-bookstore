@@ -15,6 +15,9 @@ interface CartContextValue {
   upsertQuantity: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
   clear: () => void;
   isHydrated: boolean;
+  isMiniCartOpen: boolean;
+  openMiniCart: () => void;
+  closeMiniCart: () => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -23,6 +26,9 @@ const STORAGE_KEY = 'infinity:cart';
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isMiniCartOpen, setMiniCartOpen] = useState(false);
+  const openMiniCart = useCallback(() => setMiniCartOpen(true), []);
+  const closeMiniCart = useCallback(() => setMiniCartOpen(false), []);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -112,6 +118,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     upsertQuantity,
     clear,
     isHydrated,
+    isMiniCartOpen,
+    openMiniCart,
+    closeMiniCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

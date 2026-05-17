@@ -1,12 +1,12 @@
 'use client';
-import Link from 'next/link';
 import { useCart } from './cart-provider';
 
 export default function CartBadge() {
-  const { totalItems, isHydrated } = useCart();
+  const { totalItems, isHydrated, openMiniCart } = useCart();
   return (
-    <Link
-      href="/cart"
+    <button
+      type="button"
+      onClick={openMiniCart}
       className="text-ink hover:text-primary text-lg px-2 relative"
       aria-label="السلة"
     >
@@ -16,6 +16,6 @@ export default function CartBadge() {
           {totalItems}
         </span>
       )}
-    </Link>
+    </button>
   );
 }

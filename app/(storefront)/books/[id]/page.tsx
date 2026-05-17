@@ -6,7 +6,9 @@ import { bookTypeLabelAr, fallbackCover, formatPrice, gradeLabelAr } from '@/lib
 import BookCard from '@/components/storefront/book-card';
 import AddToCartButton from '@/components/cart/add-to-cart-button';
 import BackInStockButton from '@/components/cart/back-in-stock-button';
+import StickyMobileAtc from '@/components/cart/sticky-mobile-atc';
 import ReviewsSection from '@/components/storefront/reviews-section';
+import TrackViewItem from '@/components/analytics/track-view-item';
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -82,6 +84,15 @@ export default async function BookDetailsPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <TrackViewItem
+        item={{
+          book_id: book.id,
+          title_ar: book.title_ar,
+          final_price: book.final_price,
+          teacher_name: book.teacher?.name_ar ?? null,
+          grade_level: book.grade_level,
+        }}
       />
       <div className="container-app">
         <nav className="text-sm text-[#666] mb-6">
@@ -164,11 +175,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
                       <div>
                         <div className="font-bold">{s.branch_name_ar}</div>
                         <div className="text-xs text-[#666]">
-                          {s.available > 0
-                            ? s.available > 3
-                              ? `✅ متوفر (${s.available} نسخة)`
-                              : `⚠️ كمية محدودة (${s.available} نسخة)`
-                            : '❌ نفدت الكمية'}
+                          {s.available > 0 ? '✅ متوفر' : '❌ غير متوفر'}
                         </div>
                       </div>
                       {s.available > 0 && (
@@ -188,7 +195,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div id="pdp-primary-atc" className="flex flex-wrap gap-3">
               <AddToCartButton
                 item={{
                   book_id: book.id,
@@ -199,6 +206,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
                 }}
                 disabled={totalAvailable === 0}
                 disabledReason={totalAvailable === 0 ? 'نفدت الكمية' : undefined}
+                touchpoint="pdp_primary"
               />
               {totalAvailable === 0 && <BackInStockButton bookId={book.id} />}
             </div>
@@ -221,6 +229,21 @@ export default async function BookDetailsPage({ params }: PageProps) {
 
         {/* Reviews */}
         <ReviewsSection bookId={book.id} />
+
+        {totalAvailable > 0 && (
+          <StickyMobileAtc
+            item={{
+              book_id: book.id,
+              title_ar: book.title_ar,
+              cover_url: book.cover_url,
+              unit_price: book.final_price,
+              teacher_name: book.teacher?.name_ar,
+            }}
+            finalPrice={book.final_price}
+            originalPrice={book.discount_pct > 0 ? book.price : null}
+            sentinelId="pdp-primary-atc"
+          />
+        )}
 
         {/* Related books */}
         {related.length > 0 && (

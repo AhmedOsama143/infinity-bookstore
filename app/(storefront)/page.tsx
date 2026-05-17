@@ -38,6 +38,53 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Trust strip — sits directly under the hero so customers register the
+          baseline reassurances (real branches, free shipping, WhatsApp, COD)
+          before they ever scroll into a product. RTL-aware grid: 2 cols on
+          mobile, 4 on tablet+. */}
+      <section className="py-6 sm:py-8 bg-bg-white border-b border-bg-light">
+        <div className="container-app">
+          <ul className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <li className="flex items-center gap-3 text-right">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary-light text-primary-dark flex items-center justify-center flex-shrink-0 text-base sm:text-lg">
+                <i className="fa-solid fa-store" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base leading-tight">٣ فروع حقيقية</p>
+                <p className="text-xs text-[#666] leading-tight mt-0.5">كفر الدوار والإسكندرية</p>
+              </div>
+            </li>
+            <li className="flex items-center gap-3 text-right">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent/15 text-accent-dark flex items-center justify-center flex-shrink-0 text-base sm:text-lg">
+                <i className="fa-solid fa-truck-fast" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base leading-tight">شحن مجاني</p>
+                <p className="text-xs text-[#666] leading-tight mt-0.5">للطلبات فوق {threshold} جنيه</p>
+              </div>
+            </li>
+            <li className="flex items-center gap-3 text-right">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-success/10 text-success flex items-center justify-center flex-shrink-0 text-base sm:text-lg">
+                <i className="fa-solid fa-money-bill-wave" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base leading-tight">ادفع عند الاستلام</p>
+                <p className="text-xs text-[#666] leading-tight mt-0.5">كاش بدون أي رسوم</p>
+              </div>
+            </li>
+            <li className="flex items-center gap-3 text-right">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center flex-shrink-0 text-base sm:text-lg">
+                <i className="fa-brands fa-whatsapp" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base leading-tight">دعم واتساب</p>
+                <p className="text-xs text-[#666] leading-tight mt-0.5">طوال أيام الأسبوع</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
       {/* Featured books */}
       <section className="section">
         <div className="container-app">
@@ -49,6 +96,8 @@ export default async function HomePage() {
                 key={book.id}
                 book={book}
                 inStockBranches={availability.get(book.id)?.in_stock_branches ?? 0}
+                minQty={availability.get(book.id)?.min_qty}
+                minQtyBranchName={availability.get(book.id)?.min_qty_branch_name}
               />
             ))}
           </div>

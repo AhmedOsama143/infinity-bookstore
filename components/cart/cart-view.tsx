@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useCart } from './cart-provider';
 import { fallbackCover, formatPrice } from '@/lib/utils';
 import { revalidateCart, validateStock } from '@/lib/stock/integrity';
+import { trackRemoveFromCart, trackViewCart } from '@/lib/analytics/gtm';
 
 interface Props {
   freeShippingThreshold: number;
@@ -28,6 +29,16 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
   const [isRevalidating, setIsRevalidating] = useState(false);
   const [, startTransition] = useTransition();
   const revalidatedOnce = useRef(false);
+  const viewedOnce = useRef(false);
+
+  // Fire view_cart once per mount (after hydration so we have real items).
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (viewedOnce.current) return;
+    if (items.length === 0) return;
+    viewedOnce.current = true;
+    trackViewCart(items, subtotal);
+  }, [isHydrated, items, subtotal]);
 
   // On-mount re-validation: every cart line is verified against live stock.
   // Adjustments and removals are applied before the user can interact.
@@ -219,7 +230,10 @@ export default function CartView({ freeShippingThreshold, isSignedIn, alreadyOrd
                   </Link>
                   <button
                     type="button"
-                    onClick={() => remove(item.book_id)}
+                    onClick={() => {
+                      trackRemoveFromCart(item, item.quantity);
+                      remove(item.book_id);
+                    }}
                     aria-label="إزالة"
                     className="text-danger hover:opacity-70 px-1 shrink-0"
                   >

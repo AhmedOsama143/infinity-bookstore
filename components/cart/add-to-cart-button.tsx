@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from './cart-provider';
 import { validateStock } from '@/lib/stock/integrity';
 import BackInStockButton from './back-in-stock-button';
+import { trackAddToCart } from '@/lib/analytics/gtm';
 import type { CartItem } from '@/lib/cart/types';
 
 interface Props {
@@ -33,7 +34,7 @@ export default function AddToCartButton({
   compact,
   touchpoint = 'product_button',
 }: Props) {
-  const { upsertQuantity, items } = useCart();
+  const { upsertQuantity, items, openMiniCart } = useCart();
   const [pulse, setPulse] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [isPending, startTransition] = useTransition();
@@ -56,12 +57,19 @@ export default function AddToCartButton({
 
       if (result.decision === 'allow') {
         upsertQuantity(item, result.final_qty);
+        trackAddToCart(item, result.final_qty - currentInCart);
         setPulse(true);
         setTimeout(() => setPulse(false), 700);
+        openMiniCart();
         return;
       }
       if (result.decision === 'adjust') {
         upsertQuantity(item, result.final_qty);
+        const added = result.final_qty - currentInCart;
+        if (added > 0) {
+          trackAddToCart(item, added);
+          openMiniCart();
+        }
         setFeedback({ kind: 'adjust', message: result.user_message ?? 'تم تعديل الكمية حسب المتاح.' });
         setTimeout(() => setFeedback(null), 6000);
         return;

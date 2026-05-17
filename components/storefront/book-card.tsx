@@ -7,6 +7,10 @@ import AddToCartButton from '@/components/cart/add-to-cart-button';
 interface Props {
   book: BookWithTeacher;
   inStockBranches?: number;
+  // Accepted for caller compatibility (getAvailabilitySummary). Not rendered:
+  // we only show binary available / not-available, no copy counts.
+  minQty?: number | null;
+  minQtyBranchName?: string | null;
 }
 
 export default function BookCard({ book, inStockBranches }: Props) {
@@ -49,35 +53,36 @@ export default function BookCard({ book, inStockBranches }: Props) {
         {book.teacher && (
           <Link
             href={`/teachers/${book.teacher.id}`}
-            className="text-[#888] text-[0.8rem] mb-3 hover:text-primary transition-colors line-clamp-1"
+            className="inline-flex items-center gap-1 text-[#888] text-[0.78rem] mb-3 hover:text-primary transition-colors line-clamp-1 self-start"
           >
-            {book.teacher.name_ar}
+            <i className="fa-solid fa-chalkboard-user text-[0.7rem] opacity-70" aria-hidden />
+            <span className="truncate">{book.teacher.name_ar}</span>
           </Link>
         )}
 
         <div className="mt-auto flex items-baseline gap-2 flex-wrap">
-          <span className="text-[1.15rem] font-extrabold text-accent-dark whitespace-nowrap">
+          <span className="text-[1.2rem] sm:text-[1.25rem] font-extrabold text-accent-dark whitespace-nowrap leading-none">
             {formatPrice(book.final_price)}
           </span>
           {hasDiscount && (
-            <span className="text-xs font-normal text-[#999] line-through whitespace-nowrap">
+            <span className="text-xs font-normal text-[#999] line-through whitespace-nowrap leading-none">
               {formatPrice(book.price)}
             </span>
           )}
         </div>
 
         {inStockBranches !== undefined && (
-          <p className="text-[0.7rem] text-[#666] mt-1 line-clamp-1">
+          <p className="text-[0.7rem] mt-1 line-clamp-1">
             {inStockBranches > 0 ? (
-              <>
-                <i className="fa-solid fa-circle-check text-success ml-1" />
-                متوفر في {inStockBranches} {inStockBranches === 1 ? 'فرع' : 'فروع'}
-              </>
+              <span className="text-success font-semibold">
+                <i className="fa-solid fa-circle-check ml-1" />
+                متوفر
+              </span>
             ) : (
-              <>
-                <i className="fa-solid fa-circle-xmark text-danger ml-1" />
-                نفدت الكمية
-              </>
+              <span className="text-danger font-semibold">
+                <i className="fa-solid fa-circle-xmark ml-1" />
+                غير متوفر
+              </span>
             )}
           </p>
         )}

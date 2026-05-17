@@ -33,10 +33,15 @@ export default async function WishlistPage() {
           <aside><AccountNav /></aside>
           <div>
             {books.length === 0 ? (
-              <div className="card p-12 text-center">
-                <i className="fa-regular fa-heart text-5xl text-primary-light mb-4 block" />
-                <h2 className="text-xl font-bold mb-2">قائمة المفضلة فارغة</h2>
-                <p className="text-[#666] mb-6">احفظ كتبك المفضلة هنا للرجوع إليها لاحقًا</p>
+              <div className="card p-10 sm:p-14 text-center">
+                <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-5 text-3xl text-primary-dark">
+                  <i className="fa-regular fa-heart" />
+                </div>
+                <h2 className="text-xl font-extrabold text-primary-dark mb-2">قائمة المفضلة فاضية</h2>
+                <p className="text-[#666] mb-6 leading-loose">
+                  احفظ كتبك اللي عجبتك هنا واطلبها لما تكون جاهز.<br className="hidden sm:inline" />
+                  انضغط على القلب جنب أي كتاب لإضافته.
+                </p>
                 <Link href="/books" className="btn btn-primary">تصفح الكتب</Link>
               </div>
             ) : (
@@ -50,6 +55,8 @@ export default async function WishlistPage() {
                       key={b.id}
                       book={b}
                       inStockBranches={availability.get(b.id)?.in_stock_branches ?? 0}
+                      minQty={availability.get(b.id)?.min_qty}
+                      minQtyBranchName={availability.get(b.id)?.min_qty_branch_name}
                     />
                   ))}
                 </div>

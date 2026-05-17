@@ -58,6 +58,8 @@ export default async function BooksPage({ searchParams }: PageProps) {
                     key={book.id}
                     book={book}
                     inStockBranches={availability.get(book.id)?.in_stock_branches ?? 0}
+                    minQty={availability.get(book.id)?.min_qty}
+                    minQtyBranchName={availability.get(book.id)?.min_qty_branch_name}
                   />
                 ))}
               </div>

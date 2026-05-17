@@ -38,6 +38,8 @@ export default async function GradeLevelPage() {
                       key={b.id}
                       book={b}
                       inStockBranches={availability.get(b.id)?.in_stock_branches ?? 0}
+                      minQty={availability.get(b.id)?.min_qty}
+                      minQtyBranchName={availability.get(b.id)?.min_qty_branch_name}
                     />
                   ))}
                 </div>

@@ -56,30 +56,14 @@ export default function SiteAmbient() {
     if (typeof window === 'undefined') return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Auto-tag sections + cards as fade-in targets, then observe.
-    const targets = document.querySelectorAll<HTMLElement>('section, .card');
-    targets.forEach((el) => el.classList.add('fade-in'));
+    // Note: previously this effect added a `fade-in` class to every section
+    // and .card to drive a scroll-in animation. That created hydration
+    // mismatches: this effect runs when the layout hydrates, but children
+    // inside Suspense boundaries hydrate later and saw the mutated DOM. The
+    // animation was removed; the scroll-driven parallax for decorative icons
+    // stays since those elements are rendered by this component itself and
+    // don't conflict with hydration.
 
-    let observer: IntersectionObserver | null = null;
-    if (!reduce && 'IntersectionObserver' in window) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (e.isIntersecting) {
-              e.target.classList.add('visible');
-              observer!.unobserve(e.target);
-            }
-          }
-        },
-        { threshold: 0.1 }
-      );
-      targets.forEach((el) => observer!.observe(el));
-    } else {
-      // Reduced motion / no IO support: show immediately.
-      targets.forEach((el) => el.classList.add('visible'));
-    }
-
-    // Parallax + scale on scroll for the decorative icons.
     let raf = 0;
     const icons = document.querySelectorAll<HTMLElement>('.bg-icon');
     function onScroll() {
@@ -104,10 +88,8 @@ export default function SiteAmbient() {
     }
 
     return () => {
-      observer?.disconnect();
       window.removeEventListener('scroll', onScroll);
       if (raf) cancelAnimationFrame(raf);
-      targets.forEach((el) => el.classList.remove('fade-in', 'visible'));
     };
   }, []);
 

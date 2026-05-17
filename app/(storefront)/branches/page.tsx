@@ -3,10 +3,40 @@ import PageHeader from '@/components/storefront/page-header';
 
 export const metadata = { title: 'فروعنا | مركز إنفينيتي' };
 
+const BASE_URL = 'https://infinity-bookstore.vercel.app';
+
 export default async function BranchesPage() {
   const branches = await getBranches();
+  // One LocalBusiness node per branch. Google reads this to power the local
+  // pack ("مكتبة قريبة" / "بحث الخريطة") + knowledge panel for branded queries.
+  // Keep schema names in English (Schema.org vocabulary) but values in Arabic.
+  const localBusinessSchema = branches.map((b) => ({
+    '@context': 'https://schema.org',
+    '@type': 'BookStore',
+    '@id': `${BASE_URL}/branches#${b.slug}`,
+    name: `مركز إنفينيتي — ${b.name_ar}`,
+    url: `${BASE_URL}/branches#${b.slug}`,
+    image: `${BASE_URL}/opengraph-image`,
+    telephone: b.phone,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: b.address_ar,
+      addressLocality: b.city,
+      addressRegion: b.area ?? b.city,
+      addressCountry: 'EG',
+    },
+    geo: b.latitude != null && b.longitude != null
+      ? { '@type': 'GeoCoordinates', latitude: b.latitude, longitude: b.longitude }
+      : undefined,
+    areaServed: { '@type': 'Country', name: 'Egypt' },
+    sameAs: [`https://wa.me/${b.whatsapp}`],
+  }));
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
       <PageHeader title="فروعنا" subtitle="٣ فروع لخدمتك في كفر الدوار والإسكندرية" />
       <section className="section">
         <div className="container-app grid md:grid-cols-3 gap-6">

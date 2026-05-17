@@ -141,6 +141,8 @@ export default async function TeacherProfilePage({ params }: PageProps) {
                   key={b.id}
                   book={{ ...b, teacher: { id: teacher.id, name_ar: teacher.name_ar, photo_url: teacher.photo_url } }}
                   inStockBranches={availability.get(b.id)?.in_stock_branches ?? 0}
+                  minQty={availability.get(b.id)?.min_qty}
+                  minQtyBranchName={availability.get(b.id)?.min_qty_branch_name}
                 />
               ))}
             </div>

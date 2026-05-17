@@ -1,6 +1,7 @@
 /**
  * Server-side data fetchers. Import from server components / server actions only.
  */
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type {
   Book,
@@ -13,8 +14,14 @@ import type {
   GradeLevel,
 } from '@/lib/types';
 
+// React.cache() dedupes calls within a single request. Storefront layout +
+// footer + WhatsApp FAB + page each call getSiteSettings; without dedup that's
+// 4 DB round-trips per render. Survives only the current request — real
+// cross-request caching would require unstable_cache + a service-role client
+// + the auth-gated layout restructure (deferred to a future phase).
+
 // ---------- Branches ----------
-export async function getBranches(): Promise<Branch[]> {
+export const getBranches = cache(async (): Promise<Branch[]> => {
   const supa = await createClient();
   const { data } = await supa
     .from('branches')
@@ -22,23 +29,23 @@ export async function getBranches(): Promise<Branch[]> {
     .eq('is_active', true)
     .order('sort_order');
   return (data ?? []) as Branch[];
-}
+});
 
 // ---------- Site settings + content ----------
-export async function getSiteSettings(): Promise<SiteSettings | null> {
+export const getSiteSettings = cache(async (): Promise<SiteSettings | null> => {
   const supa = await createClient();
   const { data } = await supa.from('site_settings').select('*').single();
   return data as SiteSettings | null;
-}
+});
 
-export async function getSiteContent(key: string): Promise<SiteContent | null> {
+export const getSiteContent = cache(async (key: string): Promise<SiteContent | null> => {
   const supa = await createClient();
   const { data } = await supa.from('site_content').select('*').eq('key', key).maybeSingle();
   return data as SiteContent | null;
-}
+});
 
 // ---------- Teachers ----------
-export async function getTeachers(): Promise<Teacher[]> {
+export const getTeachers = cache(async (): Promise<Teacher[]> => {
   const supa = await createClient();
   const { data } = await supa
     .from('teachers')
@@ -46,7 +53,7 @@ export async function getTeachers(): Promise<Teacher[]> {
     .eq('is_active', true)
     .order('name_ar');
   return (data ?? []) as Teacher[];
-}
+});
 
 export async function getTeacher(id: number): Promise<Teacher | null> {
   const supa = await createClient();
@@ -207,24 +214,47 @@ export async function getBookStock(bookId: number): Promise<BookStockByBranch[]>
     .map(({ is_active, sort_order, ...rest }) => rest);
 }
 
-// Batch helper: availability summary per book for list pages
+export interface AvailabilitySummary {
+  in_stock_branches: number;
+  total_available: number;
+  // Lowest non-zero per-branch availability and the branch name that holds
+  // it. Used to render urgency badges like «آخر ٢ في فرع التمليك» on cards
+  // when min_qty <= 3.
+  min_qty: number | null;
+  min_qty_branch_name: string | null;
+}
+
+// Batch helper: availability summary per book for list pages.
 export async function getAvailabilitySummary(
   bookIds: number[]
-): Promise<Map<number, { in_stock_branches: number; total_available: number }>> {
-  if (bookIds.length === 0) return new Map();
+): Promise<Map<number, AvailabilitySummary>> {
+  const map = new Map<number, AvailabilitySummary>();
+  if (bookIds.length === 0) return map;
   const supa = await createClient();
   const { data } = await supa
     .from('branch_stock')
-    .select('book_id, quantity, reserved_quantity')
+    .select('book_id, quantity, reserved_quantity, branch:branches(name_ar)')
     .in('book_id', bookIds);
-  const map = new Map<number, { in_stock_branches: number; total_available: number }>();
-  for (const id of bookIds) map.set(id, { in_stock_branches: 0, total_available: 0 });
+  for (const id of bookIds) {
+    map.set(id, {
+      in_stock_branches: 0,
+      total_available: 0,
+      min_qty: null,
+      min_qty_branch_name: null,
+    });
+  }
   for (const r of data ?? []) {
     const avail = (r.quantity as number) - (r.reserved_quantity as number);
-    if (avail > 0) {
-      const current = map.get(r.book_id as number)!;
-      current.in_stock_branches += 1;
-      current.total_available += avail;
+    if (avail <= 0) continue;
+    const current = map.get(r.book_id as number)!;
+    current.in_stock_branches += 1;
+    current.total_available += avail;
+    if (current.min_qty == null || avail < current.min_qty) {
+      current.min_qty = avail;
+      // Supabase typegen treats nested FK selects as arrays; runtime is a single
+      // object for to-one relations.
+      const branch = Array.isArray((r as any).branch) ? (r as any).branch[0] : (r as any).branch;
+      current.min_qty_branch_name = branch?.name_ar ?? null;
     }
   }
   return map;

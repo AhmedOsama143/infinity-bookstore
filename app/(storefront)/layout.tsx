@@ -6,7 +6,9 @@ import Footer from '@/components/storefront/footer';
 import WhatsappFab from '@/components/storefront/whatsapp-fab';
 import SiteAmbient from '@/components/storefront/site-ambient';
 import { CartProvider } from '@/components/cart/cart-provider';
+import MiniCart from '@/components/cart/mini-cart';
 import { createClient } from '@/lib/supabase/server';
+import { getSiteSettings } from '@/lib/data';
 
 const ONBOARDING_EXEMPT_PREFIXES = ['/onboarding', '/legal'];
 
@@ -14,7 +16,11 @@ export default async function StorefrontLayout({ children }: { children: React.R
   // Onboarding gate: a logged-in student with no grade_level is redirected
   // to /onboarding the first time they hit any storefront page.
   const supa = await createClient();
-  const { data: { user } } = await supa.auth.getUser();
+  const [{ data: { user } }, settings] = await Promise.all([
+    supa.auth.getUser(),
+    getSiteSettings(),
+  ]);
+  const freeShippingThreshold = settings?.free_shipping_threshold ?? 2500;
   if (user) {
     const h = await headers();
     const path = h.get('x-pathname') ?? h.get('next-url') ?? '';
@@ -40,6 +46,7 @@ export default async function StorefrontLayout({ children }: { children: React.R
       <main>{children}</main>
       <Footer />
       <WhatsappFab />
+      <MiniCart freeShippingThreshold={freeShippingThreshold} />
     </CartProvider>
   );
 }

@@ -17,6 +17,7 @@ const items: Item[] = [
   { href: '/admin/orders',                label: 'الطلبات',             icon: 'fa-bag-shopping' },
   { href: '/admin/analytics/orders',      label: 'تحليلات الطلبات',     icon: 'fa-chart-line' },
   { href: '/admin/analytics/payments',    label: 'الدفعات والحجوزات',   icon: 'fa-coins' },
+  { href: '/admin/payments',              label: 'دفعات فوري',           icon: 'fa-credit-card' },
   { href: '/admin/branches',              label: 'الفروع',               icon: 'fa-store' },
   { href: '/admin/books',                 label: 'الكتب',                icon: 'fa-book' },
   { href: '/admin/teachers',              label: 'المدرسين',             icon: 'fa-chalkboard-user', adminOnly: true },

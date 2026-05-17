@@ -31,7 +31,7 @@ export default async function CheckoutResultPage({ searchParams }: Props) {
   const { data: order } = await supa
     .from('orders')
     .select(
-      'id, order_number, status, total, subtotal, shipping_fee, payment_status, payment_method, payment_method_detail, fawry_ref_number, payment_paid_at, payment_expires_at, created_at, items:order_items(book_id, quantity, unit_price, book:books(id, title_ar, teacher:teachers(name_ar)))',
+      'id, order_number, status, total, subtotal, shipping_fee, payment_status, payment_method, payment_method_detail, fawry_ref_number, fawry_fees, payment_amount, payment_paid_at, payment_expires_at, created_at, items:order_items(book_id, quantity, unit_price, book:books(id, title_ar, teacher:teachers(name_ar)))',
     )
     .eq('id', orderId)
     .eq('student_id', user.id)
@@ -82,6 +82,8 @@ export default async function CheckoutResultPage({ searchParams }: Props) {
           orderId={order.id}
           orderNumber={order.order_number ?? order.id}
           total={Number(order.total)}
+          fawryFees={order.fawry_fees != null ? Number(order.fawry_fees) : null}
+          paymentAmount={order.payment_amount != null ? Number(order.payment_amount) : null}
           initialStatus={initialStatus}
         />
       </div>

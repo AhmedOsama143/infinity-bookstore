@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import {
   getOrderPaymentStatus,
+  reconcileWithFawry,
   type OrderStatusSnapshot,
 } from '@/lib/cart/result-actions';
 
@@ -12,6 +13,10 @@ interface Props {
   orderId: string;
   orderNumber: string;
   total: number;
+  /** Fawry processing fee in EGP, if any. Surfaced under the total. */
+  fawryFees?: number | null;
+  /** Total billed by Fawry (total + fees). Used as the source of truth in the breakdown. */
+  paymentAmount?: number | null;
   initialStatus: OrderStatusSnapshot;
 }
 
@@ -28,7 +33,14 @@ const POLL_TIMEOUT_MS = 30_000;
 // can leave the page and come back later; the count keeps ticking against
 // the server-stored payment_expires_at.
 
-export default function ResultStatus({ orderId, orderNumber, total, initialStatus }: Props) {
+export default function ResultStatus({
+  orderId,
+  orderNumber,
+  total,
+  fawryFees,
+  paymentAmount,
+  initialStatus,
+}: Props) {
   const [snapshot, setSnapshot] = useState<OrderStatusSnapshot>(initialStatus);
   const [timedOut, setTimedOut] = useState(false);
 
@@ -56,6 +68,19 @@ export default function ResultStatus({ orderId, orderNumber, total, initialStatu
         if (next.payment_status !== 'pending') return; // stop polling, terminal state
       }
       if (Date.now() - started >= POLL_TIMEOUT_MS) {
+        // 30s with no webhook arrival — ask Fawry directly once before
+        // surfacing "we'll email you". This catches wallet pushes where the
+        // webhook lags the redirect by more than half a minute.
+        try {
+          const reconciled = await reconcileWithFawry(orderId);
+          if (cancelled) return;
+          if (reconciled) {
+            setSnapshot(reconciled);
+            if (reconciled.payment_status !== 'pending') return;
+          }
+        } catch {
+          // Reconciliation is best-effort; fall through to the timed-out copy.
+        }
         setTimedOut(true);
         return;
       }
@@ -72,7 +97,12 @@ export default function ResultStatus({ orderId, orderNumber, total, initialStatu
   return (
     <>
       {isPaid && (
-        <PaidPanel orderNumber={orderNumber} total={total} />
+        <PaidPanel
+          orderNumber={orderNumber}
+          total={total}
+          fawryFees={fawryFees ?? null}
+          paymentAmount={paymentAmount ?? null}
+        />
       )}
 
       {isPending && isPayAtFawry && (
@@ -100,7 +130,23 @@ export default function ResultStatus({ orderId, orderNumber, total, initialStatu
   );
 }
 
-function PaidPanel({ orderNumber, total }: { orderNumber: string; total: number }) {
+function PaidPanel({
+  orderNumber,
+  total,
+  fawryFees,
+  paymentAmount,
+}: {
+  orderNumber: string;
+  total: number;
+  fawryFees: number | null;
+  paymentAmount: number | null;
+}) {
+  // Fees are itemised when Fawry charged the customer more than the order
+  // total — typical for card/wallet payments where Fawry adds a processing
+  // fee. P2-6 in the audit.
+  const billed = paymentAmount ?? total;
+  const showBreakdown = fawryFees != null && fawryFees > 0 && billed > total + 0.001;
+
   return (
     <div className="card p-8 text-center">
       <div className="w-20 h-20 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-4 text-4xl">
@@ -110,7 +156,23 @@ function PaidPanel({ orderNumber, total }: { orderNumber: string; total: number 
       <p className="text-[#666]">
         رقم الطلب: <span className="font-bold text-accent-dark">{orderNumber}</span>
       </p>
-      <Footer total={total}>
+      {showBreakdown ? (
+        <div className="text-sm text-[#666] mt-4 pt-4 border-t border-bg-light space-y-1.5">
+          <div className="flex justify-between">
+            <span>إجمالي الطلب</span>
+            <span>{formatPrice(total)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>رسوم فوري</span>
+            <span>{formatPrice(fawryFees!)}</span>
+          </div>
+          <div className="flex justify-between font-bold text-ink pt-1.5 border-t border-bg-light">
+            <span>المبلغ المدفوع</span>
+            <span>{formatPrice(billed)}</span>
+          </div>
+        </div>
+      ) : null}
+      <Footer total={showBreakdown ? undefined : total}>
         <Link href="/account/orders" className="btn btn-primary">عرض طلباتي</Link>
         <Link href="/books" className="btn btn-outline">متابعة التسوق</Link>
       </Footer>

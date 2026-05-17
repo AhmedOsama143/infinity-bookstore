@@ -8,7 +8,7 @@ export const metadata = { title: 'تسجيل الدخول | مركز إنفين�
 interface Props { searchParams: Promise<{ next?: string }> }
 
 export default async function LoginPage({ searchParams }: Props) {
-  const { next = '/account' } = await searchParams;
+  const { next = '/' } = await searchParams;
   return (
     <div className="card p-8">
       <h1 className="text-2xl font-extrabold text-primary-dark text-center mb-2">تسجيل الدخول</h1>
@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: Props) {
       <p className="text-center text-sm text-[#666] mt-6">
         ليس لديك حساب؟{' '}
         <Link
-          href={`/register${next !== '/account' ? `?next=${encodeURIComponent(next)}` : ''}`}
+          href={`/register${next !== '/' ? `?next=${encodeURIComponent(next)}` : ''}`}
           className="text-primary font-bold hover:underline"
         >
           أنشئ حساب جديد

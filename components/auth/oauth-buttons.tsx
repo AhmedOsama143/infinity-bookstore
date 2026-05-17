@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
 
-export default function OAuthButtons({ next = '/account' }: { next?: string }) {
+export default function OAuthButtons({ next = '/' }: { next?: string }) {
   const [busy, setBusy] = useState<'google' | 'facebook' | null>(null);
 
   async function signIn(provider: 'google' | 'facebook') {

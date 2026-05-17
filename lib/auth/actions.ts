@@ -14,7 +14,7 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
   const fullName = String(formData.get('full_name') ?? '').trim();
-  const next = String(formData.get('next') ?? '/account');
+  const next = String(formData.get('next') ?? '/');
 
   if (!email || !password) return { error: 'البريد الإلكتروني وكلمة المرور مطلوبان' };
   if (password.length < 8) return { error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' };
@@ -59,7 +59,7 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
 export async function signInWithEmail(formData: FormData): Promise<AuthResult> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
-  const next = String(formData.get('next') ?? '/account');
+  const next = String(formData.get('next') ?? '/');
 
   if (!email || !password) return { error: 'البريد الإلكتروني وكلمة المرور مطلوبان' };
 

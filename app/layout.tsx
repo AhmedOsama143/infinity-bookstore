@@ -1,5 +1,26 @@
 import type { Metadata } from 'next';
+import { Cairo, Tajawal } from 'next/font/google';
 import './globals.css';
+import { GtmHead, GtmBody } from '@/components/analytics/gtm-loader';
+import WebVitalsReporter from '@/components/analytics/web-vitals';
+
+// Self-hosted Arabic-subset fonts. Cuts ~1-2s off LCP on 3G compared to the
+// previous Google Fonts CDN <link> approach because (a) only Arabic glyphs are
+// shipped, (b) the font CSS is inlined at build time, and (c) Next.js emits a
+// rel=preload for the woff2.
+const cairo = Cairo({
+  subsets: ['arabic'],
+  weight: ['400', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-cairo',
+});
+
+const tajawal = Tajawal({
+  subsets: ['arabic'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  variable: '--font-tajawal',
+});
 
 export const metadata: Metadata = {
   title: 'مركز إنفينيتي | Infinity Center',
@@ -38,18 +59,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={`${cairo.variable} ${tajawal.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -58,8 +69,13 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
+        <GtmHead />
       </head>
-      <body>{children}</body>
+      <body>
+        <GtmBody />
+        <WebVitalsReporter />
+        {children}
+      </body>
     </html>
   );
 }

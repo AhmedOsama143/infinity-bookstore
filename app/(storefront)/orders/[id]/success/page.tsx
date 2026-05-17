@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatPrice } from '@/lib/utils';
+import TrackPurchase from '@/components/analytics/track-purchase';
 
 export const metadata = { title: 'تم تأكيد طلبك | مركز إنفينيتي' };
 
@@ -26,6 +27,23 @@ export default async function OrderSuccessPage({ params }: Props) {
 
   return (
     <section className="section">
+      <TrackPurchase
+        payload={{
+          transactionId: order.order_number ?? order.id,
+          value: Number(order.total),
+          shipping: order.shipping_fee != null ? Number(order.shipping_fee) : undefined,
+          paymentType: 'cod',
+          items: ((order as any).items ?? []).map((it: any) => {
+            const book = Array.isArray(it.book) ? it.book[0] : it.book;
+            return {
+              book_id: book?.id ?? it.book_id ?? 0,
+              title_ar: book?.title_ar ?? '',
+              unit_price: Number(it.unit_price),
+              quantity: it.quantity,
+            };
+          }),
+        }}
+      />
       <div className="container-app max-w-3xl">
         <div className="card p-8 text-center mb-6">
           <div className="w-20 h-20 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-4 text-4xl">

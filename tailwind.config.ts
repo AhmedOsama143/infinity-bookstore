@@ -28,8 +28,11 @@ const config: Config = {
         danger: '#e74c3c',
       },
       fontFamily: {
-        heading: ['Cairo', 'sans-serif'],
-        body: ['Tajawal', 'Cairo', 'sans-serif'],
+        // CSS variables come from next/font in app/layout.tsx. The literal
+        // names stay in the fallback chain so the browser still uses any
+        // system-installed Cairo/Tajawal before falling back to sans-serif.
+        heading: ['var(--font-cairo)', 'Cairo', 'sans-serif'],
+        body: ['var(--font-tajawal)', 'var(--font-cairo)', 'Tajawal', 'Cairo', 'sans-serif'],
       },
       boxShadow: {
         card: '0 2px 12px rgba(0,0,0,0.08)',

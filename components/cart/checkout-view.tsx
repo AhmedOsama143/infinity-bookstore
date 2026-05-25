@@ -7,6 +7,10 @@ import { useCart } from './cart-provider';
 import { formatPrice } from '@/lib/utils';
 import { computeShipping } from '@/lib/cart/shipping';
 import { placeOrder } from '@/lib/cart/order-actions';
+import {
+  createFawryOrderAction,
+  getFawryChargePayloadAction,
+} from '@/lib/cart/fawry-checkout-actions';
 import { checkCartAvailability, type BranchAvailability } from '@/lib/data/cart-lookups';
 import { revalidateCart } from '@/lib/stock/integrity';
 import type { ShippingAreaType } from '@/lib/types';
@@ -177,44 +181,37 @@ export default function CheckoutView({
       return;
     }
 
-    // 1. Create the pending order. Idempotency-Key locks retries within this
-    //    session to the same order so a double-click doesn't double-reserve.
-    const createRes = await fetch('/api/orders/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Idempotency-Key': idempotencyKey.current,
-      },
-      body: JSON.stringify({
-        items: items.map((i) => ({ book_id: i.book_id, quantity: i.quantity })),
-        branch_id: branchId,
-        fulfillment,
-        shipping:
-          fulfillment === 'delivery'
-            ? { governorate, address, area_type: areaType }
-            : undefined,
-        notes: notes || undefined,
-      }),
+    // 1. Create the pending order via the server action (P2-7: CSRF-safe
+    //    because Next.js server actions only accept same-origin POST with
+    //    a framework-issued action id). Idempotency key passed as an arg
+    //    instead of a header.
+    const createRes = await createFawryOrderAction({
+      items: items.map((i) => ({ book_id: i.book_id, quantity: i.quantity })),
+      branch_id: branchId,
+      fulfillment,
+      shipping:
+        fulfillment === 'delivery'
+          ? { governorate, address, area_type: areaType as ShippingAreaType }
+          : undefined,
+      notes: notes || undefined,
+      idempotency_key: idempotencyKey.current,
     });
-    const createJson = await createRes.json().catch(() => null);
-    if (!createRes.ok || !createJson?.ok) {
-      setSubmitError(createJson?.error?.message ?? 'فشل إنشاء الطلب');
+    if (!createRes.ok) {
+      setSubmitError(createRes.error.message);
       return;
     }
-    const orderId: string = createJson.data.orderId;
+    const orderId: string = createRes.data.orderId;
 
     // 2. Get the signed Fawry payload for this order + chosen sub-method.
-    const chargeRes = await fetch('/api/fawry/charge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order_id: orderId, payment_method: method }),
+    const chargeRes = await getFawryChargePayloadAction({
+      order_id: orderId,
+      payment_method: method,
     });
-    const chargeJson = await chargeRes.json().catch(() => null);
-    if (!chargeRes.ok || !chargeJson?.ok) {
-      setSubmitError(chargeJson?.error?.message ?? 'فشل تجهيز عملية الدفع');
+    if (!chargeRes.ok) {
+      setSubmitError(chargeRes.error.message);
       return;
     }
-    const payload: FawryChargeRequest = chargeJson.data;
+    const payload: FawryChargeRequest = chargeRes.data;
 
     // 3. Hand off to the Fawry plugin. It will redirect on completion to the
     //    returnUrl baked into the payload (/checkout/result?orderId=...).

@@ -42,7 +42,8 @@ Why not full server-to-server? More work, more PCI surface, no real benefit for 
 ```
 [Browser]                    [Our Backend]              [Supabase]            [Fawry]
    │                              │                         │                    │
-   │  POST /api/orders/create     │                         │                    │
+   │  createFawryOrderAction()    │                         │                    │
+   │  (server action, CSRF-safe)  │                         │                    │
    ├─────────────────────────────►│                         │                    │
    │                              │  insert pending order   │                    │
    │                              ├────────────────────────►│                    │
@@ -51,7 +52,8 @@ Why not full server-to-server? More work, more PCI surface, no real benefit for 
    │  { orderId, refNumber }      │                         │                    │
    │◄─────────────────────────────┤                         │                    │
    │                              │                         │                    │
-   │  POST /api/fawry/charge      │                         │                    │
+   │  getFawryChargePayloadAction()                         │                    │
+   │  (server action, CSRF-safe)  │                         │                    │
    ├─────────────────────────────►│                         │                    │
    │                              │  build signed payload   │                    │
    │                              │  (no Fawry call yet —   │                    │
@@ -234,11 +236,12 @@ Each slice is a separate branch and PR. Don't start slice N+1 until N is merged 
 - Seed a few test books with stock.
 - **Done when:** `pnpm supabase db reset` recreates the schema cleanly and seed data loads.
 
-### Slice 2 — Order creation API
-- `POST /api/orders/create` accepts `{ items: [{ bookId, quantity }] }`.
+### Slice 2 — Order creation (server action)
+- `createFawryOrderAction({ items, branch_id, fulfillment, shipping?, notes?, idempotency_key? })` in `lib/cart/fawry-checkout-actions.ts`.
 - Validates with Zod, checks stock, creates `orders` row with `status='pending'`, creates `order_items`, decrements `books.available_stock`.
-- Returns `{ orderId, merchantRefNumber, totalAmount }`.
+- Returns `{ ok: true, data: { orderId, merchantRefNumber, totalAmount } }` or `{ ok: false, error: { code, message } }`.
 - Atomic: use a Postgres transaction or RPC.
+- Originally lived at `POST /api/orders/create`; migrated to a server action in P2-7 so the cookie-authed POST is CSRF-safe by default. The route handler has been deleted.
 - **Done when:** integration test creates an order, verifies stock decreased, and a duplicate request with the same idempotency key returns the same order.
 
 ### Slice 3 — Fawry signing + charge request builder
@@ -249,7 +252,7 @@ Each slice is a separate branch and PR. Don't start slice N+1 until N is merged 
 
 ### Slice 4 — Checkout page + Fawry JS button
 - Storefront `/checkout` page: shows cart, customer info form (name, email, mobile — required by Fawry).
-- On submit: calls `/api/orders/create`, then `/api/fawry/charge` to get the signed payload, then invokes `FawryPay.checkout(payload)` from Fawry's JS library.
+- On submit: calls `createFawryOrderAction(...)`, then `getFawryChargePayloadAction(orderId, method)` to get the signed payload, then invokes `FawryPay.checkout(payload)` from Fawry's JS library.
 - Loads the staging JS library in dev, production library in prod.
 - **Done when:** a sandbox card payment completes end-to-end and the browser is redirected to the result page.
 

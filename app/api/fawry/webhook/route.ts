@@ -268,20 +268,23 @@ export async function POST(request: NextRequest) {
   // 7. Build the update. Money fields are normalised through toFawryAmount
   //    so the row holds the canonical two-decimal string, matching the
   //    DECIMAL column and the "no floats" rule (CLAUDE.md §Money).
+  const knownMethod = KNOWN_PAYMENT_METHODS.has(notif.paymentMethod);
   const update: Record<string, unknown> = {
     payment_status: targetStatus,
-    payment_method_detail: KNOWN_PAYMENT_METHODS.has(notif.paymentMethod)
-      ? notif.paymentMethod
-      : null,
+    payment_method_detail: knownMethod ? notif.paymentMethod : null,
     fawry_ref_number: notif.fawryRefNumber,
     fawry_fees: notif.fawryFees != null ? toFawryAmount(notif.fawryFees) : '0.00',
     payment_amount: toFawryAmount(notif.paymentAmount),
   };
 
-  // P2-4: stash unrecognised payment methods in error_message so the audit
-  // trail captures them without polluting the staff UI's expected enum.
-  if (!KNOWN_PAYMENT_METHODS.has(notif.paymentMethod)) {
-    update.payment_method_detail = null;
+  // P2-4: stash unrecognised payment methods on the audit row so the value
+  // isn't silently dropped — staff can spot a new Fawry method that needs
+  // adding to KNOWN_PAYMENT_METHODS.
+  if (!knownMethod) {
+    await admin
+      .from('payment_events')
+      .update({ error_message: `unknown_payment_method:${notif.paymentMethod}` })
+      .eq('id', eventId);
   }
 
   if (notif.orderStatus === 'PAID') {

@@ -10,7 +10,12 @@
     "type-check": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "seed:fawry": "tsx scripts/seed-fawry-test.ts",
-    "test:fawry": "tsx scripts/fawry-signature.test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:fawry": "tsx scripts/fawry-signature.test.ts && tsx scripts/fawry-webhook.test.ts",
     "db:push": "supabase db push",
     "db:link": "supabase link --project-ref bdljzgvjrkfusqtozipa"
   },
@@ -25,16 +30,20 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "@vitest/coverage-v8": "^4.1.7",
     "autoprefixer": "^10.4.20",
     "dotenv": "^17.4.2",
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.5.15",
+    "happy-dom": "^20.9.0",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.7"
   }
 }

@@ -91,7 +91,7 @@ export default function PaymentMethodPicker({ selected, onSelect, disabled }: Pr
               onClick={() => !disabled && onSelect(t.choice)}
               disabled={disabled}
               aria-pressed={active}
-              className={`w-full flex items-center gap-4 rounded-s border-2 p-4 text-right transition-colors ${
+              className={`w-full flex items-center gap-4 rounded-s border-2 p-4 text-right transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                 active
                   ? 'border-primary bg-primary-light'
                   : 'border-[#ddd] hover:border-primary/50'

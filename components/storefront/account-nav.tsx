@@ -23,7 +23,7 @@ export default function AccountNav() {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 transition-colors whitespace-nowrap ${
                   active
-                    ? 'bg-primary-light text-primary-dark font-bold border-r-[3px] border-accent'
+                    ? 'bg-primary-light text-primary-dark font-bold border-e-[3px] border-accent'
                     : 'text-ink hover:bg-bg-light'
                 }`}
               >

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { fallbackCover, formatPrice } from '@/lib/utils';
 import type { OrderStatus, PaymentStatus, PaymentMethod } from '@/lib/types';
@@ -124,6 +125,10 @@ interface OrderRow {
 export default async function OrdersPage() {
   const supa = await createClient();
   const { data: { user } } = await supa.auth.getUser();
+  // Middleware guards /account/* but a TOCTOU between middleware and page
+  // render can null `user`. Mirror the redirect pattern from account/page.tsx
+  // instead of crashing on a non-null assertion.
+  if (!user) redirect('/login?next=/account/orders');
   const { data } = await supa
     .from('orders')
     .select(
@@ -133,7 +138,7 @@ export default async function OrdersPage() {
        order_items(quantity, unit_price, subtotal,
          book:books(id, title_ar, cover_url, teacher:teachers(name_ar)))`
     )
-    .eq('student_id', user!.id)
+    .eq('student_id', user.id)
     .order('created_at', { ascending: false });
 
   const orders = (data ?? []) as unknown as OrderRow[];

@@ -23,6 +23,9 @@ dist/
 .admin-credentials.md
 secrets/
 
+# Local prompt / notes scratch — not project source
+tasks.md
+
 # Misc
 .DS_Store
 *.log

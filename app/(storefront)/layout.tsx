@@ -43,7 +43,7 @@ export default async function StorefrontLayout({ children }: { children: React.R
       <SiteAmbient />
       <AnnouncementBar />
       <Header />
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <Footer />
       <WhatsappFab />
       <MiniCart freeShippingThreshold={freeShippingThreshold} />

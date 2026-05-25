@@ -49,11 +49,15 @@ export default function ProfileForm({ initial, booksOrderedCount, cap }: Props) 
       </div>
 
       {message && (
-        <div className={`text-sm p-3 rounded-s border ${
-          message.type === 'ok'
-            ? 'bg-success/10 text-success border-success/20'
-            : 'bg-danger/10 text-danger border-danger/20'
-        }`}>{message.text}</div>
+        <div
+          role="status"
+          aria-live="polite"
+          className={`text-sm p-3 rounded-s border ${
+            message.type === 'ok'
+              ? 'bg-success/10 text-success border-success/20'
+              : 'bg-danger/10 text-danger border-danger/20'
+          }`}
+        >{message.text}</div>
       )}
 
       <div className="grid md:grid-cols-2 gap-4">

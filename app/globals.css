@@ -114,6 +114,29 @@ footer,
   .fade-in { opacity: 1; transform: none; transition: none; }
 }
 
+/* Skip-to-main link. Visually hidden until keyboard-focused, then anchors
+   to the top of the screen so users can bypass the header/announcement bar
+   straight to <main id="main-content">. Required by WCAG 2.4.1. */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: -3rem;
+  z-index: 100;
+  background: #578e7e;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2px solid #e3af64;
+  outline-offset: 2px;
+}
+
 /* ---------- Print styles for invoices and reports ---------- */
 @media print {
   @page { size: A4; margin: 12mm; }

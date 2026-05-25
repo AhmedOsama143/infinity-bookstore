@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <Sidebar role={ctx.role} email={ctx.email} />
       <div className="flex-1 min-w-0 w-full">
         <TopBar ctx={ctx} />
-        {children}
+        <main id="main-content">{children}</main>
       </div>
     </div>
   );

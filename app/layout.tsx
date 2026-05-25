@@ -72,6 +72,7 @@ export default function RootLayout({
         <GtmHead />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">تخطّ إلى المحتوى الرئيسي</a>
         <GtmBody />
         <WebVitalsReporter />
         {children}

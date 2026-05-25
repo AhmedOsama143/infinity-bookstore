@@ -42,10 +42,11 @@ interface SweepResult {
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
-    // Fail loud so a misconfigured deploy doesn't quietly leave the endpoint
-    // unauthenticated.
+    // Fail loud — misconfigured deploy. Don't reveal the env-var name in the
+    // public response body; the operator will see it in Vercel logs anyway.
+    console.error('[cron/expire-orders] CRON_SECRET is unset — refusing to run');
     return NextResponse.json(
-      { ok: false, error: { code: 'cron_not_configured', message: 'CRON_SECRET unset' } },
+      { ok: false, error: { code: 'misconfigured', message: 'cron auth not configured' } },
       { status: 500 }
     );
   }
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
   const auth = request.headers.get('authorization');
   if (auth !== `Bearer ${secret}`) {
     return NextResponse.json(
-      { ok: false, error: { code: 'forbidden', message: 'invalid cron secret' } },
+      { ok: false, error: { code: 'forbidden', message: 'forbidden' } },
       { status: 401 }
     );
   }

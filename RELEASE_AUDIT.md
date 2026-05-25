@@ -251,9 +251,52 @@ Read clusters of related code in parallel via four targeted subagents (payment/o
 
 ---
 
-## Phases 3–10 (Status: Pending)
+## Phase 3 — Security (Status: 🟡 In progress, 12/20 done)
 
-Sections will be appended as each phase runs.
+### Shipped this phase
+
+| Commit | ID | Title |
+|---|---|---|
+| `ffcd588` | `S-01` | next 15.5.15 → ^15.5.18 — closes 7 CVEs (SSRF, middleware bypass, DoS, cache poisoning); incidentally fixes brace-expansion + ws via `npm audit fix` |
+| `73f3f13` | `S-03` `S-05` | OAuth open-redirect closed via `safeNextPath()` at all 4 sinks (callback route, 3 server actions, OAuthButtons client) |
+| `0b5fecc` | `S-04` | Middleware copies refreshed-session cookies onto its redirect responses (per `@supabase/ssr` docs) |
+| `156a4f2` | `S-09` | Account page: explicit redirect for null user instead of `user!.id` |
+| `a52091c` | `Q-16` | Cron 500 body no longer names `CRON_SECRET` |
+| `9be534f` | `B1` `Q-01` | Webhook: drop dead `payment_method_detail` re-assign; log unknown methods into `payment_events.error_message` |
+| `69b7c49` | `S-02` | Refund endpoint: hide Fawry internal error codes from API client; detail goes to audit row + server log |
+| `3c220d6` | `Q-09` | `KNOWN_PAYMENT_METHODS` shared by webhook + reconcile so both paths enforce the allow-list |
+| `fc4cabc` | `Q-10` | `transitionOrder` rejects cross-branch edits by branch managers (parity with `setOrderPaymentStatus`) |
+| `57c2a65` | `S-06` | `requireAdmin()` reads `admin_users` via service-role client; identity still established by user-scoped `getUser()` |
+| `e5842b8` | `Q-14` | `inviteBranchManager` + `removeBranchManager` write to `audit_log` (table already in migration 001) |
+| `94d1d3b` | `P1-9` | `lib/log.ts` structured JSON logger + wired into all Fawry endpoints' previous `console.error` calls |
+
+Plus housekeeping: `501273d` un-tracked accidentally-committed `tasks.md`, `a2c6de3` added it to `.gitignore`.
+
+### Verification
+After each commit: `tsc --noEmit` clean. `npm audit` now shows 2 moderate transitives (postcss + ws via next) — both build-time only, neither reachable at runtime. Documented in commit `ffcd588`.
+
+### Re-classified during Phase 3
+
+| ID | Original verdict | New verdict | Why |
+|---|---|---|---|
+| `Q-13` | Open: inventory export missing branch scope | **Closed — false positive** | Re-read of `app/api/admin/export/[type]/route.ts:78` shows the same `eq('branch_id', ctx.branchId)` filter the orders branch has. Phase 2 agent misread. |
+| `S-07` | Open: webhook audit row written before sig verify | **Won't fix in v1.0.0 — design choice** | Current behavior records every attempt for forensic value. The "audit-spam" concern is bounded by the partial unique index on (merchant_ref_number, orderStatus). True mitigation is `P1-8` (rate limit), not restructuring. |
+| `S-08` | Open: service-role client in public signup | **Closed — already documented** | `lib/auth/actions.ts:23-25` already carries the trade-off comment. Coupling is acknowledged; risk is "if the secret leaks", which is the same risk the env var has everywhere. |
+| `S-10` | Open: idempotency timing oracle | **Deferred to v1.1** | Marginal — the client generates the idempotency key, so the attacker would have to guess one to even test. No exploitable leak. |
+| `P1-3` | Open: `verifyChargeResponse` defined but unused | **Won't fix in v1.0.0 — by design** | Result page reads from Supabase (the authoritative source), never displays URL params, so URL signature isn't load-bearing today. `verifyChargeResponse` stays in `lib/fawry/signing.ts` for the future scenario where we'd want to display URL data. |
+
+### Still open at Phase 3 checkpoint
+
+| ID | Title | Why it's still open |
+|---|---|---|
+| `Q-11` | `markReturnReceived` TOCTOU + non-idempotent | Needs a new Postgres function in `supabase/migrations/022_…`. Per CLAUDE.md, schema migrations require explicit OK. Decision recorded; migration file pending. |
+| `Q-12` | ~15 admin actions return raw `error.message` to client | 15-site refactor: write a `translateError()` helper, audit every callsite, swap the `return { error: …message }` lines. Larger PR, will produce on its own. |
+| `P1-8` | No rate limit on webhook | Needs `@upstash/ratelimit` + `@upstash/redis` deps + Upstash project provisioned. Decision recorded; env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. Code wiring pending Upstash setup confirmation. |
+| `P2-7` | CSRF on `/api/orders/create`, `/api/fawry/charge` | Approved to migrate both to Server Actions inside this phase. Multi-file refactor: route handler → action; callers (checkout-view.tsx) switch from `fetch()` to action invocation; idempotency-key plumbing changes. Will stage carefully. |
+
+---
+
+## Phases 4–10 (Status: Pending)
 
 ---
 

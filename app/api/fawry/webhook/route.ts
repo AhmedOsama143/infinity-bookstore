@@ -33,6 +33,7 @@ import { toFawryAmount, verifyCallback } from '@/lib/fawry/signing';
 import { getFawryConfig } from '@/lib/fawry/config';
 import { mapFawryStatus, isFailureBranch } from '@/lib/fawry/status';
 import { logFunnelEvent } from '@/lib/analytics/server';
+import { log } from '@/lib/log';
 import { KNOWN_PAYMENT_METHODS, type FawryServerNotificationV2 } from '@/lib/fawry/types';
 
 // z.union of number and string for any field that Fawry sometimes serialises
@@ -83,16 +84,15 @@ export async function POST(request: NextRequest) {
   try {
     parsedRaw = await request.json();
   } catch {
-    console.error('[fawry/webhook] body was not valid JSON');
+    log.error('fawry/webhook', 'invalid_json');
     return ok();
   }
 
   const parsed = NotificationSchema.safeParse(parsedRaw);
   if (!parsed.success) {
-    console.error(
-      '[fawry/webhook] payload failed shape validation:',
-      parsed.error.issues
-    );
+    log.error('fawry/webhook', 'schema_invalid', {
+      issues: parsed.error.issues.map((i) => ({ path: i.path, code: i.code })),
+    });
     return ok();
   }
   const notif = parsed.data as FawryServerNotificationV2;
@@ -101,10 +101,9 @@ export async function POST(request: NextRequest) {
   try {
     config = getFawryConfig();
   } catch (err) {
-    console.error(
-      '[fawry/webhook] Fawry env not configured:',
-      err instanceof Error ? err.message : err
-    );
+    log.error('fawry/webhook', 'config_missing', {
+      message: err instanceof Error ? err.message : String(err),
+    });
     return ok();
   }
 
@@ -135,10 +134,11 @@ export async function POST(request: NextRequest) {
       // Fawry retried — ack and move on.
       return ok();
     }
-    console.error(
-      '[fawry/webhook] failed to log audit row:',
-      insertEvent.error.message
-    );
+    log.error('fawry/webhook', 'audit_insert_failed', {
+      merchantRefNumber: notif.merchantRefNumber,
+      code: insertEvent.error.code,
+      message: insertEvent.error.message,
+    });
     return ok();
   }
 

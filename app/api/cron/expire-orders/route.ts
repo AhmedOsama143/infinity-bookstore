@@ -21,6 +21,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { reconcileOrderWithFawry } from '@/lib/fawry/reconcile';
+import { log } from '@/lib/log';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
   if (!secret) {
     // Fail loud — misconfigured deploy. Don't reveal the env-var name in the
     // public response body; the operator will see it in Vercel logs anyway.
-    console.error('[cron/expire-orders] CRON_SECRET is unset — refusing to run');
+    log.error('cron/expire-orders', 'auth_misconfigured');
     return NextResponse.json(
       { ok: false, error: { code: 'misconfigured', message: 'cron auth not configured' } },
       { status: 500 }

@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getFawryConfig } from '@/lib/fawry/config';
 import { signRefund, toFawryAmount } from '@/lib/fawry/signing';
+import { log } from '@/lib/log';
 import type { AdminRole } from '@/lib/admin/types';
 
 export const runtime = 'nodejs';
@@ -176,7 +177,11 @@ export async function POST(request: NextRequest) {
     // Detail (`fawry_status_500:invalid_ref`, etc.) is already on the
     // payment_events audit row above — staff can read it from /admin/payments.
     // Don't leak it to the API client; HTTP 502 + a generic code is enough.
-    console.error('[fawry/refund] refund attempt failed:', fawryError);
+    log.error('fawry/refund', 'fawry_failed', {
+      orderId: order.id,
+      merchantRefNumber: order.merchant_ref_number,
+      fawryError,
+    });
     return fail('fawry_refund_failed', 'refund could not be completed', 502);
   }
 

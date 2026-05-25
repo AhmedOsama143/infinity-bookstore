@@ -27,6 +27,25 @@ export type FawryPaymentMethod =
   | 'CARD'
   | 'VALU';
 
+/**
+ * Allow-list of payment_method_detail strings we'll accept onto the orders
+ * row. Anything Fawry sends outside this set goes to the audit row's
+ * error_message field and is dropped from the column, so the staff UI's
+ * expected enum stays clean. Used by both the webhook handler AND the
+ * reconciliation path — keep them in sync by importing from here.
+ *
+ * Note: Fawry's wire values for PayAtFawry are `PAYATFAWRY` (webhook) and
+ * `PayAtFawry` (some status responses). Listing both intentionally.
+ */
+export const KNOWN_PAYMENT_METHODS: ReadonlySet<string> = new Set<string>([
+  'PAYATFAWRY',
+  'PayAtFawry',
+  'MWALLET',
+  'CARD',
+  'VALU',
+  'CashOnDelivery',
+]);
+
 export interface FawryChargeItem {
   itemId: string;
   description?: string;

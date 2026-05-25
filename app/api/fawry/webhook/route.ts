@@ -33,17 +33,7 @@ import { toFawryAmount, verifyCallback } from '@/lib/fawry/signing';
 import { getFawryConfig } from '@/lib/fawry/config';
 import { mapFawryStatus, isFailureBranch } from '@/lib/fawry/status';
 import { logFunnelEvent } from '@/lib/analytics/server';
-import type { FawryPaymentMethod, FawryServerNotificationV2 } from '@/lib/fawry/types';
-
-// Allow-list for payment_method_detail. Anything Fawry sends outside this
-// gets stashed into error_message instead of polluting the staff UI.
-const KNOWN_PAYMENT_METHODS: ReadonlySet<string> = new Set<FawryPaymentMethod | string>([
-  'PAYATFAWRY',
-  'MWALLET',
-  'CARD',
-  'VALU',
-  'CashOnDelivery',
-]);
+import { KNOWN_PAYMENT_METHODS, type FawryServerNotificationV2 } from '@/lib/fawry/types';
 
 // z.union of number and string for any field that Fawry sometimes serialises
 // as a string and sometimes as a number (every amount field falls in this

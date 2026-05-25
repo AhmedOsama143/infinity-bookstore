@@ -15,7 +15,7 @@ import { fetchPaymentStatus, type FawryStatusResponse } from './client';
 import { getFawryConfig } from './config';
 import { toFawryAmount } from './signing';
 import { isFailureBranch, mapFawryStatus } from './status';
-import type { FawryOrderStatus } from './types';
+import { KNOWN_PAYMENT_METHODS, type FawryOrderStatus } from './types';
 
 export interface ReconcileResult {
   orderId: string;
@@ -110,7 +110,11 @@ export async function reconcileOrderWithFawry(
             ? new Date(fawryStatus.paymentTime).toISOString()
             : new Date().toISOString(),
         };
-        if (fawryStatus.paymentMethod) update.payment_method_detail = fawryStatus.paymentMethod;
+        // Same allow-list as the webhook handler — unknown methods are
+        // dropped from the column so the staff UI's enum doesn't pollute.
+        if (fawryStatus.paymentMethod && KNOWN_PAYMENT_METHODS.has(fawryStatus.paymentMethod)) {
+          update.payment_method_detail = fawryStatus.paymentMethod;
+        }
         await admin.from('orders').update(update).eq('id', order.id);
         reconciled = true;
         reason = 'reconciled_paid';

@@ -3,6 +3,42 @@ import { getBooks, getBranches, getTeachers, getAvailabilitySummary, getSiteSett
 import BookCard from '@/components/storefront/book-card';
 import TeacherCard from '@/components/storefront/teacher-card';
 
+// Home gets an explicit metadata block so titles/descriptions render with
+// the home-specific copy rather than the generic site-wide fallback from
+// the root layout. Title is kept under 60 chars and description under 155
+// to avoid truncation in Google/social snippets.
+export const metadata = {
+  title: 'مركز إنفينيتي | كتب المدرسين للمرحلة الثانوية',
+  description:
+    'متجر كتب المدرسين للمرحلة الثانوية في كفر الدوار والإسكندرية. شحن مجاني للطلبات فوق ٢٥٠٠ جنيه. استلم من أقرب فرع أو اطلب للتوصيل.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'مركز إنفينيتي | كتب المدرسين للمرحلة الثانوية',
+    description:
+      'متجر كتب المدرسين للمرحلة الثانوية في كفر الدوار والإسكندرية. شحن مجاني للطلبات فوق ٢٥٠٠ جنيه.',
+    type: 'website',
+    locale: 'ar_EG',
+  },
+};
+
+// Sitelinks searchbox. Helps Google render a search input under the
+// hostname in SERPs that points users straight at /search?q=.
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'مركز إنفينيتي',
+  url: 'https://infinity-bookstore.vercel.app',
+  inLanguage: 'ar',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://infinity-bookstore.vercel.app/search?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
 export default async function HomePage() {
   const [featuredBooks, featuredTeachers, branches, settings] = await Promise.all([
     getBooks({ limit: 8 }),
@@ -15,6 +51,10 @@ export default async function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
       {/* Hero */}
       <section className="bg-hero-gradient text-white py-14 sm:py-20 md:py-24 text-center relative overflow-hidden">
         <div className="container-app relative z-10">

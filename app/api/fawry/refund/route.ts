@@ -173,7 +173,11 @@ export async function POST(request: NextRequest) {
   });
 
   if (fawryError) {
-    return fail('fawry_refund_failed', fawryError, 502);
+    // Detail (`fawry_status_500:invalid_ref`, etc.) is already on the
+    // payment_events audit row above — staff can read it from /admin/payments.
+    // Don't leak it to the API client; HTTP 502 + a generic code is enough.
+    console.error('[fawry/refund] refund attempt failed:', fawryError);
+    return fail('fawry_refund_failed', 'refund could not be completed', 502);
   }
 
   // Flip the order. Partial refunds (refundAmount < paidAmount) still mark the

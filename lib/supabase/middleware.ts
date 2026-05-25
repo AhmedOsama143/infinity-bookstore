@@ -42,16 +42,27 @@ export async function updateSession(request: NextRequest) {
     const redirect = url.clone();
     redirect.pathname = '/login';
     redirect.searchParams.set('next', url.pathname);
-    return NextResponse.redirect(redirect);
+    return withRefreshedCookies(NextResponse.redirect(redirect), response);
   }
 
   if (isAuthPage && user) {
     const redirect = url.clone();
     redirect.pathname = isAdminUser(user) ? '/admin' : '/account';
-    return NextResponse.redirect(redirect);
+    return withRefreshedCookies(NextResponse.redirect(redirect), response);
   }
 
   return response;
+}
+
+// When middleware returns a fresh NextResponse (e.g. a redirect), any
+// session cookies that @supabase/ssr just wrote onto `response` via setAll()
+// are lost. Copy them across so the browser sees the refreshed session
+// even on redirect branches. (Per @supabase/ssr nextjs guide.)
+function withRefreshedCookies(target: NextResponse, source: NextResponse): NextResponse {
+  source.cookies.getAll().forEach((cookie) => {
+    target.cookies.set(cookie.name, cookie.value);
+  });
+  return target;
 }
 
 function isAdminUser(user: { app_metadata?: Record<string, unknown> | null } | null): boolean {

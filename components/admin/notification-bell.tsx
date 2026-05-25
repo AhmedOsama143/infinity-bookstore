@@ -114,7 +114,7 @@ export default function NotificationBell({
 
   useEffect(() => {
     const supa = createClient();
-    let channel = supa
+    const channel = supa
       .channel('admin-notifications')
       .on(
         'postgres_changes',

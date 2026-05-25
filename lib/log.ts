@@ -36,6 +36,8 @@ function emit(level: Level, area: string, event: string, fields?: Fields): void 
   } else if (level === 'warn') {
     console.warn(line);
   } else {
+    // Logger module — the one place where console.log is the right call.
+    // eslint-disable-next-line no-console
     console.log(line);
   }
 }

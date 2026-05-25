@@ -1,12 +1,13 @@
 {
   "name": "infinity-bookstore",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "seed:fawry": "tsx scripts/seed-fawry-test.ts",
@@ -30,6 +31,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.60.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",

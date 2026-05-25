@@ -25,7 +25,7 @@ export async function GET(
   const supa = await createClient();
 
   let csv = '';
-  let filename = `${type}-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `${type}-${new Date().toISOString().slice(0, 10)}.csv`;
 
   if (type === 'orders') {
     let q = supa

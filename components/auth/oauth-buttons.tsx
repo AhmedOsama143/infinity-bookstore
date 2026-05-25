@@ -1,6 +1,7 @@
 'use client';
 import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
+import { safeNextPath } from '@/lib/auth/safe-next';
 
 export default function OAuthButtons({ next = '/' }: { next?: string }) {
   const [busy, setBusy] = useState(false);
@@ -8,10 +9,11 @@ export default function OAuthButtons({ next = '/' }: { next?: string }) {
   async function signInWithGoogle() {
     setBusy(true);
     const supa = createClient();
+    const safeNext = safeNextPath(next);
     const { error } = await supa.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
       },
     });
     if (error) {

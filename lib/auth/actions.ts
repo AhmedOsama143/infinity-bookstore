@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { GradeLevel } from '@/lib/types';
+import { safeNextPath } from './safe-next';
 
 export interface AuthResult {
   error?: string;
@@ -14,7 +15,7 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
   const fullName = String(formData.get('full_name') ?? '').trim();
-  const next = String(formData.get('next') ?? '/');
+  const next = safeNextPath(formData.get('next'));
 
   if (!email || !password) return { error: 'البريد الإلكتروني وكلمة المرور مطلوبان' };
   if (password.length < 8) return { error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' };
@@ -59,7 +60,7 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
 export async function signInWithEmail(formData: FormData): Promise<AuthResult> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
-  const next = String(formData.get('next') ?? '/');
+  const next = safeNextPath(formData.get('next'));
 
   if (!email || !password) return { error: 'البريد الإلكتروني وكلمة المرور مطلوبان' };
 
@@ -105,7 +106,7 @@ export async function completeOnboarding(formData: FormData): Promise<AuthResult
 
   const full_name = String(formData.get('full_name') ?? '').trim();
   const grade_level = String(formData.get('grade_level') ?? '') as GradeLevel;
-  const next = String(formData.get('next') ?? '/');
+  const next = safeNextPath(formData.get('next'));
 
   if (!full_name) return { error: 'الاسم مطلوب' };
   if (!['first_secondary', 'second_secondary', 'third_secondary'].includes(grade_level)) {

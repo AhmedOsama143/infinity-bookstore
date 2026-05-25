@@ -17,14 +17,21 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 export async function transitionOrder(orderId: string, next: OrderStatus, reason?: string) {
-  await requireAdmin();
+  const ctx = await requireAdmin();
   const supa = await createClient();
   const { data: order } = await supa
     .from('orders')
-    .select('status, order_number, total, branch:branches(name_ar), student:students(full_name, email)')
+    .select('status, order_number, total, branch_id, branch:branches(name_ar), student:students(full_name, email)')
     .eq('id', orderId)
     .maybeSingle();
   if (!order) return { error: 'الطلب غير موجود' };
+
+  // Branch managers can only transition orders for the branch they manage.
+  // setOrderPaymentStatus already enforces this; transitionOrder was missed.
+  if (ctx.role === 'branch_manager' && order.branch_id !== ctx.branchId) {
+    return { error: 'لا يمكنك تعديل طلب لفرع آخر' };
+  }
+
   const current = order.status as OrderStatus;
   if (!ALLOWED_TRANSITIONS[current]?.includes(next)) {
     return { error: `لا يمكن تغيير الحالة من ${current} إلى ${next}` };

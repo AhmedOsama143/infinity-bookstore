@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 export async function approveReturn(returnId: string, refundAmount: number) {
   await requireFullAdmin();
@@ -11,7 +12,7 @@ export async function approveReturn(returnId: string, refundAmount: number) {
     .from('returns')
     .update({ status: 'approved', refund_amount: refundAmount, resolved_at: new Date().toISOString() })
     .eq('id', returnId);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/returns', 'approve_failed', { returnId }) };
   revalidatePath('/admin/returns');
   return { ok: true };
 }
@@ -23,7 +24,7 @@ export async function rejectReturn(returnId: string) {
     .from('returns')
     .update({ status: 'rejected', resolved_at: new Date().toISOString() })
     .eq('id', returnId);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/returns', 'reject_failed', { returnId }) };
   revalidatePath('/admin/returns');
   return { ok: true };
 }

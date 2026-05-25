@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 export async function createTransfer(formData: FormData) {
   const ctx = await requireFullAdmin();
@@ -31,13 +32,16 @@ export async function createTransfer(formData: FormData) {
     })
     .select('id')
     .single();
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/transfers', 'create_failed') };
 
   // Execute immediately for now (admin action). Can add separate "approve" step later.
   const { error: execErr } = await supa.rpc('execute_stock_transfer', { p_transfer_id: transfer.id });
   if (execErr) {
     await supa.from('stock_transfers').update({ status: 'cancelled' }).eq('id', transfer.id);
-    return { error: execErr.message.includes('INSUFFICIENT_STOCK') ? 'الكمية غير متوفرة في الفرع المصدر' : execErr.message };
+    if (execErr.message.includes('INSUFFICIENT_STOCK')) {
+      return { error: 'الكمية غير متوفرة في الفرع المصدر' };
+    }
+    return { error: translateDbError(execErr, 'admin/transfers', 'execute_failed') };
   }
 
   revalidatePath('/admin/transfers');

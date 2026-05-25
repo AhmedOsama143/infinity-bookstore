@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 export async function moderateReview(reviewId: string, status: 'approved' | 'rejected') {
   await requireFullAdmin();
@@ -13,7 +14,7 @@ export async function moderateReview(reviewId: string, status: 'approved' | 'rej
     .eq('id', reviewId)
     .select('book_id')
     .single();
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/reviews', 'moderate_failed', { reviewId, status }) };
   revalidatePath('/admin/reviews');
   if (data?.book_id) revalidatePath(`/books/${data.book_id}`);
   return { ok: true };

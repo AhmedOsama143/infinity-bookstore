@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 export async function savePromoCode(formData: FormData) {
   await requireFullAdmin();
@@ -34,10 +35,10 @@ export async function savePromoCode(formData: FormData) {
 
   if (id) {
     const { error } = await supa.from('promo_codes').update(payload).eq('id', id);
-    if (error) return { error: error.message };
+    if (error) return { error: translateDbError(error, 'admin/promos', 'update_failed', { id }) };
   } else {
     const { error } = await supa.from('promo_codes').insert(payload);
-    if (error) return { error: error.message };
+    if (error) return { error: translateDbError(error, 'admin/promos', 'insert_failed') };
   }
 
   revalidatePath('/admin/promos');

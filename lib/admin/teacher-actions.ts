@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 interface TeacherPayload {
   id?: number;
@@ -74,7 +75,7 @@ export async function createTeacher(formData: FormData) {
   }
 
   const { error } = await supa.from('teachers').insert({ id: nextId, ...parsed, photo_url });
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/teachers', 'create_failed') };
 
   revalidatePath('/admin/teachers');
   redirect(`/admin/teachers/${nextId}/edit`);
@@ -99,7 +100,7 @@ export async function updateTeacher(formData: FormData) {
   if (photo_url) update.photo_url = photo_url;
 
   const { error } = await supa.from('teachers').update(update).eq('id', parsed.id);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/teachers', 'update_failed', { id: parsed.id }) };
 
   revalidatePath('/admin/teachers');
   revalidatePath(`/admin/teachers/${parsed.id}/edit`);

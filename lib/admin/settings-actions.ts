@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 
 export async function setMfaEnabled(enabled: boolean) {
   const ctx = await requireFullAdmin();
@@ -41,7 +42,7 @@ export async function inviteBranchManager(formData: FormData): Promise<InviteRes
     email_confirm: true,
     app_metadata: { role: 'branch_manager' },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError({ message: error.message, code: null }, 'admin/settings', 'invite_create_user_failed') };
   if (!created.user) return { error: 'تعذّر إنشاء الحساب' };
 
   const { error: insErr } = await admin.from('admin_users').insert({

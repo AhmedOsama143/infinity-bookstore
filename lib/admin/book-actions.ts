@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireFullAdmin } from './auth';
+import { translateDbError } from './errors';
 import type { GradeLevel, BookType } from '@/lib/types';
 
 export interface BookActionResult {
@@ -122,7 +123,7 @@ export async function createBook(formData: FormData): Promise<BookActionResult> 
     cover_url,
     needs_review: false,
   });
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/books', 'create_failed') };
 
   if (parsed.per_branch_stock.length > 0) {
     const rows = parsed.per_branch_stock.map((s) => ({ ...s, book_id: nextId }));
@@ -164,7 +165,7 @@ export async function updateBook(formData: FormData): Promise<BookActionResult> 
   if (cover_url) update.cover_url = cover_url;
 
   const { error } = await supa.from('books').update(update).eq('id', parsed.id);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/books', 'update_failed', { id: parsed.id }) };
 
   if (parsed.per_branch_stock.length > 0) {
     const rows = parsed.per_branch_stock.map((s) => ({ ...s, book_id: parsed.id! }));
@@ -181,7 +182,7 @@ export async function deleteBook(bookId: number) {
   await requireFullAdmin();
   const supa = await createClient();
   const { error } = await supa.from('books').update({ is_active: false }).eq('id', bookId);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/books', 'delete_failed', { bookId }) };
   revalidatePath('/admin/books');
   return { ok: true };
 }

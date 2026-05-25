@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from './auth';
+import { translateDbError } from './errors';
 import { sendEmail, orderStatusEmailHtml } from '@/lib/email';
 import { validateStock } from '@/lib/stock/integrity';
 import type { GradeLevel, OrderStatus, PaymentMethod, PaymentStatus, PaymentType } from '@/lib/types';
@@ -39,7 +40,7 @@ export async function transitionOrder(orderId: string, next: OrderStatus, reason
   const update: any = { status: next };
   if (next === 'cancelled' && reason) update.cancel_reason = reason;
   const { error } = await supa.from('orders').update(update).eq('id', orderId);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/orders', 'transition_failed', { orderId, next }) };
 
   // Fire-and-forget email — never block the action on email delivery.
   const student = (order as any).student;
@@ -83,7 +84,7 @@ export async function setOrderPaymentStatus(orderId: string, next: PaymentStatus
     .from('orders')
     .update({ payment_status: next })
     .eq('id', orderId);
-  if (error) return { error: error.message };
+  if (error) return { error: translateDbError(error, 'admin/orders', 'set_payment_status_failed', { orderId, next }) };
 
   revalidatePath('/admin/orders');
   revalidatePath(`/admin/orders/${orderId}`);
@@ -198,7 +199,11 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
       .select('id')
       .single();
     if (createErr || !created) {
-      return { error: createErr?.message ?? 'فشل إنشاء العميل' };
+      return {
+        error: createErr
+          ? translateDbError(createErr, 'admin/orders', 'guest_create_failed')
+          : 'فشل إنشاء العميل',
+      };
     }
     studentId = created.id;
   }
@@ -289,7 +294,11 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
     .single();
 
   if (orderErr || !order) {
-    return { error: orderErr?.message ?? 'فشل إنشاء الطلب' };
+    return {
+      error: orderErr
+        ? translateDbError(orderErr, 'admin/orders', 'manual_create_failed')
+        : 'فشل إنشاء الطلب',
+    };
   }
 
   // Inserting items triggers stock reservation + the per-student book cap check.

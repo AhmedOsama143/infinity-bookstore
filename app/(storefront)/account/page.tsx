@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getSiteSettings } from '@/lib/data';
 import ProfileForm from '@/components/account/profile-form';
@@ -7,11 +8,15 @@ export const metadata = { title: 'حسابي | مركز إنفينيتي' };
 export default async function AccountPage() {
   const supa = await createClient();
   const { data: { user } } = await supa.auth.getUser();
+  // Middleware should have bounced unauthed users to /login already, but a
+  // TOCTOU between middleware and page render can null `user`. Guard
+  // explicitly instead of a non-null assertion.
+  if (!user) redirect('/login?next=/account');
   const [{ data: student }, settings] = await Promise.all([
     supa
       .from('students')
       .select('full_name, phone, governorate, address, grade_level, books_ordered_count, cap_override')
-      .eq('id', user!.id)
+      .eq('id', user.id)
       .maybeSingle(),
     getSiteSettings(),
   ]);

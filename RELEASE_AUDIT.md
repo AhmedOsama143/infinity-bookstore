@@ -251,7 +251,7 @@ Read clusters of related code in parallel via four targeted subagents (payment/o
 
 ---
 
-## Phase 3 — Security (Status: 🟡 In progress, 12/20 done)
+## Phase 3 — Security (Status: ✅ Done)
 
 ### Shipped this phase
 
@@ -285,14 +285,38 @@ After each commit: `tsc --noEmit` clean. `npm audit` now shows 2 moderate transi
 | `S-10` | Open: idempotency timing oracle | **Deferred to v1.1** | Marginal — the client generates the idempotency key, so the attacker would have to guess one to even test. No exploitable leak. |
 | `P1-3` | Open: `verifyChargeResponse` defined but unused | **Won't fix in v1.0.0 — by design** | Result page reads from Supabase (the authoritative source), never displays URL params, so URL signature isn't load-bearing today. `verifyChargeResponse` stays in `lib/fawry/signing.ts` for the future scenario where we'd want to display URL data. |
 
-### Still open at Phase 3 checkpoint
+### Closed since checkpoint
 
-| ID | Title | Why it's still open |
+| Commit | ID | Title |
 |---|---|---|
-| `Q-11` | `markReturnReceived` TOCTOU + non-idempotent | Needs a new Postgres function in `supabase/migrations/022_…`. Per CLAUDE.md, schema migrations require explicit OK. Decision recorded; migration file pending. |
-| `Q-12` | ~15 admin actions return raw `error.message` to client | 15-site refactor: write a `translateError()` helper, audit every callsite, swap the `return { error: …message }` lines. Larger PR, will produce on its own. |
-| `P1-8` | No rate limit on webhook | Needs `@upstash/ratelimit` + `@upstash/redis` deps + Upstash project provisioned. Decision recorded; env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. Code wiring pending Upstash setup confirmation. |
-| `P2-7` | CSRF on `/api/orders/create`, `/api/fawry/charge` | Approved to migrate both to Server Actions inside this phase. Multi-file refactor: route handler → action; callers (checkout-view.tsx) switch from `fetch()` to action invocation; idempotency-key plumbing changes. Will stage carefully. |
+| `8b5cfe3` | `Q-11` | `markReturnReceived` — atomic RPC + idempotency via migration 022. **Needs `npm run db:push` to apply** before runtime. |
+| `71287f9` | `Q-12` | `translateDbError` helper applied to 20 sites across 11 admin action files. Raw error.message no longer leaks. |
+| `5618492` | `P1-8` | Upstash sliding-window rate limit on the Fawry webhook. Fails open until `UPSTASH_REDIS_REST_URL`/`TOKEN` env vars are set. |
+| `c8d8132` | `P2-7` | `/api/orders/create` and `/api/fawry/charge` migrated to server actions. CSRF-safe by default. Route handlers deleted. |
+
+### Phase 3 — Final tally
+
+Started with 24 findings (`P0`/`P1`/`P2` from `roadmap/issues.md`) + 26 new findings from the Phase 2 sweep + 1 from Phase-3 verification = **51 findings touching security.**
+
+| Outcome | Count | Examples |
+|---|---|---|
+| ✅ Fixed in Phase 3 | 17 | S-01/02/03/04/05/06/09, Q-09/10/11/12/14/16, B1/Q-01, P1-8/9, P2-7 |
+| ✅ Already fixed before this audit (slices 8–10) | 14 | All P0-1 through P0-7 except P0-5, P1-1/2/4/5/6/7, P2-1/4/6 |
+| ❌ Closed as won't-fix / by design | 5 | S-07, S-08, S-10, P1-3 (verifyChargeResponse), P2-3 (SRI — Fawry publishes no hash) |
+| ⚠ Deferred to v1.1 | 4 | P2-2 (plugin load UX), P2-5 (idempotency key stability), Q-13 was a false positive — closed |
+| 🧪 Cannot verify from code (ops/sandbox tasks) | 2 | P0-5 (Fawry sandbox webhook replay), P1-10 (EGP-1 production smoke test) |
+
+The remaining go/no-go blockers are operational, not code: someone has to actually run a sandbox webhook against this build and execute a real-money EGP-1 round-trip in production before flipping DNS. See P0-5 and P1-10.
+
+### Operator action items before deploy
+
+1. `npm run db:push` — applies `supabase/migrations/022_atomic_return_receive.sql`.
+2. Set in Vercel + `.env.local`:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+   - `CRON_SECRET` (already required; reconfirm it's set after the Q-16 message cleanup)
+3. Sandbox webhook replay (P0-5) — boot ngrok → `localhost:3000/api/fawry/webhook`, point Fawry sandbox dashboard at it, run a card payment + a PAYATFAWRY flow end-to-end. Capture raw payloads into `docs/fawry/TEST_DATA.md`. Replay each to confirm idempotency. Tamper one to confirm signature rejection.
+4. Real-money EGP-1 smoke test (P1-10) — on a staging Vercel deployment with production Fawry credentials, before flipping public DNS.
 
 ---
 

@@ -34,6 +34,7 @@ import { getFawryConfig } from '@/lib/fawry/config';
 import { mapFawryStatus, isFailureBranch } from '@/lib/fawry/status';
 import { logFunnelEvent } from '@/lib/analytics/server';
 import { log } from '@/lib/log';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { KNOWN_PAYMENT_METHODS, type FawryServerNotificationV2 } from '@/lib/fawry/types';
 
 // z.union of number and string for any field that Fawry sometimes serialises
@@ -78,6 +79,22 @@ function ok() {
 }
 
 export async function POST(request: NextRequest) {
+  // 0. Rate limit per source IP. Genuine Fawry traffic for one merchant is
+  //    well under 1 webhook/sec; 60/min is generous. Block by IP rather
+  //    than by ref so attacker spam doesn't burn budget for legit retries
+  //    on a delayed webhook. Fails open if Upstash isn't configured.
+  const ip = clientIp(request.headers);
+  const rate = await checkRateLimit('fawry-webhook', ip, 60, 60);
+  if (!rate.allowed) {
+    log.warn('fawry/webhook', 'rate_limited', { ip, resetAt: rate.resetAt });
+    // 429, not 200 — Fawry SHOULD retry on transient failure, so the limit
+    // doesn't drop legit retries permanently.
+    return NextResponse.json(
+      { ok: false, error: { code: 'rate_limited' } },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }
+
   // 1. Parse. Any failure here is logged to stderr — we can't even write an
   //    audit row without a merchant_ref_number, so the best we can do is ack.
   let parsedRaw: unknown;

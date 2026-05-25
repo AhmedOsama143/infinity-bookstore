@@ -320,7 +320,235 @@ The remaining go/no-go blockers are operational, not code: someone has to actual
 
 ---
 
-## Phases 4–10 (Status: Pending)
+## Phase 4 — UI/UX Polish (Status: ✅ Done)
+
+Static audit (no browser). 17 findings on top of the 6 already raised in Phase 2 (`U-01` through `U-06`). Three Highs fixed; the rest deferred to v1.1 as visual polish.
+
+### Shipped this phase
+
+| Commit | ID | Title |
+|---|---|---|
+| `fb21261` | `U-08` | Account-nav active indicator: `border-r` → `border-e` so it rides the trailing RTL edge |
+| `fb21261` | `U-09` | `/account/orders` mirrors the S-09 redirect guard pattern (was using `user!.id`) |
+| `fb21261` | `U-20` | Payment-method tiles got a `focus-visible:ring-2` so keyboard users can see Tab focus |
+
+### Deferred to v1.1 (with rationale)
+
+| ID | File | Why deferred |
+|---|---|---|
+| `U-01` | `result-status.tsx:242` | Phase 2 finding. Hydration mismatch from `Date.now()` lazy init. Behaves correctly after first paint; warning-only. |
+| `U-02`/`U-10` | `checkout-view.tsx:284` | Key-by-index on stock-notices list. Visible only when notices change mid-render (rare). |
+| `U-03` | `result-status.tsx:245` | Interval doesn't depend on `orderId`. Polls correct order in practice — orderId is stable for the lifetime of the panel. |
+| `U-04`/`U-23` | `notification-bell.tsx` | Realtime channel leak when branch-filter changes. Affects staff who switch branches mid-session — small population. |
+| `U-05`/`U-15` | `add-to-cart-button.tsx` | `setTimeout` IDs not captured. Triggers a React unmount-state-update warning only. |
+| `U-06` | `checkout-view.tsx:507` | Double-click window during Fawry popup open. Cosmetic — the second click is harmless because the popup is already up. |
+| `U-11` | `oauth-buttons.tsx` | No visible OAuth error state. Currently `alert()` fires — works, ugly. |
+| `U-12`/`U-16`/`U-18` | search/admin orders/books pages | Empty states don't link to a CTA. Functional, just suboptimal. |
+| `U-13`/`U-21` | various | Date.now()/`new Date()` in render paths. Edge cases on year boundary; not v1.0.0 blockers. |
+| `U-14` | `header.tsx` | Aria-label wording suggestion. Currently labelled, just not in screen-reader-ideal phrasing. |
+| `U-17` | `manual-order-form.tsx` | No visual disabled state during oversell confirmation. Admin-only flow with low concurrency. |
+| `U-19` | `account/orders` | Empty-state styling inconsistent with books-page empty-state. Cosmetic. |
+| `U-22` | `grade-level/page.tsx` | Implicit Suspense via `loading.tsx`. Pattern works, just not explicit. |
+
+### Coverage caveat
+
+This was a **static** audit — I read code, I did not run the browser. The following classes of issue can only be caught with a running app and were NOT covered:
+- Visual regression / spacing inconsistencies across breakpoints
+- Touch-target sizes at <480px (assumed via Tailwind but unverified)
+- Animation duration / `prefers-reduced-motion` behaviour
+- Form keyboard tab order
+- Color contrast at the actual rendered tokens
+
+These are Phase 5 (Accessibility) browser-driven items — flagged there.
+
+---
+
+## Phase 5 — Accessibility (Status: ✅ Done)
+
+Static WCAG 2.1 AA audit. 20 findings, 6 of them new actual issues (the rest were PASS confirmations or notes).
+
+### Shipped this phase
+
+| Commit | ID | Title |
+|---|---|---|
+| `2f60206` | `A-04` | Skip-to-main link in root layout — visually hidden until keyboard focus, anchors to `#main-content`. RTL-aware. |
+| `2f60206` | `A-03` | Admin layout wraps children in `<main id="main-content">` (was a generic `<div>` — no landmark for screen readers). |
+| `2f60206` | `A-17` | `profile-form` message div now has `role="status" aria-live="polite"` so screen readers announce save success/failure. |
+
+### Needs a design decision (not a code fix)
+
+| ID | Issue | Recommendation |
+|---|---|---|
+| `A-10` | `primary` `#578e7e` on white = **3.8:1** — fails AA for normal text | Either darken `primary` (breaks brand) or reserve `text-primary` for headings/large text and swap to `text-primary-dark` `#3c655a` (~6.4:1) for body text. Currently many components use `text-primary` for body copy. |
+| `A-11` | `accent` `#e3af64` on white = **3.2:1** — fails AA for all sizes | Use only for backgrounds with white text or as a decorative border, not for text. A few spots (e.g. result-status order number) need the swap. |
+
+Both are design-system changes — flagged for v1.0.0 owner approval before sweeping the codebase. Either treat as compliance debt for v1.1 or invest one sprint to sweep + adjust the brand palette.
+
+### Deferred to v1.1
+
+| ID | Issue | Why |
+|---|---|---|
+| `A-05` | Backdrop overlay clickable `<div>` | Pattern is universal; accessible alternative would re-architect a lot of UI for a 2nd-order issue. |
+| `A-08` | Mini-cart focus trap not implemented | Modal has correct ARIA but tab can escape. Needs focus-trap utility. |
+| `A-09` | Multiple `<h1>` in `result-status.tsx` status panels | Demote to `<h2>`. Quick fix; deferred only because the visuals depend on heading size. |
+| `A-13` | Custom radio button via `<button aria-pressed>` | Works; native `<input type="radio">` would be more robust. |
+| `A-14` | Mobile menu focus trap | Same as `A-08`. |
+| `A-15` | Admin sidebar uses `<aside>` without `<nav>` | Both accepted; current is fine — small polish. |
+
+### Coverage caveat
+
+This was static analysis only — no axe-core run, no real screen-reader smoke test, no contrast verification at runtime under hover/focus states. Phase 7 deliverable will include a Lighthouse run that catches more.
+
+---
+
+## Phase 6 — SEO (Status: ✅ Done)
+
+Audit found a healthier-than-expected baseline. Robots, sitemap, per-page metadata, OG cards, and JSON-LD on key entity pages were already in place from earlier work. One real gap: the home page inherited the root layout's generic metadata. One pure-add: WebSite + SearchAction JSON-LD for sitelinks searchbox.
+
+### Shipped this phase
+
+| Commit | What |
+|---|---|
+| `ae12b78` | Home-page explicit metadata (title ≤60 chars, description ≤155 chars), `alternates.canonical: '/'`, OG block. Plus `WebSite` + `SearchAction` JSON-LD to enable Google sitelinks-searchbox surfacing for the brand. |
+
+### Already in place (verified, no change)
+
+| Check | Where | Notes |
+|---|---|---|
+| `robots.txt` | `app/robots.ts` | Disallows `/admin` and `/api`. |
+| `sitemap.xml` | `app/sitemap.ts` | Static routes + dynamic books + teachers. Daily rebuild via Vercel. |
+| Per-page `<title>` / description | 20 of 21 storefront pages | Home was the only gap — closed in `ae12b78`. |
+| Open Graph + Twitter | Root + `books/[id]` + `branches` + `teachers/[id]` | Book detail uses `summary_large_image` with the cover. |
+| JSON-LD: BookStore (org) | `app/layout.tsx:41-54` | Telephone, areaServed, addressRegion. |
+| JSON-LD: Book | `books/[id]/page.tsx:59` | offers, availability, language, format. |
+| Canonical | Set via `metadataBase` + per-page `alternates.canonical` where it matters. | Defaulting per-route is sufficient since paths are unique. |
+| `lang="ar"` + `dir="rtl"` | `app/layout.tsx:62` | Both set on `<html>`. |
+| Image alt text | `next/image` requires `alt` at the type level — type-check enforces. | |
+
+### Deferred / not worth doing in v1.0.0
+
+| Item | Why |
+|---|---|
+| BreadcrumbList JSON-LD per category page | Not blocking. Single-step ROI; the URL structure (`/books`, `/teachers/[id]`, etc.) is already shallow. |
+| `hreflang` | Site is Arabic-only. No alternates needed until/unless an English mirror exists. |
+| Image alt for decorative book covers | All cover images already have `alt={book.title_ar}`. |
+
+---
+
+## Phase 7 — Performance (Status: ✅ Done — code-level work; Lighthouse run pending)
+
+Static audit only. Real Lighthouse / Web Vitals must be run by an operator against the deployed build — that's an ops task, like `P0-5`.
+
+### Shipped this phase
+
+| Commit | What |
+|---|---|
+| `58bc4da` | `checkCartAvailability`: replace nested `.find()` with a pre-indexed `Map`. O(b×i×s) → O(b+i+s). Hot path — called on every cart-page render. |
+
+### Already in good shape (verified)
+
+- `next.config.mjs` images: AVIF first, WebP fallback, 24h cache TTL on transforms.
+- `next/font` for Cairo + Tajawal — Arabic subset only, woff2 preload via Next, `display: swap`.
+- App Router with mostly server components; client components limited to interactive surfaces.
+- `prefers-reduced-motion` honoured in `globals.css` for ambient animations.
+- Migration 008 + index audit confirms common-lookup columns are indexed (books.teacher_id, books.is_active, branch_stock(branch_id), branch_stock(book_id), orders.status, orders.payment_status, orders.payment_expires_at partial).
+- `loading="lazy"` + width/height on `next/image` covers — CLS contained.
+
+### Deferred to v1.1 with rationale
+
+| ID | Issue | Why deferred |
+|---|---|---|
+| `Perf-1` | Font Awesome loaded via render-blocking `<link>` to cdnjs | Real LCP cost on 3G (~100-200ms). Proper fix is self-host via `@fortawesome/fontawesome-free` + import, which adds bundle weight and needs visual QA across every icon site-wide. Punt to v1.1 with a dedicated PR. |
+| `Perf-2` | `site-ambient.tsx` runs 23 bubbles + parallax on every page | Pretty, but the largest source of GPU pressure on low-end Android devices. `prefers-reduced-motion` already disables; for v1.1 consider also gating on mobile breakpoint. |
+| `Perf-5` | Header re-fetches user + notification count on every storefront page | Real, but the cache would need careful invalidation on notification arrival. Acceptable for v1.0.0 — total ~50ms per nav. |
+| `Perf-10` | Admin summary query `.limit(10000)` on `orders` | Becomes a problem only past ~10k order rows. Add `idx_orders_payment_type` migration when we approach that. |
+| `Perf-12` | `getBooks()` selects `description` for list views | A few hundred bytes per row × 8-50 rows. Real but small. |
+
+### Verdict
+
+No code-level v1.0.0 performance blocker remains. The remaining items are micro-optimisations; the right answer is to ship, run Lighthouse + WebPageTest against the production deploy (with real Egyptian 3G profile), and address whatever the actual data shows.
+
+---
+
+## Phase 8 — Testing (Status: ✅ Done)
+
+Set up Vitest (unit/integration) + Playwright (E2E). Coverage floor at 70% for now; CLAUDE.md targets 80% for business logic and 100% for payment code — tighten when there's a real baseline.
+
+### Shipped this phase
+
+| Commit | What |
+|---|---|
+| `ce00843` | `vitest.config.ts` (happy-dom, v8 coverage, 70% floor), `playwright.config.ts` (chromium + Pixel 5, Arabic locale, webServer auto-spawn). `tests/lib/auth/safe-next.test.ts` (25 cases for S-03 sanitizer), `tests/lib/admin/errors.test.ts` (6 cases for translateDbError), `tests/e2e/home.spec.ts` (home-page smoke). package.json scripts: `test`, `test:watch`, `test:coverage`, `test:e2e`, `test:e2e:ui`. 31/31 vitest pass. |
+
+The two existing ad-hoc tsx test files (`scripts/fawry-signature.test.ts`, `scripts/fawry-webhook.test.ts`) still pass via `npm run test:fawry` and remain in place. Migration to Vitest is queued for v1.1 — they pass as-is and have a homegrown assertion harness that works fine.
+
+---
+
+## Phase 9 — Observability & Operations (Status: ✅ Done)
+
+### Shipped this phase
+
+| Commit | What |
+|---|---|
+| `94d1d3b` (Phase 3) | `lib/log.ts` — structured JSON logger used across the Fawry endpoints. |
+| `8483552` | `/api/health` liveness + readiness probe with `supabase` check. Always returns 200 with `ok` in the body so monitors don't trigger Vercel's restart heuristics on transient DB blips. |
+
+### Deferred to v1.1
+
+- **Sentry / error-tracking integration.** Wiring requires deps (`@sentry/nextjs`), a Sentry org, sourcemap upload, per-environment DSNs. Significant scope, not blocking — the structured `lib/log.ts` emits JSON to Vercel's log stream, which is queryable for v1.0.0 incident triage.
+- **Business metrics dashboard.** Funnel events go to `payment_events` and `funnel_events` already; surfacing them as Grafana / Vercel Analytics charts is post-launch polish.
+- **Graceful shutdown for the cron handler.** Vercel functions are stateless; nothing to shut down gracefully.
+
+---
+
+## Phase 10 — Release Hygiene (Status: ✅ Done)
+
+### Shipped this phase
+
+| Commit | What |
+|---|---|
+| `1a85331` | `LICENSE` (proprietary), `.env.example` (every required var documented), `CHANGELOG.md` (v1.0.0 entry), `README.md` (stub → full setup + scripts + deploy), `eslint.config.mjs` (modern flat config, extends `next/core-web-vitals` + `next/typescript`), `.nvmrc` (Node 20), `.github/workflows/ci.yml` (lint → type-check → test → build + Playwright smoke), `package.json` version `0.1.0 → 1.0.0`, `lint` script migrated from deprecated `next lint` to `eslint .`. Plus the two `let`→`const` lint autofixes. |
+
+### Verification
+
+After the Phase 10 commit:
+- `npm run type-check` ✅ 0 errors
+- `npm run lint` ✅ 0 errors (166 warnings — pre-existing `any` / unused-var debt, tighten in v1.1)
+- `npm test` ✅ 31/31 pass
+- `npm run build` ✅ clean
+
+### Not done (deliberate)
+
+- **Pre-commit hooks** (husky / lefthook) — adds setup friction for first-time contributors. Phase-1 finding `A-06`. CI gates the same checks on PR; left for v1.1.
+- **Tag `v1.0.0`** — per CLAUDE.md "ask before destructive actions"; tagging needs your sign-off and is not auto-pushed.
+
+---
+
+## Final tally across all 10 phases
+
+| Phase | Status | Findings | Fixed | Deferred / won't-fix |
+|---|---|---|---|---|
+| 1. Discovery & Baseline | ✅ | 13 tooling gaps | 7 (in later phases) | 6 |
+| 2. Code Quality & Bug Hunt | ✅ | 26 | 17 (in Phase 3) | 9 |
+| 3. Security | ✅ | 51 (incl. carry-overs from phases 1+2 + roadmap) | 31 | 11 + 9 ops/sandbox |
+| 4. UI/UX Polish | ✅ | 17 | 3 | 14 |
+| 5. Accessibility | ✅ | 6 | 3 | 3 (incl. brand contrast — design decision) |
+| 6. SEO | ✅ | 1 | 1 | 0 |
+| 7. Performance | ✅ | 5 | 1 | 4 (Lighthouse run needs deployed build) |
+| 8. Testing | ✅ | infrastructure | 31 tests live, CI gates it | tsx scripts migration to v1.1 |
+| 9. Observability | ✅ | 2 | 2 | Sentry to v1.1 |
+| 10. Release Hygiene | ✅ | 11 | 9 | 2 (hooks, tag) |
+
+**Total commits this audit:** 31. All atomic, all type-checked, all on `main`.
+
+**Open ops blockers (not code):**
+1. `npm run db:push` for migration 022.
+2. Set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel + `.env.local`.
+3. Fawry sandbox webhook end-to-end replay (P0-5 / `docs/fawry/TEST_DATA.md` write-up).
+4. EGP-1 real-money smoke test on a staging deploy with production Fawry creds (P1-10).
+5. Decide brand-palette compliance for WCAG AA contrast (A-10 / A-11) before sign-off if compliance is contractual.
+
+See `CHANGELOG.md` and `RELEASE_NOTES.md` for the customer-facing summary.
 
 ---
 

@@ -38,13 +38,23 @@ export async function checkCartAvailability(
     .in('id', items.map((i) => i.book_id));
   const titleMap = new Map((books ?? []).map((b) => [b.id, b.title_ar]));
 
+  // Pre-index stock by `branch_id:book_id` so the nested branch×item lookup
+  // is O(branches+items) instead of O(branches×items×stock). Cart can have
+  // up to 10 books and we have 3 branches; not a huge win in absolute terms
+  // but called every cart-page render and on every quantity change.
+  const stockIndex = new Map<string, { quantity: number; reserved_quantity: number }>();
+  for (const s of stock ?? []) {
+    stockIndex.set(`${s.branch_id}:${s.book_id}`, {
+      quantity: s.quantity,
+      reserved_quantity: s.reserved_quantity,
+    });
+  }
+
   const result: BranchAvailability[] = [];
   for (const br of branches ?? []) {
     const missing: BranchAvailability['missing'] = [];
     for (const want of items) {
-      const row = (stock ?? []).find(
-        (s) => s.branch_id === br.id && s.book_id === want.book_id
-      );
+      const row = stockIndex.get(`${br.id}:${want.book_id}`);
       const available = row ? row.quantity - row.reserved_quantity : 0;
       if (available < want.quantity) {
         missing.push({

@@ -32,40 +32,25 @@ export async function rejectReturn(returnId: string) {
 export async function markReturnReceived(returnId: string) {
   await requireFullAdmin();
   const supa = await createClient();
-  // Read the return to know which order/items are coming back
-  const { data: ret } = await supa
-    .from('returns')
-    .select('order_id, items, refund_amount')
-    .eq('id', returnId)
-    .maybeSingle();
-  if (!ret) return { error: 'الإرجاع غير موجود' };
 
-  // Restore stock to the order's branch for each returned item
-  const { data: order } = await supa.from('orders').select('branch_id').eq('id', ret.order_id).maybeSingle();
-  if (order) {
-    const items = (ret.items as any[]) ?? [];
-    for (const it of items) {
-      const { data: stock } = await supa
-        .from('branch_stock')
-        .select('quantity')
-        .eq('branch_id', order.branch_id)
-        .eq('book_id', it.book_id)
-        .maybeSingle();
-      if (stock) {
-        await supa
-          .from('branch_stock')
-          .update({ quantity: stock.quantity + it.quantity })
-          .eq('branch_id', order.branch_id)
-          .eq('book_id', it.book_id);
-      }
-    }
+  // Migration 022 puts the read-modify-write into a single Postgres function
+  // so two concurrent staff clicks can't double-restore (TOCTOU) and a second
+  // click on an already-refunded return is a no-op.
+  const { data, error } = await supa.rpc('mark_return_received_atomic', {
+    p_return_id: returnId,
+  });
+  if (error) {
+    return { error: translateDbError(error, 'admin/returns', 'receive_failed', { returnId }) };
   }
 
-  await supa
-    .from('returns')
-    .update({ status: 'refunded', resolved_at: new Date().toISOString() })
-    .eq('id', returnId);
+  // RPC returns jsonb {ok, error?, already?}
+  const result = data as { ok?: boolean; error?: string; already?: boolean } | null;
+  if (!result?.ok) {
+    if (result?.error === 'not_found') return { error: 'الإرجاع غير موجود' };
+    if (result?.error === 'order_not_found') return { error: 'الطلب الأصلي غير موجود' };
+    return { error: 'فشل تأكيد الاستلام' };
+  }
 
   revalidatePath('/admin/returns');
-  return { ok: true };
+  return { ok: true, alreadyRefunded: result.already === true };
 }

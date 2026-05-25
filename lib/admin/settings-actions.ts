@@ -22,7 +22,7 @@ export interface InviteResult {
 // Returns a temporary password the admin can share with the manager;
 // the manager should change it on first login.
 export async function inviteBranchManager(formData: FormData): Promise<InviteResult> {
-  await requireFullAdmin();
+  const ctx = await requireFullAdmin();
 
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const branch_id = String(formData.get('branch_id') ?? '').trim();
@@ -56,15 +56,43 @@ export async function inviteBranchManager(formData: FormData): Promise<InviteRes
     return { error: insErr.message };
   }
 
+  await admin.from('audit_log').insert({
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'invite',
+    entity_type: 'admin_user',
+    entity_id: created.user.id,
+    diff: { email, branch_id, role: 'branch_manager' },
+  });
+
   revalidatePath('/admin/settings');
   return { ok: { email, tempPassword } };
 }
 
 export async function removeBranchManager(userId: string) {
-  await requireFullAdmin();
+  const ctx = await requireFullAdmin();
   const admin = createAdminClient();
+
+  // Snapshot what we're deleting so the audit row keeps meaningful info
+  // after the row is gone.
+  const { data: snapshot } = await admin
+    .from('admin_users')
+    .select('role, branch_id')
+    .eq('id', userId)
+    .maybeSingle();
+
   await admin.from('admin_users').delete().eq('id', userId).eq('role', 'branch_manager');
   await admin.auth.admin.deleteUser(userId);
+
+  await admin.from('audit_log').insert({
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'remove',
+    entity_type: 'admin_user',
+    entity_id: userId,
+    diff: snapshot ?? null,
+  });
+
   revalidatePath('/admin/settings');
   return { ok: true };
 }

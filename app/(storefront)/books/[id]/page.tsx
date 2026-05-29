@@ -220,8 +220,8 @@ export default async function BookDetailsPage({ params }: PageProps) {
 
             {(book.weight_grams || book.publish_year) && (
               <div className="mt-6 text-sm text-[#666] space-y-1">
-                {book.weight_grams && <p>الوزن: {book.weight_grams} جرام</p>}
-                {book.publish_year && <p>سنة النشر: {book.publish_year}</p>}
+                {book.weight_grams ? <p>الوزن: {book.weight_grams} جرام</p> : null}
+                {book.publish_year ? <p>سنة النشر: {book.publish_year}</p> : null}
               </div>
             )}
           </div>

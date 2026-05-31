@@ -41,6 +41,15 @@ export default async function SearchPage({ searchParams }: PageProps) {
             <SearchInput initialValue={query} autoFocus />
           </div>
 
+          {/* Announce result counts to screen readers when the query changes.
+              The visible count lives in the page header; this polite live
+              region makes type-to-search results perceivable non-visually. */}
+          <p role="status" aria-live="polite" className="sr-only">
+            {query
+              ? `نتائج البحث عن ${query}: ${books.length} كتاب و ${teachersMatch.length} مدرس`
+              : ''}
+          </p>
+
           {query && teachersMatch.length > 0 && (
             <div className="mb-12">
               <h2 className="text-xl font-extrabold text-primary-dark mb-4">المدرسين</h2>
@@ -70,7 +79,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
           {query && books.length === 0 && teachersMatch.length === 0 && (
             <div className="card p-10 sm:p-14 text-center max-w-2xl mx-auto">
               <div className="w-20 h-20 rounded-full bg-primary-light text-primary-dark flex items-center justify-center mx-auto mb-5 text-3xl">
-                <i className="fa-regular fa-circle-question" />
+                <i className="fa-regular fa-circle-question" aria-hidden />
               </div>
               <h2 className="text-xl font-extrabold text-primary-dark mb-2">
                 ما لقيناش نتائج لـ «{query}»

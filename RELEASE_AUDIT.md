@@ -710,3 +710,34 @@ Lighthouse visual passes still require a deploy (carried as P-/E- ops items).
   taste refactor — deferred to v1.1 design polish.
 - Live responsive/Lighthouse visual verification needs a deployed preview
   (carried from the prior audit's Phase 4/7 deferrals).
+
+## Re-Phase 5 — Accessibility, WCAG 2.1 AA (Status: ✅ Done)
+
+Focus: the new search surface. Full axe-core/Lighthouse + screen-reader passes
+still need a deployed build (carried as an ops item).
+
+### Verified sound
+- **Landmarks:** storefront layout provides `<header>`, `<main id="main-content">`,
+  `<footer>`, `<nav>`; the skip-link (`a.skip-link` → `#main-content`) is present
+  with a visible focus style.
+- **Heading order:** exactly one `<h1>` per page (the header brand is a link,
+  not a heading). Search hierarchy: `h1` page title → `h2` المدرسين/الكتب →
+  `h3` card titles. No skips, no duplicate h1.
+- **Search input** now has a programmatic name (`aria-label`, U-21).
+- Decorative Font Awesome icons carry `aria-hidden`; the pending spinner is
+  `aria-hidden`.
+
+### Fixed (X-07, X-08)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| X-07 | Med | `app/(storefront)/search/page.tsx` | Type-to-search updated results with **no screen-reader announcement**. Added a `role="status" aria-live="polite"` visually-hidden region announcing the result counts — the standard accessible-search pattern. |
+| X-08 | Low | `app/(storefront)/search/page.tsx` | Added `aria-hidden` to the decorative no-results icon, matching the `BookCard` convention. |
+
+### Deferred / accepted (carried from prior audit)
+- **Card gray text contrast** (`text-[#888]` ≈ 3.5:1, `text-[#999]` ≈ 2.8:1 on
+  white) fails AA 4.5:1 for small text. This is **app-wide and pre-existing**
+  (teacher name / struck-through old price in `BookCard`), part of the prior
+  audit's deferred brand-palette contrast decision (A-10/A-11) — **not a search
+  regression**. Tracking for the design-token contrast pass; needs owner sign-off
+  if AA is contractual.
+- Live axe-core/keyboard/SR smoke test on a primary flow needs a deploy.

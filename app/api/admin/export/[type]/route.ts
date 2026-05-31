@@ -4,8 +4,13 @@ import { requireAdmin } from '@/lib/admin/auth';
 
 function csvEscape(v: unknown): string {
   if (v === null || v === undefined) return '';
-  const s = String(v);
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  let s = String(v);
+  // CSV/Excel formula-injection guard: a cell that begins with =, +, -, @, or a
+  // leading tab/CR is interpreted as a formula by spreadsheet apps. Student-
+  // supplied fields (name, phone, email) flow into these exports, so neutralise
+  // by prefixing a single quote, which spreadsheets render as plain text.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 

@@ -638,3 +638,44 @@ the majority were eager false positives.
   UI states; RPCs use bound params (no injection) and filter `is_active`;
   `normalize_ar()` is `IMMUTABLE` and the `translate()` from/to-set length
   mismatch correctly deletes tatweel. No defects.
+
+## Re-Phase 3 — Security (Status: ✅ Done)
+
+Re-verified auth/authz, input validation, dependency CVEs, secret exposure,
+security headers, and error leakage. Fawry endpoints excluded per scope.
+
+### Verified sound (no change)
+- **Route authz:** `app/admin/layout.tsx` → `requireAdmin()` looks up the
+  `admin_users` row via the service-role client and redirects non-admins to `/`.
+  Middleware's authenticated-only check is defense-in-depth; the layout/action
+  guards are the real gate.
+- **Action authz:** a full sweep of every `'use server'` mutating action under
+  `lib/admin/*`, `lib/auth/wishlist-actions`, and `lib/cart/*` confirmed each
+  calls `requireAdmin()`/`requireFullAdmin()` (admin) or `getUser()` (customer)
+  as its first operation. **ALL GUARDED.**
+- **Export endpoint authz:** `/api/admin/export/[type]` calls `requireAdmin()`;
+  branch managers are branch-scoped on orders/inventory and blocked from the
+  students export (`ctx.role === 'admin'` gate → unknown types fall to 400).
+  The `type` param is only consumed via strict equality + a filename that is
+  only emitted for the three known-safe values — no header injection.
+- **Secrets:** no hardcoded keys in `app/`/`lib/`/`components/`; no
+  `NEXT_PUBLIC_*` exposure of SECRET/SERVICE/SECURE vars.
+- **Search input:** RPCs use bound params (no SQLi); ILIKE patterns are values,
+  not interpolated SQL.
+
+### Fixed (S-32 … S-34)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| S-32 | High | `next.config.mjs` | **No security headers existed.** Added HSTS (2y, preload), `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` locking camera/mic/geo/topics — the CSP-independent set that can't break rendering. |
+| S-33 | Med | `app/api/admin/export/[type]/route.ts` | **CSV/Excel formula injection.** `csvEscape` quoted delimiters but not formula-leading chars; student-supplied name/phone/email flow into exports. Now prefixes `=,+,-,@,\t,\r`-leading cells with `'`. |
+| S-34 | Mod | `package.json` | `postcss <8.5.10` transitive CVE (XSS-in-CSS-stringify, build-time, via `next`'s nested copy). Added `overrides: {postcss: "$postcss"}` + raised devDep floor to `^8.5.15`. **`npm audit` → 0 vulnerabilities.** |
+
+### Deferred / accepted (documented)
+- **S-35 (High, deferred):** No `Content-Security-Policy`. A real CSP needs
+  per-request nonces for GTM's inline bootstrap plus an allow-list for Supabase,
+  Font Awesome, and the Fawry plugin — and must be browser-validated before
+  enforcing. Shipping a broken CSP is worse than none. **Deferred to a dedicated
+  CSP pass on a preview deploy** (start with `Content-Security-Policy-Report-Only`).
+  Runtime header emission should also be spot-checked on the Vercel preview.
+- **Auth brute-force:** login/register go through Supabase Auth, which applies
+  its own server-side rate limits. Acceptable for v1.0.0; revisit if abuse seen.

@@ -765,3 +765,32 @@ still need a deployed build (carried as an ops item).
   duplicates. Pre-existing; low impact for this catalogue size. Recommend adding
   `alternates.canonical` per route in v1.1. The search case is already handled by
   the noindex above.
+
+## Re-Phase 7 — Performance (Status: ✅ Done)
+
+### Verified sound — search path is well-optimized, no fix warranted
+- **No N+1.** `getAvailabilitySummary(bookIds)` is a single batched
+  `.in('book_id', …)` query aggregated in JS — not a per-row lookup.
+- **Index coverage complete:** trigram GIN indexes on `normalize_ar(...)`
+  expressions (migration 023) back the `%`/ILIKE search; the books PK backs the
+  `.in('id', ids)` re-fetch; `idx_branch_stock_book` (migration 001:105) backs
+  the availability query.
+- **Query count bounded:** ~4 queries per search (books RPC + teacher-join
+  re-fetch, teachers RPC, availability), with books/teachers `Promise.all`-ed.
+  Result sets capped at 24 books / 12 teachers — no unbounded scans.
+- Images (AVIF/WebP, `minimumCacheTTL`, `sizes`, fixed aspect ratio → no CLS),
+  self-hosted Arabic-subset fonts (`display: swap`, preloaded), and the
+  search-page bundle (3.71 kB / 115 kB first load) are all healthy.
+
+### Accepted micro-pattern (no change)
+- `searchBooks` issues a 2nd query to attach the teacher relation (the RPC
+  returns `SETOF books` without it). It's an indexed PK fetch; folding it into
+  the RPC would need a new return type / migration — disproportionate for the
+  gain at this catalogue size.
+
+### Deferred (carried, needs a deploy)
+- **P-06:** Lighthouse / Core Web Vitals (LCP/INP/CLS) field run requires a
+  deployed build — carried from the prior audit's Phase 7.
+- **P-07:** Font Awesome loads as a render-blocking CDN stylesheet in the root
+  layout. Pre-existing; replacing with a self-hosted icon subset is a v1.1
+  optimization, not search-specific.

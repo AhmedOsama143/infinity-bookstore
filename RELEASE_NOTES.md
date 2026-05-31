@@ -1,8 +1,18 @@
 # Release Notes — v1.0.0
 
-**Released:** 2026-05-25
+**Released:** 2026-05-31
 **Stack:** Next.js 15.5 · React 19 · TypeScript (strict) · Tailwind 3 · Supabase · Fawry · Vercel
 **Audience:** product owner, ops, support, QA.
+
+> **Re-audit addendum (2026-05-31).** After the original audit closed, a search
+> feature landed and a second full Phase 2–10 pass was run (payments explicitly
+> **out of scope** this round). Net delta: Arabic-normalized search (migration
+> 023) + screen-reader result announcements; security headers (HSTS, X-Frame,
+> nosniff, Referrer-Policy, Permissions-Policy); CSV formula-injection guard on
+> the admin export; `postcss` CVE cleared (`npm audit` = 0, now CI-gated);
+> internal search results set `noindex`; search RPC failures now logged; admin
+> branch-manager removal made atomic; **test suite 31 → 57**. See
+> `RELEASE_AUDIT.md` (Re-Phase sections) for the full ledger.
 
 ---
 
@@ -14,7 +24,9 @@
 - Per-branch inventory across 3 branches (Tamlik, El-Geish, Sidi Bishr / escott).
 - Pickup or delivery, free shipping over EGP 2,500, per-student 10-book cap.
 - Account: profile, orders (with payment status timeline), notifications, wishlist.
-- Search, grade-level browsing, teacher profiles, branch locator with map deep-links.
+- Arabic-aware search (folds alif/ya/ta-marbuta variants, strips tashkeel; books
+  also match by teacher name), grade-level browsing, teacher profiles, branch
+  locator with map deep-links.
 - Legal pages (privacy, terms, refund, shipping) editable from the admin dashboard.
 
 ### Admin dashboard
@@ -38,7 +50,9 @@
 - `/api/health` for monitor probes.
 - Upstash sliding-window rate limiter wired into the Fawry webhook (60 req/min/IP).
 - Structured `lib/log.ts` JSON logger for Vercel-queryable diagnostics.
-- Vitest + Playwright test infrastructure with 31 passing tests and a GitHub Actions CI workflow.
+- Vitest + Playwright test infrastructure with **57** passing unit tests (incl.
+  the search glue, formatting, and SVG-escaping helpers) and a GitHub Actions CI
+  workflow (install · lint · type-check · test · **security audit** · build · E2E).
 
 ---
 
@@ -68,7 +82,9 @@ Before flipping production DNS / pointing customers at this build, an operator m
 npm run db:push
 ```
 
-This pushes `supabase/migrations/022_atomic_return_receive.sql` — required for the new `markReturnReceived` flow. Without it, staff clicking "received" on a return will error out at runtime.
+This pushes the two pending migrations:
+- `022_atomic_return_receive.sql` — required for the `markReturnReceived` flow. Without it, staff clicking "received" on a return will error out at runtime.
+- `023_arabic_search_normalization.sql` — the search feature's `normalize_ar()` function + RPCs and indexes. **Without it, search silently returns no results** (now surfaced as a `search/*_rpc_failed` log line, but still broken for customers).
 
 ### 2. Provision Upstash + paste credentials
 
@@ -121,18 +137,45 @@ See "Known limitations." If accessibility compliance is contractual, plan a bran
 
 ## Go / no-go
 
-**Recommendation: GO, with the following conditions.**
+**Recommendation: split decision — GO for the non-payment storefront/admin;
+conditional NO-GO for online (Fawry) payments until their open P0s are closed.**
 
-The code is in production-ready shape. Every Critical / High security finding has been closed or marked won't-fix-by-design with rationale. The build is clean, lint is clean, the test suite is green, and CI is configured to enforce all of that on PR. Hourly cron is wired. Structured logs ship out the box. Documentation (CHANGELOG, README, .env.example, LICENSE, RELEASE_AUDIT) is complete.
+This re-audit (2026-05-31) re-ran Phases 2–10 across everything **except the
+Fawry payment path**, which the product owner placed out of scope for this round.
+What that pass covered is in good shape:
 
-**The conditions are operational, not code:**
+- **Storefront (browse, search, cart, account), admin dashboard, auth, a11y,
+  SEO, performance, observability, release hygiene** were re-verified and, where
+  needed, hardened. Authz is enforced on every route and mutating action; `npm
+  audit` is clean and CI-gated; security headers are in place; the new search
+  feature is tested, indexed, accessible, and `noindex`-correct. Build/lint/
+  type-check/tests are all green (57 tests).
 
-1. **Migration 022 must be applied** (`npm run db:push`) before staff touch the returns flow.
-2. **Upstash creds must be set** before the production webhook starts receiving traffic.
-3. **The two sandbox smoke tests (P0-5 + P1-10) must be executed** by an operator. The audit cannot run these — they need ngrok, Fawry dashboard access, and a real card. Until they pass, the integration is "code-complete but un-rehearsed" and rolling out to real customers is reckless.
-4. **The contrast issue (A-10, A-11) needs a one-line decision** from the product owner: ship as-is (defer to v1.1) or sweep the palette before launch.
+**The payments caveat — read before shipping with online payment enabled.**
+The Fawry integration was **not** re-audited here. Per `roadmap/issues.md`
+(2026-05-12), it still carries **7 open P0 release-blockers** (amount-match
+verification, fawry-order assertion, paid-after-cancel guard, money-as-float,
+the never-executed sandbox webhook replay, unused webhook-URL config, and an
+untracked seed script) plus the un-run sandbox (P0-5) and real-money (P1-10)
+smoke tests. **The original v1.0.0 notes above understate this.** Those items
+are real and unaddressed by this pass.
 
-If 1-4 are addressed, the build is shippable. If they aren't, it's not — through no fault of the code.
+### Decision matrix
+
+| Launch shape | Verdict |
+|---|---|
+| **Storefront + admin, cash-on-delivery only** (Fawry online payment gated off) | **GO** once the operator items below are done. |
+| **Storefront + admin with Fawry online payment enabled** | **NO-GO** until the 7 Fawry P0s in `roadmap/issues.md` are closed and P0-5 + P1-10 sandbox/real-money tests pass. |
+
+### Operator items (apply to either shape)
+
+1. **`npm run db:push`** — apply migrations **022 and 023** (023 = search; without it search silently returns nothing).
+2. **Set Upstash creds** in Vercel before the production webhook receives traffic.
+3. **Confirm all `.env.example` vars** are set in Vercel production.
+4. **Contrast decision (A-10/A-11):** ship as-is (defer to v1.1) or sweep the palette — product-owner call if AA is contractual.
+5. **Recommended before public launch:** a CSP pass (S-35) and a Lighthouse/axe-core run on a preview deploy — both need a deployment the audit can't perform.
+
+If launching with online payments, additionally complete the Fawry P0 remediation and the P0-5 / P1-10 sandbox + real-money rehearsals (ngrok + Fawry dashboard + a real card — operator-only).
 
 ---
 

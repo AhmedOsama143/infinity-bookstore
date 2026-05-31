@@ -877,3 +877,35 @@ needless `>` escape.
 3. CSP pass on a preview deploy (S-35).
 4. Lighthouse/CWV + axe-core/SR smoke on a deploy (P-06, X-deferred).
 5. Fawry sandbox + real-money tests — **out of scope this pass** (owner decision).
+
+---
+
+# Re-Audit final tally (2026-05-31, `main` → 9 commits)
+
+| Phase | Verified sound | Fixed | Deferred / accepted |
+|---|---|---|---|
+| 2. Code Quality | review RLS, debounce, sitemap, channel-cleanup (5 false positives dismissed) | Q-20…Q-25 (6) | ~100 `any` warnings (typed-DB-types debt) |
+| 3. Security | all route + action authz, secrets, export endpoint | S-32 headers, S-33 CSV injection, S-34 postcss CVE | S-35 CSP (needs deploy) |
+| 4. UI/UX | search states, BookCard, design system, reduced-motion | U-21 search label | U-22 branded focus ring |
+| 5. A11y | landmarks, one-h1 hierarchy | X-07 aria-live results, X-08 aria-hidden | card gray-text contrast (carried) |
+| 6. SEO | metadata, OG, JSON-LD, robots | E-02 search noindex, E-03 sitemap | E-04 per-page canonical |
+| 7. Performance | no N+1, full index coverage, bounded queries | — (nothing warranted) | P-06 Lighthouse, P-07 FA CDN |
+| 8. Testing | — | +24 tests (search glue + utils), 31→55 | T-DEBT-2 SQL normalize_ar needs DB harness |
+| 9. Observability | health endpoint, structured logger | O-05 search RPC failure logging (+2 tests, →57) | O-06 Sentry |
+| 10. Release Hygiene | LICENSE, .env.example, README, version | R-12 CI security scan, R-13 changelog, R-14 docs | git tag (operator) |
+
+**Re-audit commits:** 9, all atomic, all on `main`, each tsc + lint + test
+verified. **Net: 18 fixes shipped, 0 regressions, suite 31 → 57.**
+
+**Highest-value finds this pass:** S-32 (no security headers existed at all),
+S-33 (CSV formula injection in admin export), O-05 (silently-broken search if
+migration 023 isn't deployed), E-02 (internal search indexed).
+
+**Out of scope this pass (owner decision):** the entire Fawry payment path. Its
+7 open P0 blockers in `roadmap/issues.md` are **unaddressed and remain real
+release-blockers if v1.0.0 ships with online payments enabled.** See the
+decision matrix in `RELEASE_NOTES.md`.
+
+**Bottom line:** the non-payment product (storefront incl. the new search, admin,
+auth) is production-ready pending the operator items. Online payments are a
+separate, still-open workstream.

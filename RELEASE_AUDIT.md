@@ -821,3 +821,25 @@ needless `>` escape.
   Recommend a DB integration suite in v1.1; the JS glue is now covered.
 - Broader business-logic coverage toward the aspirational 70% threshold
   (not CI-gated) remains a v1.1 effort.
+
+## Re-Phase 9 — Observability & Operations (Status: ✅ Done)
+
+### Verified sound
+- **`/api/health`** — liveness + readiness (trivial Supabase query); returns
+  200 even on failure so monitors alert on body, not status (avoids Vercel
+  restart heuristics); logs failures structurally; no PII; `no-store`.
+- **`lib/log`** structured JSON logger (level/area/event + fields) wired through
+  the admin actions, stock holds, health, and now search. No card data, emails,
+  or names logged.
+
+### Fixed (O-05)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| O-05 | Med | `lib/data/index.ts` | `searchBooks`/`searchTeachers` swallowed RPC errors → a failed search (e.g. **migration 023 not yet deployed**) was indistinguishable from "no results" with zero logs. Now `log.error('search', '…_rpc_failed', …)` and returns `[]`. Covered by 2 new tests (suite 55 → 57). |
+
+### Deferred / accepted
+- **O-06:** Sentry (or equivalent) error tracking is not wired — carried from
+  the prior audit as a v1.1 item. The structured logger + Vercel log drains are
+  the v1.0.0 baseline.
+- Business-event metrics (request/error rate, latency) rely on Vercel Analytics
+  + the JSON logs; a dedicated metrics pipeline is post-v1.0.

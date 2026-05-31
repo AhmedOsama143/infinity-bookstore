@@ -9,15 +9,19 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-const { rpcMock, inMock, fromMock, createClientMock } = vi.hoisted(() => {
+const { rpcMock, inMock, fromMock, createClientMock, logErrorMock } = vi.hoisted(() => {
   const rpcMock = vi.fn();
   const inMock = vi.fn();
   const fromMock = vi.fn(() => ({ select: () => ({ in: inMock }) }));
   const createClientMock = vi.fn(async () => ({ rpc: rpcMock, from: fromMock }));
-  return { rpcMock, inMock, fromMock, createClientMock };
+  const logErrorMock = vi.fn();
+  return { rpcMock, inMock, fromMock, createClientMock, logErrorMock };
 });
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: createClientMock }));
+vi.mock('@/lib/log', () => ({
+  log: { error: logErrorMock, info: vi.fn(), warn: vi.fn() },
+}));
 
 import { searchBooks, searchTeachers, getAvailabilitySummary } from '@/lib/data';
 
@@ -26,6 +30,7 @@ beforeEach(() => {
   inMock.mockReset();
   fromMock.mockClear();
   createClientMock.mockClear();
+  logErrorMock.mockReset();
 });
 
 describe('searchBooks', () => {
@@ -63,6 +68,16 @@ describe('searchBooks', () => {
     await searchBooks('فيزياء', 5);
     expect(rpcMock).toHaveBeenCalledWith('search_books', { q: 'فيزياء', lim: 5 });
   });
+
+  it('logs and returns [] when the RPC errors (e.g. migration not applied)', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'function does not exist' } });
+    expect(await searchBooks('جبر')).toEqual([]);
+    expect(inMock).not.toHaveBeenCalled();
+    expect(logErrorMock).toHaveBeenCalledWith('search', 'books_rpc_failed', {
+      q: 'جبر',
+      message: 'function does not exist',
+    });
+  });
 });
 
 describe('searchTeachers', () => {
@@ -81,6 +96,15 @@ describe('searchTeachers', () => {
   it('coerces a null RPC result to an empty array', async () => {
     rpcMock.mockResolvedValueOnce({ data: null });
     expect(await searchTeachers('nobody')).toEqual([]);
+  });
+
+  it('logs and returns [] when the RPC errors', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'boom' } });
+    expect(await searchTeachers('خالد')).toEqual([]);
+    expect(logErrorMock).toHaveBeenCalledWith('search', 'teachers_rpc_failed', {
+      q: 'خالد',
+      message: 'boom',
+    });
   });
 });
 

@@ -3,6 +3,7 @@
  */
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
+import { log } from '@/lib/log';
 import type {
   Book,
   BookWithTeacher,
@@ -129,7 +130,13 @@ export async function getBook(id: number): Promise<BookWithTeacher | null> {
 export async function searchBooks(q: string, limit = 24): Promise<BookWithTeacher[]> {
   if (!q.trim()) return [];
   const supa = await createClient();
-  const { data: matches } = await supa.rpc('search_books', { q, lim: limit });
+  const { data: matches, error } = await supa.rpc('search_books', { q, lim: limit });
+  if (error) {
+    // A failed RPC (e.g. migration 023 not yet applied) otherwise looks exactly
+    // like "no results" to the user — surface it so ops can tell them apart.
+    log.error('search', 'books_rpc_failed', { q, message: error.message });
+    return [];
+  }
   if (!matches || matches.length === 0) return [];
   const ids = matches.map((b: { id: number }) => b.id);
   const { data } = await supa
@@ -150,7 +157,11 @@ export async function searchBooks(q: string, limit = 24): Promise<BookWithTeache
 export async function searchTeachers(q: string, limit = 12): Promise<Teacher[]> {
   if (!q.trim()) return [];
   const supa = await createClient();
-  const { data } = await supa.rpc('search_teachers', { q, lim: limit });
+  const { data, error } = await supa.rpc('search_teachers', { q, lim: limit });
+  if (error) {
+    log.error('search', 'teachers_rpc_failed', { q, message: error.message });
+    return [];
+  }
   return (data ?? []) as Teacher[];
 }
 

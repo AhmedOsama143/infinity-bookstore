@@ -679,3 +679,34 @@ security headers, and error leakage. Fawry endpoints excluded per scope.
   Runtime header emission should also be spot-checked on the Vercel preview.
 - **Auth brute-force:** login/register go through Supabase Auth, which applies
   its own server-side rate limits. Acceptable for v1.0.0; revisit if abuse seen.
+
+## Re-Phase 4 — UI/UX Polish (Status: ✅ Done)
+
+Focus: the new search screen + the design-system source of truth. Browser/
+Lighthouse visual passes still require a deploy (carried as P-/E- ops items).
+
+### Verified sound
+- **New search screen** has all three async states: `loading.tsx` skeleton
+  (`PageHeaderSkeleton` + `BookGridSkeleton`), a friendly no-results card with
+  two recovery CTAs, and a no-query prompt. Type-to-search shows an inline
+  `isPending` spinner (transition keeps prior results visible) — correct.
+- **`BookCard`** is consistent: responsive type scale, `line-clamp`, fixed
+  aspect ratio (no CLS), disabled add-to-cart state, in/out-of-stock indicator
+  (colour + icon), `alt` on covers. Grids: books `grid-cols-2 md:3 lg:4`,
+  teachers `grid-cols-2 md:4` — matches the rest of the storefront.
+- **Buttons** (`.btn*`) define hover states and do **not** clear `outline`, so
+  the browser default focus ring is preserved — keyboard focus is visible.
+- **`prefers-reduced-motion`** correctly disables the decorative bubbles,
+  bg-icons, and fade-in-on-scroll animations.
+
+### Fixed (U-21)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| U-21 | Low | `components/storefront/search-input.tsx` | Search input had only a placeholder (no programmatic label). Added `aria-label`; also removed a dead `eslint-disable jsx-a11y/no-autofocus` directive (rule inactive). |
+
+### Deferred / accepted
+- **U-22 (Low):** `.btn*` rely on the browser-default focus ring. A branded
+  `:focus-visible` ring would be nicer but restyling every button globally is a
+  taste refactor — deferred to v1.1 design polish.
+- Live responsive/Lighthouse visual verification needs a deployed preview
+  (carried from the prior audit's Phase 4/7 deferrals).

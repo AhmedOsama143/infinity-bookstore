@@ -45,8 +45,8 @@ export default function SearchInput({ initialValue = '', autoFocus = false }: Pr
             type="search"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            aria-label="ابحث عن كتاب أو مدرس"
             placeholder="ابحث عن كتاب أو مدرس..."
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={autoFocus}
             className="w-full px-4 py-3 pl-10 rounded-pill border border-[#ddd] focus:outline-none focus:border-primary font-body"
           />

@@ -794,3 +794,30 @@ still need a deployed build (carried as an ops item).
 - **P-07:** Font Awesome loads as a render-blocking CDN stylesheet in the root
   layout. Pre-existing; replacing with a self-hosted icon subset is a v1.1
   optimization, not search-specific.
+
+## Re-Phase 8 — Testing (Status: ✅ Done)
+
+The new search feature shipped with **zero tests**, and the pure presentation
+helpers were uncovered. Added 24 deterministic unit tests (no clock/network).
+
+### Added
+| File | Tests | Covers |
+|---|---|---|
+| `tests/lib/utils.test.ts` | 13 | `formatPrice`/`formatPriceWithDecimals` (money display, rounding boundaries), `whatsappLink` (Arabic URL-encoding), `mapsLink` (null + 0,0 edge), `fallbackCover` (**SVG/XSS escaping** of `<`/`&`, 40-char truncation), grade/book-type label maps. |
+| `tests/lib/data/search.test.ts` | 11 | `searchBooks` **relevance-order preservation** across the unordered `.in()` re-fetch, blank-query + no-match short-circuits, custom limit; `searchTeachers` passthrough + null coercion; `getAvailabilitySummary` per-book aggregation (in-stock count, total, min-qty + branch), zero-availability skip, no-rows defaults, array-vs-object relation shape, null coercion. Uses a hoisted Supabase mock. |
+
+**Suite: 31 → 55 tests, 4 files, all passing.** CI (`npm test`) gates merges.
+
+### Note — a real behaviour pinned
+Writing the `fallbackCover` test confirmed the helper escapes `<` and `&` but
+not `>`. That is **correct and safe** for XML text content (only `<` can open
+an element), so the test asserts exactly that contract rather than forcing a
+needless `>` escape.
+
+### Deferred / accepted
+- **T-DEBT-2:** `normalize_ar()` and the search RPC ranking live in SQL
+  (migration 023) and need a Postgres harness (pgTAP or a seeded integration
+  DB) to test directly — not runnable in the Vitest/happy-dom unit context.
+  Recommend a DB integration suite in v1.1; the JS glue is now covered.
+- Broader business-logic coverage toward the aspirational 70% threshold
+  (not CI-gated) remains a v1.1 effort.

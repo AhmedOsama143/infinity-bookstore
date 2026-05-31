@@ -93,7 +93,7 @@ lib/
   log.ts                       structured JSON logger
   rate-limit.ts                Upstash sliding-window limiter
 supabase/
-  migrations/                  SQL migrations (001..022)
+  migrations/                  SQL migrations (001..023)
 docs/fawry/                    integration plan + signing reference
 scripts/                       seed + ad-hoc test scripts
 tests/                         Vitest unit + Playwright e2e

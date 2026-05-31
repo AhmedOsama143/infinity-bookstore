@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] — 2026-05-25
+## [1.0.0] — 2026-05-31
 
 First public release.
 
@@ -30,7 +30,12 @@ First public release.
   for BookStore organization, individual books, and WebSite +
   SearchAction for the sitelinks searchbox.
 - `/api/health` liveness + readiness endpoint.
-- Vitest unit tests + Playwright E2E smoke.
+- Arabic-aware search (migration 023): an `IMMUTABLE normalize_ar()` folds
+  alif/ya/ta-marbuta variants and strips tashkeel/tatweel, with normalized
+  GIN-trigram indexes; books also match on their teacher's name. Result counts
+  are announced to screen readers via an `aria-live` region.
+- Vitest unit tests + Playwright E2E smoke (57 unit tests incl. the search glue
+  and the pure formatting/escaping helpers).
 
 ### Security
 - Closes 7 CVEs in `next` (SSRF, middleware bypass, DoS, cache poisoning) by
@@ -53,6 +58,17 @@ First public release.
   remains on the audit row.
 - `markReturnReceived` race + non-idempotency fixed via migration 022
   (`mark_return_received_atomic` Postgres function).
+- Security hardening headers on every response: HSTS (2y, preload),
+  `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy`, and a locked-down `Permissions-Policy`.
+- Admin CSV export neutralises spreadsheet formula injection (`=,+,-,@`) from
+  user-supplied student fields.
+- Internal search results are `noindex` and omitted from the sitemap.
+- `postcss` pinned to `^8.5.15` (override) to clear a transitive advisory —
+  `npm audit` reports zero vulnerabilities, now gated in CI.
+- `removeBranchManager` no longer deletes the auth user if the `admin_users`
+  delete fails (prevents a dangling admin row); search/holds/admin error paths
+  routed through the structured logger.
 
 ### Accessibility
 - Skip-to-main link in root layout (WCAG 2.4.1).
@@ -83,7 +99,10 @@ First public release.
   emits JSON to Vercel's log stream; sufficient for v1.0.0 incident triage.
 
 ### Operator action items before deploy
-1. `npm run db:push` to apply `supabase/migrations/022_atomic_return_receive.sql`.
+1. `npm run db:push` to apply the pending migrations
+   `022_atomic_return_receive.sql` and `023_arabic_search_normalization.sql`
+   (without 023, search silently returns no results — now logged as
+   `search/*_rpc_failed`).
 2. Set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel +
    `.env.local` so the rate limiter engages.
 3. Reconfirm `CRON_SECRET`, `FAWRY_SECURE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`

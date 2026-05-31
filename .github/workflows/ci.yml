@@ -39,6 +39,13 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Security audit
+        # Fail the build on a known high/critical advisory in the dependency
+        # tree. Moderate/low are surfaced but non-blocking to avoid noise from
+        # transitive dev-only advisories. Keep in sync with the postcss
+        # override in package.json.
+        run: npm audit --audit-level=high
+
       - name: Production build
         # The build does NOT need real secrets — env vars referenced by code
         # paths that only run at request time can be empty for `next build`.

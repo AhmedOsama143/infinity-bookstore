@@ -843,3 +843,37 @@ needless `>` escape.
   the v1.0.0 baseline.
 - Business-event metrics (request/error rate, latency) rely on Vercel Analytics
   + the JSON logs; a dedicated metrics pipeline is post-v1.0.
+
+## Re-Phase 10 — Release Hygiene (Status: ✅ Done)
+
+### Verified sound
+- `LICENSE` present (proprietary, © 2026 Infinity Center).
+- `.env.example` documents every required var (Supabase, Fawry, Upstash, Cron,
+  Email, GTM). The search feature adds **no new env var**.
+- `README.md` setup/scripts/deploy steps accurate; `.nvmrc` = 20.
+- Version `1.0.0` in `package.json`. Git tag deliberately **not** created
+  (push gated on operator sign-off, carried).
+
+### Fixed (R-12 … R-14)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| R-12 | Med | `.github/workflows/ci.yml` | Added a **security-scan** step (`npm audit --audit-level=high`) — the pipeline previously had none. Passes (0 vulns). |
+| R-13 | Low | `CHANGELOG.md` | Folded the post-"final" search feature + this re-audit's hardening into the (unreleased) 1.0.0 entry; updated date to 2026-05-31; operator item #1 now lists migration **023** and the silent-search risk. |
+| R-14 | Low | `README.md` | Migration range `001..022` → `001..023`. |
+
+### Final clean-build verification (this pass)
+| Check | Result |
+|---|---|
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+| `tsc --noEmit` | **clean** |
+| `eslint .` | 0 errors (warnings = the documented `any`/scripts debt) |
+| `vitest run` | **57/57 pass** |
+| `next build` | **clean** (52 routes) |
+
+### Carried operator blockers (not code — can't be done from the repo)
+1. `npm run db:push` for migrations **022 + 023** (023 = the search feature;
+   without it search silently returns nothing, now logged).
+2. Set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel.
+3. CSP pass on a preview deploy (S-35).
+4. Lighthouse/CWV + axe-core/SR smoke on a deploy (P-06, X-deferred).
+5. Fawry sandbox + real-money tests — **out of scope this pass** (owner decision).

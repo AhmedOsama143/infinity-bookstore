@@ -741,3 +741,27 @@ still need a deployed build (carried as an ops item).
   regression**. Tracking for the design-token contrast pass; needs owner sign-off
   if AA is contractual.
 - Live axe-core/keyboard/SR smoke test on a primary flow needs a deploy.
+
+## Re-Phase 6 — SEO (Status: ✅ Done)
+
+### Verified sound
+- Root layout: title, description, `metadataBase`, Open Graph (title/desc/
+  siteName/type/locale `ar_EG`), Twitter `summary_large_image`.
+- JSON-LD: `BookStore` org schema (root) + WebSite/SearchAction (home) — 2
+  blocks, asserted by the e2e smoke test.
+- `robots.ts` disallows `/admin` + `/api` and points at the sitemap; `html
+  lang="ar" dir="rtl"`. Single locale → no hreflang needed.
+- Book detail pages ship `opengraph-image.tsx`.
+
+### Fixed (E-02, E-03)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| E-02 | Med | `app/(storefront)/search/page.tsx` | **Internal search results were indexable** (robots.ts didn't block them; no per-page noindex). Added `robots: { index: false, follow: true }` per Google's internal-search guidance — `follow` keeps link equity flowing to surfaced books/teachers. |
+| E-03 | Low | `app/sitemap.ts` | Removed `/search` from the sitemap — advertising a noindexed URL sends Google a mixed signal. |
+
+### Deferred / accepted
+- **E-04 (Low):** No per-page `<link rel="canonical">` (Next doesn't emit them
+  automatically). Faceted/sorted listing URLs (`/books?sort=…`) could read as
+  duplicates. Pre-existing; low impact for this catalogue size. Recommend adding
+  `alternates.canonical` per route in v1.1. The search case is already handled by
+  the noindex above.

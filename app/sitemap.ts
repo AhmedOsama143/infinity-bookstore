@@ -6,9 +6,11 @@ const BASE = 'https://infinity-bookstore.vercel.app';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [books, teachers] = await Promise.all([getBooks({}), getTeachers()]);
 
+  // Note: '/search' is intentionally excluded — it is noindex (internal search
+  // results), so advertising it in the sitemap would send a mixed signal.
   const staticRoutes = [
     '', '/books', '/teachers', '/grade-level', '/branches',
-    '/delivery', '/about', '/faq', '/search',
+    '/delivery', '/about', '/faq',
     '/legal/privacy', '/legal/terms', '/legal/refund', '/legal/shipping_policy',
   ];
 

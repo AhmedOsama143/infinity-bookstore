@@ -10,7 +10,14 @@ import PageHeader from '@/components/storefront/page-header';
 import SearchInput from '@/components/storefront/search-input';
 import Link from 'next/link';
 
-export const metadata = { title: 'البحث | مركز إنفينيتي' };
+// Internal search results are thin/duplicate content over an unbounded
+// query-param space — Google's guidelines advise against indexing them. Keep
+// the route crawlable (follow) so link equity flows to the books/teachers it
+// surfaces, but noindex it. It is also omitted from sitemap.xml.
+export const metadata = {
+  title: 'البحث | مركز إنفينيتي',
+  robots: { index: false, follow: true },
+};
 
 interface PageProps { searchParams: Promise<{ q?: string }> }
 

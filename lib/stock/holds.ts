@@ -12,6 +12,7 @@
  * RLS policies — the Stock Integrity module is the single writer.
  */
 import { createAdminClient } from '@/lib/supabase/admin';
+import { log } from '@/lib/log';
 
 export const HOLD_MINUTES = 15;
 
@@ -22,7 +23,7 @@ export async function acquireHold(userId: string, bookId: number, quantity: numb
   }
   const admin = createAdminClient();
   const expiresAt = new Date(Date.now() + HOLD_MINUTES * 60_000).toISOString();
-  await admin
+  const { error } = await admin
     .from('cart_holds')
     .upsert(
       {
@@ -34,14 +35,19 @@ export async function acquireHold(userId: string, bookId: number, quantity: numb
       },
       { onConflict: 'user_id,book_id' }
     );
+  // Holds are advisory UX (the atomic claim at order time is the real guard),
+  // so a failure here is non-fatal — but it must not vanish silently.
+  if (error) log.error('stock/holds', 'acquire_failed', { userId, bookId, quantity, message: error.message });
 }
 
 export async function releaseHold(userId: string, bookId: number): Promise<void> {
   const admin = createAdminClient();
-  await admin.from('cart_holds').delete().eq('user_id', userId).eq('book_id', bookId);
+  const { error } = await admin.from('cart_holds').delete().eq('user_id', userId).eq('book_id', bookId);
+  if (error) log.error('stock/holds', 'release_failed', { userId, bookId, message: error.message });
 }
 
 export async function releaseAllHoldsForUser(userId: string): Promise<void> {
   const admin = createAdminClient();
-  await admin.from('cart_holds').delete().eq('user_id', userId);
+  const { error } = await admin.from('cart_holds').delete().eq('user_id', userId);
+  if (error) log.error('stock/holds', 'release_all_failed', { userId, message: error.message });
 }

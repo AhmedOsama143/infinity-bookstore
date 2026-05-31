@@ -7,6 +7,7 @@ import { requireAdmin } from './auth';
 import { translateDbError } from './errors';
 import { sendEmail, orderStatusEmailHtml } from '@/lib/email';
 import { validateStock } from '@/lib/stock/integrity';
+import { log } from '@/lib/log';
 import type { GradeLevel, OrderStatus, PaymentMethod, PaymentStatus, PaymentType } from '@/lib/types';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -311,7 +312,11 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
 
   const { error: itemsErr } = await admin.from('order_items').insert(itemsPayload);
   if (itemsErr) {
-    await admin.from('orders').delete().eq('id', order.id);
+    const { error: rollbackErr } = await admin.from('orders').delete().eq('id', order.id);
+    if (rollbackErr) {
+      // Orphaned itemless order — cron cleanup will catch it, but log so it's traceable.
+      log.error('admin/orders', 'manual_order_rollback_failed', { orderId: order.id, message: rollbackErr.message });
+    }
     return { error: translateOrderError(itemsErr.message) };
   }
 

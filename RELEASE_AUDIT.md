@@ -583,3 +583,58 @@ These are choices the audit can't make unilaterally. Please reply with a pick (o
 - Any code changes — Phase 1 is read-only by design.
 
 **Recommendation:** approve the decisions in the section above, then I begin Phase 2 (code-quality read of every source file under `app/`, `lib/`, `components/`).
+
+---
+
+# Re-Audit (2026-05-31) — full Phase 2–10 re-run on `main @ 9683efa`
+
+> Second auditor pass (Opus 4.8) requested after the search feature landed
+> post-"final deliverable". Fawry/payments **explicitly out of scope** for this
+> pass (owner decision). Baseline re-verified: `tsc` clean, `eslint` 0 errors /
+> 167 warnings, `vitest` 31/31, `next build` clean.
+
+## Re-Phase 2 — Code Quality & Bug Hunt (Status: ✅ Done)
+
+Method: 4 parallel read-only hunters across `lib/cart`+`lib/stock`+`lib/data`,
+`lib/admin`+`lib/auth`+`lib/supabase`, `components/`, and `app/` routes. **Every
+candidate finding was personally re-verified against source before action** —
+the majority were eager false positives.
+
+### Dismissed after verification (false positives)
+- **`lib/cart/review-actions.ts` "any user can review any order"** — FALSE. RLS
+  policy `student create own review` (migration 007:29-38) enforces
+  `student_id = auth.uid()` AND `EXISTS(order owned by user AND status='completed')`.
+  Authorization is at the DB layer.
+- **`components/storefront/search-input.tsx` debounce race** — FALSE. Standard
+  clear-on-rerun debounce; `lastPushed` only advances when the timer fires.
+- **`app/sitemap.ts` crashes if query fails** — FALSE. `getBooks`/`getTeachers`
+  swallow query errors and return `[]`; sitemap degrades to static routes.
+- **`components/admin/notification-bell.tsx` channel leak on filter change** —
+  FALSE. Effect returns `removeChannel(channel)` cleanup keyed on `branchFilter`.
+- **Component `setTimeout`-after-unmount nits** (add-to-cart-button, manual-order-form,
+  result-status) — harmless in React 19; not fixed.
+
+### Fixed (Q-20 … Q-24, all behavior-preserving)
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| Q-20 | Low | `app/(storefront)/account/notifications/page.tsx` | Added `if (!user) redirect()` guard; removed fragile `user!` assertions (layout+page render concurrently in App Router, so the page could deref null before the layout redirect lands). |
+| Q-21 | Low | `lib/stock/holds.ts` | `acquireHold`/`releaseHold`/`releaseAllHoldsForUser` swallowed DB errors silently; now `log.error` on failure (still best-effort `void` — atomic claim at order time is the real guard). |
+| Q-22 | Low | `lib/admin/promo-actions.ts` | `togglePromoActive` ignored its update error (sibling insert path checks it); now logged. |
+| Q-23 | Low | `lib/admin/settings-actions.ts` | `inviteBranchManager` rollback `deleteUser` error now logged (orphan-auth-user traceability). |
+| Q-24 | Med | `lib/admin/settings-actions.ts` | `removeBranchManager` deleted `admin_users` then auth user unconditionally — if the first delete failed it still nuked the auth user, leaving a dangling admin row. Now aborts on `admin_users` delete error and returns a translated error; logs auth-delete failure. |
+| Q-25 | Low | `lib/admin/order-actions.ts` | Manual-order itemless-order rollback delete error now logged. |
+
+### Deferred / accepted as tracked debt
+- **~100 `@typescript-eslint/no-explicit-any` warnings** (T-DEBT-1) across ~40
+  files — all the same pattern: untyped Supabase join/RPC result rows
+  (`.map((x: any) => …)`). The correct fix is to generate `Database` types from
+  the live Supabase schema and thread them through `lib/data` and the admin
+  actions — a broad, schema-dependent refactor that can't be done safely blind.
+  **Deferred to v1.1.** Non-blocking (warnings, build green). Tracked here.
+- **56 `no-console` warnings** — all in `scripts/` (dev tooling); console is the
+  right call there. Accepted.
+- The new **search feature** (`app/(storefront)/search`, `lib/data` search fns,
+  migration 023) was read in full and is clean: RSC + parallel fetch + all three
+  UI states; RPCs use bound params (no injection) and filter `is_active`;
+  `normalize_ar()` is `IMMUTABLE` and the `translate()` from/to-set length
+  mismatch correctly deletes tatweel. No defects.

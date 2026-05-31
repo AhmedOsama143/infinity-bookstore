@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireFullAdmin } from './auth';
 import { translateDbError } from './errors';
+import { log } from '@/lib/log';
 
 export async function savePromoCode(formData: FormData) {
   await requireFullAdmin();
@@ -48,6 +49,7 @@ export async function savePromoCode(formData: FormData) {
 export async function togglePromoActive(id: string, active: boolean) {
   await requireFullAdmin();
   const supa = await createClient();
-  await supa.from('promo_codes').update({ is_active: active }).eq('id', id);
+  const { error } = await supa.from('promo_codes').update({ is_active: active }).eq('id', id);
+  if (error) log.error('admin/promos', 'toggle_active_failed', { id, active, message: error.message });
   revalidatePath('/admin/promos');
 }

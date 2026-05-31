@@ -1,14 +1,20 @@
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export const metadata = { title: 'الإشعارات | مركز إنفينيتي' };
 
 export default async function NotificationsPage() {
   const supa = await createClient();
   const { data: { user } } = await supa.auth.getUser();
+  // The account layout redirects unauthenticated users, but layouts and pages
+  // render concurrently in the App Router — guard here too so this page never
+  // dereferences a null user before the layout's redirect lands.
+  if (!user) redirect('/login?next=/account/notifications');
+
   const { data: items } = await supa
     .from('student_notifications_inbox')
     .select('id, type, title_ar, body_ar, is_read, created_at')
-    .eq('student_id', user!.id)
+    .eq('student_id', user.id)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -17,7 +23,7 @@ export default async function NotificationsPage() {
     await supa
       .from('student_notifications_inbox')
       .update({ is_read: true })
-      .eq('student_id', user!.id)
+      .eq('student_id', user.id)
       .eq('is_read', false);
   }
 

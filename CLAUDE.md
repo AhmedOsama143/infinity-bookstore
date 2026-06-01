@@ -96,7 +96,7 @@ Both share the same Next.js codebase and the same Supabase backend.
 - When an order is created with status `pending`, decrement `books.available_stock` and record the reservation.
 - If the order becomes `paid`, the reservation becomes permanent.
 - If the order becomes `failed` or `expired`, restore the stock.
-- Pay-at-Fawry references can take up to 72 hours to be paid. A scheduled job runs hourly to expire stale pending orders past their `expires_at`.
+- Pay-at-Fawry references can take up to 72 hours to be paid. A scheduled job (Vercel cron, `0 3 */2 * *` — every two days at 03:00 UTC) expires stale pending orders past their `expires_at` and restores their stock. The cadence is constrained by the Hobby plan, which only permits daily-or-less crons; on Pro this can be tightened back toward hourly.
 
 ### Database access
 

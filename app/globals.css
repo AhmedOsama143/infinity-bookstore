@@ -137,6 +137,17 @@ footer,
   outline-offset: 2px;
 }
 
+/* Lift the WhatsApp FAB above the mobile sticky Add-to-Cart bar so they don't
+   overlap while scrolling a product page. The bar
+   (components/cart/sticky-mobile-atc.tsx) toggles body.atc-bar-up and publishes
+   its height as --atc-bar-height while it's on screen. Scoped to the bar's own
+   breakpoint (md:hidden -> below 768px) since the bar only exists there. */
+@media (max-width: 767px) {
+  body.atc-bar-up .whatsapp-fab {
+    bottom: calc(1.5rem + var(--atc-bar-height, 64px));
+  }
+}
+
 /* ---------- Print styles for invoices and reports ---------- */
 @media print {
   @page { size: A4; margin: 12mm; }

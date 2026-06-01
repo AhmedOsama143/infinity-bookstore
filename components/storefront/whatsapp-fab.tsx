@@ -9,7 +9,7 @@ export default async function WhatsappFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="تواصل واتساب"
-      className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-card-lg hover:scale-110 transition-transform"
+      className="whatsapp-fab fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-card-lg hover:scale-110 transition-[bottom,transform] duration-200"
     >
       <i className="fa-brands fa-whatsapp text-2xl" />
     </a>

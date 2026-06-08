@@ -31,7 +31,7 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 bg-white z-40 h-[60px] md:h-[70px] flex items-center shadow-card">
+    <header className="sticky top-0 bg-white z-40 h-[60px] lg:h-[70px] flex items-center shadow-card">
       <div className="container-app flex items-center justify-between w-full">
         <Link
           href="/"
@@ -40,7 +40,7 @@ export default async function Header() {
           مركز <span className="text-accent font-bold">إنفينيتي</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden lg:flex items-center gap-6">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -56,13 +56,13 @@ export default async function Header() {
           <Link href="/search" className="text-ink hover:text-primary text-lg px-1.5 sm:px-2" aria-label="بحث">
             <i className="fa-solid fa-magnifying-glass" />
           </Link>
-          <Link href="/wishlist" className="text-ink hover:text-primary text-lg px-1.5 sm:px-2 hidden sm:inline-block" aria-label="المفضلة">
+          <Link href="/wishlist" className="text-ink hover:text-primary text-lg px-1.5 sm:px-2 hidden lg:inline-block" aria-label="المفضلة">
             <i className="fa-regular fa-heart" />
           </Link>
           {user && (
             <Link
               href="/account/notifications"
-              className="text-ink hover:text-primary text-lg px-1.5 sm:px-2 relative hidden sm:inline-block"
+              className="text-ink hover:text-primary text-lg px-1.5 sm:px-2 relative hidden lg:inline-block"
               aria-label="الإشعارات"
             >
               <i className="fa-regular fa-bell" />
@@ -78,15 +78,15 @@ export default async function Header() {
           {user ? (
             <Link
               href="/account"
-              className="hidden sm:flex items-center gap-2 bg-primary-light text-primary-dark px-4 py-1.5 rounded-pill font-semibold text-sm hover:bg-primary hover:text-white transition-colors max-w-[150px]"
+              className="hidden lg:flex items-center gap-2 bg-primary-light text-primary-dark px-4 py-1.5 rounded-pill font-semibold text-sm hover:bg-primary hover:text-white transition-colors max-w-[150px]"
             >
               <i className="fa-solid fa-user text-xs" />
               <span className="truncate">{fullName ?? 'حسابي'}</span>
             </Link>
           ) : (
             <>
-              <Link href="/login" className="btn btn-outline text-sm hidden sm:inline-block">دخول</Link>
-              <Link href="/register" className="btn btn-primary text-sm hidden sm:inline-block">تسجيل</Link>
+              <Link href="/login" className="btn btn-outline text-sm hidden lg:inline-block">دخول</Link>
+              <Link href="/register" className="btn btn-primary text-sm hidden lg:inline-block">تسجيل</Link>
             </>
           )}
 

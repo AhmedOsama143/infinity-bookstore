@@ -30,7 +30,7 @@ export default function MobileMenu({ isLoggedIn, fullName, unreadCount }: Props)
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="md:hidden text-ink text-xl px-1.5"
+        className="lg:hidden text-ink text-xl px-1.5"
         aria-label="فتح القائمة"
       >
         <i className="fa-solid fa-bars" />
@@ -42,7 +42,7 @@ export default function MobileMenu({ isLoggedIn, fullName, unreadCount }: Props)
 
       <div className={`fixed inset-y-0 right-0 w-[280px] bg-white z-50 shadow-card-lg transform transition-transform duration-200 ${
         open ? 'translate-x-0' : 'translate-x-full'
-      } md:hidden`}>
+      } lg:hidden`}>
         <div className="flex items-center justify-between p-4 border-b border-bg-light">
           <span className="text-lg font-extrabold text-primary-dark font-heading">
             مركز <span className="text-accent">إنفينيتي</span>

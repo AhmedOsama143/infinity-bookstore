@@ -1,6 +1,6 @@
 # Release Notes — v1.0.0
 
-**Released:** 2026-05-31
+**Prepared:** 2026-05-31 · **Last reconciled:** 2026-06-08 (delta pass) · **Status:** ready to tag, awaiting operator sign-off (see Go / no-go)
 **Stack:** Next.js 15.5 · React 19 · TypeScript (strict) · Tailwind 3 · Supabase · Fawry · Vercel
 **Audience:** product owner, ops, support, QA.
 
@@ -37,7 +37,7 @@
 - Settings (announcement bar, content blocks, branch-manager invitation).
 
 ### Payments (Fawry)
-- 11 vertical slices shipped: order creation, charge signing, plugin checkout, webhook with signature verification + idempotency + amount-mismatch + cancelled-order guards, result page with live polling, status-poll fallback, refund endpoint, hourly expire-orders cron, staff payments dashboard, structured logging, rate limiting.
+- 11 vertical slices shipped: order creation, charge signing, plugin checkout, webhook with signature verification + idempotency + amount-mismatch + cancelled-order guards, result page with live polling, status-poll fallback, refund endpoint, expire-orders cron (every two days), staff payments dashboard, structured logging, rate limiting.
 - Migration `019` adds the partial unique index on `payment_events` for webhook dedupe.
 - Migration `022` adds the atomic `mark_return_received` RPC so concurrent return processing can't lose-update stock.
 
@@ -46,7 +46,7 @@
 - All inventory mutations go through migration `015`/`017` triggers, never via JS reads.
 
 ### Infrastructure
-- `vercel.json` runs `/api/cron/expire-orders` hourly.
+- `vercel.json` runs `/api/cron/expire-orders` every two days (`0 3 */2 * *`) — constrained by the Vercel Hobby plan (daily-or-less crons). On Pro this can be tightened back toward hourly. A stale `PAYATFAWRY` reservation can therefore hold branch stock up to ~48h past `payment_expires_at` before the sweep releases it.
 - `/api/health` for monitor probes.
 - Upstash sliding-window rate limiter wired into the Fawry webhook (60 req/min/IP).
 - Structured `lib/log.ts` JSON logger for Vercel-queryable diagnostics.
@@ -68,7 +68,7 @@
 | Header re-fetches user + notifications on every storefront page. | Performance | ~50ms per nav. v1.1 cache opportunity. |
 | The two `scripts/fawry-*.test.ts` ad-hoc test files have not been migrated into Vitest yet. | Test infra | They still pass via `npm run test:fawry`. v1.1. |
 | Service-role client used for the public sign-up flow (auto-confirm email). | Security | Trade-off documented in `lib/auth/actions.ts` — acceptable given the secret is server-only. |
-| Idempotency-key for checkout regenerates per component mount. | Reliability (minor) | A user who navigates away and returns gets a new key; old order is reaped by the hourly cron. v1.1 will derive the key from a cart-content hash. |
+| Idempotency-key for checkout regenerates per component mount. | Reliability (minor) | A user who navigates away and returns gets a new key; old order is reaped by the expire-orders cron. v1.1 will derive the key from a cart-content hash. |
 
 ---
 
@@ -103,7 +103,7 @@ Use `.env.example` as the canonical list. Critical for production:
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `FAWRY_MERCHANT_CODE`, `FAWRY_SECURE_KEY`, `FAWRY_ENV=production`
 - `FAWRY_WEBHOOK_URL=https://<your-domain>/api/fawry/webhook` (and confirm this matches the URL configured in Fawry's merchant dashboard)
-- `CRON_SECRET` (any sufficiently-random string; Vercel will send it as `Authorization: Bearer …` to the hourly cron)
+- `CRON_SECRET` (any sufficiently-random string; Vercel will send it as `Authorization: Bearer …` to the every-two-days cron)
 - `ADMIN_EMAIL`
 
 ### 4. Run the Fawry sandbox end-to-end (P0-5)
@@ -152,20 +152,36 @@ What that pass covered is in good shape:
   type-check/tests are all green (57 tests).
 
 **The payments caveat — read before shipping with online payment enabled.**
-The Fawry integration was **not** re-audited here. Per `roadmap/issues.md`
-(2026-05-12), it still carries **7 open P0 release-blockers** (amount-match
-verification, fawry-order assertion, paid-after-cancel guard, money-as-float,
-the never-executed sandbox webhook replay, unused webhook-URL config, and an
-untracked seed script) plus the un-run sandbox (P0-5) and real-money (P1-10)
-smoke tests. **The original v1.0.0 notes above understate this.** Those items
-are real and unaddressed by this pass.
+The `roadmap/issues.md` snapshot (2026-05-12) listed **7 P0 release-blockers**
+for Fawry. Six of those seven are **code-level guards that have since been
+implemented and re-verified against current source** (see `RELEASE_AUDIT.md`
+Phase 1 re-verification and the 2026-06-08 delta pass):
+
+- P0-1 amount-match verification — `app/api/fawry/webhook/route.ts:238-257` ✅
+- P0-2 fawry-order assertion — `route.ts:194-208` ✅
+- P0-3 paid-after-cancel guard — `route.ts:259-273` ✅
+- P0-4 money-as-string (no floats) — `FawryAmount` union + `toFawryAmount` ✅
+- P0-6 webhook-URL wired to charge — `lib/fawry/client.ts` ✅
+- P0-7 seed script tracked in git ✅
+
+What genuinely remains for online payments is **operational, not code**:
+
+- **P0-5** — the end-to-end Fawry **sandbox** webhook replay has never been run.
+- **P1-10** — the **EGP-1 real-money** production smoke test has never been run.
+
+Both are rehearsals an operator must perform against ngrok + the Fawry dashboard
+(and, for P1-10, a real card on a staging deploy with production credentials);
+they cannot be executed from the repo. The webhook handler itself is signature-
+verified, idempotent (migration 019 unique index), amount-checked, and rate-
+limited — but **no online-payment round-trip has been exercised against this
+build**, which is why payments stay a conditional NO-GO until the rehearsals pass.
 
 ### Decision matrix
 
 | Launch shape | Verdict |
 |---|---|
 | **Storefront + admin, cash-on-delivery only** (Fawry online payment gated off) | **GO** once the operator items below are done. |
-| **Storefront + admin with Fawry online payment enabled** | **NO-GO** until the 7 Fawry P0s in `roadmap/issues.md` are closed and P0-5 + P1-10 sandbox/real-money tests pass. |
+| **Storefront + admin with Fawry online payment enabled** | **NO-GO** until the **P0-5 sandbox replay and P1-10 real-money smoke test pass.** (The six code-level Fawry P0s are already implemented and re-verified — see the payments caveat above; the gate is now the two operational rehearsals, not unfixed code.) |
 
 ### Operator items (apply to either shape)
 
@@ -175,7 +191,7 @@ are real and unaddressed by this pass.
 4. **Contrast decision (A-10/A-11):** ship as-is (defer to v1.1) or sweep the palette — product-owner call if AA is contractual.
 5. **Recommended before public launch:** a CSP pass (S-35) and a Lighthouse/axe-core run on a preview deploy — both need a deployment the audit can't perform.
 
-If launching with online payments, additionally complete the Fawry P0 remediation and the P0-5 / P1-10 sandbox + real-money rehearsals (ngrok + Fawry dashboard + a real card — operator-only).
+If launching with online payments, additionally complete the P0-5 / P1-10 sandbox + real-money rehearsals (ngrok + Fawry dashboard + a real card — operator-only). The six code-level Fawry P0s are already implemented and re-verified, so no further payment-code remediation is required before those rehearsals.
 
 ---
 

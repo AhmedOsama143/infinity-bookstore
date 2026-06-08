@@ -909,3 +909,148 @@ decision matrix in `RELEASE_NOTES.md`.
 **Bottom line:** the non-payment product (storefront incl. the new search, admin,
 auth) is production-ready pending the operator items. Online payments are a
 separate, still-open workstream.
+
+---
+
+# Third pass (2026-06-06) — verification baseline on `main @ dbb6cb9` + working tree
+
+> Third auditor pass (Opus 4.8). The product has already been through a full
+> 10-phase audit **and** a Phase 2–10 re-audit (both above). This pass does **not**
+> re-litigate closed findings; its job is to (a) re-establish a current baseline on
+> the live working tree, (b) assess the delta since the last audit, and (c) confirm
+> no regression slipped in. Findings, if any, are appended per phase.
+
+## Phase 1 — Discovery & Baseline (Status: ✅ Done)
+
+### Delta since the last audit (`9683efa` → `dbb6cb9`, + uncommitted)
+
+Four commits landed after the re-audit's final deliverable, plus an uncommitted
+working-tree change. All low-risk, none touching the payment path:
+
+| Change | Type | Risk |
+|---|---|---|
+| `d11686b` mobile WhatsApp-FAB vs. sticky Add-to-Cart bar overlap fix | CSS/layout | Low |
+| `cfa8622` + `c15c5b4` expire-orders cron `hourly → daily → */2 days` | `vercel.json` | Low — **see note** |
+| `dbb6cb9` CLAUDE.md doc update for the cron cadence | docs | None |
+| **uncommitted:** escott branch address `إسكوت → سيدي بشر` landmark text | data/seed | Low |
+| **uncommitted:** `scripts/verify-fab.mjs` (Playwright check for `d11686b`) | dev tooling | None |
+
+**Note on the cron cadence change.** The original audit + `RELEASE_NOTES.md`
+describe the expire-orders cron as **hourly**. It is now **every two days**
+(`0 3 */2 * *`), constrained by the Vercel Hobby plan (daily-or-less crons).
+This is a **functional behaviour change**, not just docs: a PAYATFAWRY order can
+now hold branch stock for up to ~48h past `payment_expires_at` before the sweep
+releases it (vs. ~1h previously). CLAUDE.md was updated to match, so code and
+docs agree — but `RELEASE_NOTES.md` still says "hourly" in two places
+(Infrastructure list + Fawry slice summary). **Flagged as `D-01` (doc drift)** —
+to be reconciled in the Release-Hygiene phase. Not a code defect.
+
+### Uncommitted-change assessment
+
+The escott address edit is applied **consistently** across all four surfaces that
+carry the string — new migration `024_update_escott_address.sql` (the runtime
+`UPDATE`), the historical seed `004_seed_static.sql`, the bundled
+`all_migrations.sql`, and `PROJECT_PLAN.md`. The new migration only rewrites
+`address_ar`; slug, name, coordinates, and phone are untouched (matches its own
+header comment). Editing the already-numbered seed `004` retroactively is mildly
+unconventional (migrations are normally immutable once applied), but here it only
+affects fresh-DB bootstrap and keeps the seed self-consistent — acceptable.
+**No new code-quality, security, or behavioural risk introduced.**
+
+### Baseline command results (this pass)
+
+| Command | Result | Notes |
+|---|---|---|
+| `npm audit --audit-level=high` | ✅ **0 vulnerabilities** | postcss override + next ^15.5.18 holding. |
+| `npx tsc --noEmit` | ✅ **Clean**, 0 errors | strict mode. |
+| `npx eslint .` | ✅ **0 errors**, 175 warnings | Was 167; +8 are `no-console` in the new `verify-fab.mjs` dev script — appropriate there (same class as the accepted `scripts/` console debt). No new error-level lint. |
+| `npx vitest run` | ✅ **57/57 pass**, 4 files | Deterministic; ~2.3s. |
+| `npx next build` | ✅ **Clean** | All routes compile; First Load JS shared = 102 kB; middleware 88 kB. |
+
+### Standing open items (unchanged by this pass — carried forward)
+
+These were already triaged/deferred in the prior passes and remain the gate to
+release. Nothing here regressed; nothing new code-side opened:
+
+- **Ops / operator blockers:** `npm run db:push` (migrations 022 + 023 + now 024),
+  Upstash creds, CSP pass on a preview (S-35), Lighthouse/axe-core on a deploy
+  (P-06), Fawry sandbox replay (P0-5) + EGP-1 real-money smoke test (P1-10).
+- **Fawry P0s:** still open **iff** launching with online payments enabled
+  (`roadmap/issues.md`). Out of scope for the prior re-audit by owner decision.
+- **Design decision:** WCAG AA brand-contrast (A-10 / A-11).
+- **New this pass:** `D-01` doc drift — `RELEASE_NOTES.md` says the cron is
+  hourly; it is now every two days.
+
+### Phase 1 — Checkpoint
+
+**Done:** re-established a green baseline (audit/tsc/lint/test/build all pass) on
+the current working tree; assessed the 4-commit + uncommitted delta since the last
+audit; confirmed the uncommitted escott-address change is consistent and low-risk;
+caught one new doc-drift item (`D-01`, the cron-cadence note).
+
+**Deferred:** no code changes in Phase 1 (read-only by design). The escott
+migration `024` is unapplied locally — that's an operator `db:push` task, not a
+repo defect.
+
+**Recommendation:** because two thorough audits already cover the codebase, this
+pass should be **scoped to the delta** (the 4 new commits + the uncommitted
+changes) rather than a blind from-scratch re-read of 169 files, which would burn
+effort re-deriving already-closed findings. Awaiting your go-ahead on that scope
+before Phase 2.
+
+## Phases 2–10 (delta-scoped) — 2026-06-08 (Status: ✅ Done)
+
+Owner approved the delta scope. Baseline re-verified independently this session:
+`npm audit --audit-level=high` 0 vulns · `tsc --noEmit` clean · `eslint .` 0
+errors / 175 warnings · `vitest run` 57/57 · `next build` clean (52 routes).
+
+### Delta reviewed (code-level)
+
+| Surface | Verdict |
+|---|---|
+| `d11686b` mobile WhatsApp-FAB vs. sticky ATC bar (`sticky-mobile-atc.tsx`, `whatsapp-fab.tsx`, `globals.css`) | **Sound.** IntersectionObserver toggles `body.atc-bar-up` + publishes measured `--atc-bar-height`; CSS rule scoped to `max-width:767px` matching the bar's `md:hidden`; `offsetHeight` is transform-independent so the measure is correct; cleanup removes the class on unmount (no leak); FAB `transition-[bottom,…]` animates the lift. No defect. |
+| escott address edit (migration `024`, seed `004`, `all_migrations.sql`, `PROJECT_PLAN.md`) | **Sound & consistent.** Migration 024 only rewrites `address_ar` for already-seeded prod; seed 004's `ON CONFLICT DO UPDATE` covers fresh DBs. Slug/name/coords/phone untouched. |
+| `scripts/verify-fab.mjs` (Playwright check for `d11686b`) | Dev tooling; its `console` calls are the source of the +8 lint warnings — appropriate in `scripts/`. |
+| cron cadence `0 3 */2 * *` (`vercel.json`) | Code correct; only docs had drifted (see `D-01`). |
+
+**No new code-quality, security, UI, a11y, SEO, performance, test, or
+observability defects in the delta.** The substantive surface (search, payments,
+admin, auth) was already covered by the two prior full audits; nothing in the
+delta touches it.
+
+### Fixed this pass
+
+| ID | Sev | File | Fix |
+|---|---|---|---|
+| `D-01` | Low | `RELEASE_NOTES.md` | Cron-cadence doc drift: 4 sites said "hourly"; the cron is `0 3 */2 * *` (every two days). Corrected all four (slice summary, Infrastructure list, idempotency-key note, `CRON_SECRET` note) and added the ~48h stale-hold implication. CLAUDE.md was already correct. |
+| `D-02` | **Medium** | `RELEASE_NOTES.md` | **Go/no-go overstated open Fawry P0s.** The notes listed 7 "open P0 release-blockers" — including amount-match, fawry-order assertion, paid-after-cancel, and money-as-float — citing the stale 2026-05-12 roadmap. Those four are **implemented and re-verified against live code this session** (`app/api/fawry/webhook/route.ts:194-208, 238-257, 259-273` + `FawryAmount`/`toFawryAmount`), as are P0-6 and P0-7. Only **P0-5** (sandbox replay) and **P1-10** (real-money smoke) genuinely remain, and both are *operational rehearsals*, not code. Rewrote the payments caveat, decision matrix, and operator items to reflect the true posture. This was the highest-value find of the delta pass: the release doc contradicted both the audit ledger and the code, which could have triggered an unnecessary launch hold (or eroded trust in the doc). |
+
+### Re-verified after the doc fixes
+
+`tsc`/`eslint`/`vitest`/`build` unaffected (docs-only changes). The two `D-`
+fixes touch `RELEASE_NOTES.md` only.
+
+### Carried forward unchanged (operator/ops — cannot be done from the repo)
+
+`npm run db:push` (migrations 022 + 023 + 024) · Upstash creds in Vercel · CSP
+pass on a preview (S-35) · Lighthouse/CWV + axe-core/SR smoke on a deploy (P-06,
+X-deferred) · **P0-5** Fawry sandbox replay · **P1-10** EGP-1 real-money smoke ·
+WCAG AA brand-contrast design decision (A-10/A-11). None of these regressed; none
+are new.
+
+### Phases 2–10 — Checkpoint
+
+**Done:** delta-scoped review of every changed surface since the last audit; the
+sole code change (mobile FAB) verified sound; the data/migration change verified
+consistent; two documentation-accuracy defects fixed (`D-01` cron drift, `D-02`
+go/no-go overstating Fawry P0s — the latter materially corrects the launch
+posture). Baseline remains fully green.
+
+**Deferred:** nothing new. The standing operator/ops blockers above are unchanged
+and remain the real gate to release.
+
+**Bottom line:** the delta introduced no code defects. After the doc fixes, the
+repo's release documentation now matches its code. The non-payment product is
+production-ready pending the operator items; online payments remain a conditional
+NO-GO purely on the two un-run operational rehearsals (P0-5, P1-10), not on any
+open payment-code blocker.

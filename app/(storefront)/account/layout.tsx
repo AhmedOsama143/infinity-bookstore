@@ -22,10 +22,14 @@ export default async function AccountLayout({ children }: { children: React.Reac
       />
       <section className="section">
         <div className="container-app grid md:grid-cols-[220px_1fr] gap-5 md:gap-8">
-          <aside>
+          {/* min-w-0 lets these grid items shrink below their content's
+              intrinsic width. Without it the nav's overflow-x-auto strip can't
+              scroll, so its whitespace-nowrap items force the track ~756px wide
+              and blow the whole page past the viewport on mobile. */}
+          <aside className="min-w-0">
             <AccountNav />
           </aside>
-          <div>{children}</div>
+          <div className="min-w-0">{children}</div>
         </div>
       </section>
     </>

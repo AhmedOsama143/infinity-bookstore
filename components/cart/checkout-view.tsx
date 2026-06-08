@@ -46,6 +46,9 @@ const AREA_OPTIONS: { value: ShippingAreaType; label: string }[] = [
   { value: 'other_governorate', label: 'محافظة أخرى' },
 ];
 
+// Egyptian mobile: 11 digits, 010 / 011 / 012 / 015 + 8 digits.
+const EG_MOBILE_RE = /^01[0125]\d{8}$/;
+
 export default function CheckoutView({
   branches,
   shippingRates,
@@ -66,7 +69,8 @@ export default function CheckoutView({
   const [governorate, setGovernorate] = useState(student.governorate);
   const [address, setAddress] = useState(student.address);
   const [fullName, setFullName] = useState(student.full_name);
-  const [phone, setPhone] = useState(student.phone);
+  // Keep the phone field as digits only so the value is always a clean mobile.
+  const [phone, setPhone] = useState(() => (student.phone ?? '').replace(/\D/g, '').slice(0, 11));
   const [notes, setNotes] = useState('');
   const [availability, setAvailability] = useState<BranchAvailability[]>([]);
   const [isSubmitting, startTransition] = useTransition();
@@ -159,6 +163,11 @@ export default function CheckoutView({
   );
   const total = subtotal + quote.fee;
 
+  // Phone is required for every order (Fawry needs it, and the branch uses it
+  // to reach the customer). The pay button stays disabled until it's a valid
+  // Egyptian mobile, so we surface the reason explicitly below.
+  const phoneValid = EG_MOBILE_RE.test(phone);
+
   const wouldExceedCap = alreadyOrdered + totalItems > cap;
   const stockChanged = stockNotices.length > 0;
   const isFawry = paymentChoice.kind === 'fawry';
@@ -169,7 +178,7 @@ export default function CheckoutView({
     !!branchId &&
     (fulfillment === 'pickup' || (areaType && governorate && address)) &&
     !!fullName &&
-    !!phone &&
+    phoneValid &&
     (!stockChanged || acknowledged) &&
     (!isFawry || fawryReady);
 
@@ -383,13 +392,34 @@ export default function CheckoutView({
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">الموبايل</label>
+              <label className="block text-sm font-semibold mb-1">
+                الموبايل <span className="text-danger">*</span>
+              </label>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
                 dir="ltr"
-                className="w-full px-4 py-2.5 rounded-s border border-[#ddd] focus:outline-none focus:border-primary"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={11}
+                placeholder="01XXXXXXXXX"
+                aria-invalid={phone.length > 0 && !phoneValid}
+                className={`w-full px-4 py-2.5 rounded-s border focus:outline-none ${
+                  phone.length > 0 && !phoneValid
+                    ? 'border-danger focus:border-danger'
+                    : 'border-[#ddd] focus:border-primary'
+                }`}
               />
+              {phone.length > 0 && !phoneValid ? (
+                <p className="text-xs text-danger mt-1">
+                  أدخل رقم موبايل مصري صحيح مكوّن من ١١ رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015.
+                </p>
+              ) : (
+                <p className="text-xs text-[#666] mt-1">
+                  مطلوب — لن يعمل زر الدفع بدون رقم موبايل صحيح للتواصل وتأكيد الطلب.
+                </p>
+              )}
             </div>
           </div>
 
@@ -497,6 +527,13 @@ export default function CheckoutView({
         {selectedBranchAvail && !selectedBranchAvail.can_fulfill && (
           <div className="bg-danger/10 border border-danger/30 text-danger text-sm p-3 rounded-s mb-4">
             الفرع المختار لا يستطيع توفير كل الكتب. اختر فرعًا آخر أو قلل الكميات.
+          </div>
+        )}
+
+        {!phoneValid && (
+          <div className="bg-accent/5 border border-accent/40 text-primary-dark text-sm p-3 rounded-s mb-4">
+            <i className="fa-solid fa-mobile-screen-button ml-1 text-accent-dark" />
+            أدخل رقم موبايلك في خانة «الموبايل» بالأعلى لتفعيل زر الدفع.
           </div>
         )}
 

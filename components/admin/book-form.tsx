@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createBook, updateBook, deleteBook } from '@/lib/admin/book-actions';
 import { fallbackCover, gradeLabelAr, bookTypeLabelAr } from '@/lib/utils';
 import type { GradeLevel, BookType } from '@/lib/types';
@@ -33,6 +33,7 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
   const router = useRouter();
   const [isPending, start] = useTransition();
   const [isDeleting, startDelete] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,21 +46,24 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
     });
   }
 
-  function onDelete() {
+  function closeConfirm() {
+    if (isDeleting) return;
+    setConfirmOpen(false);
+  }
+
+  function confirmDelete() {
     if (!initial?.id) return;
-    const confirmed = window.confirm(
-      'هل أنت متأكد من حذف هذا الكتاب نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.',
-    );
-    if (!confirmed) return;
     setMsg(null);
     startDelete(async () => {
       const res = await deleteBook(initial.id!);
       if (res?.error) {
+        setConfirmOpen(false);
         setMsg({ type: 'err', text: res.error });
         return;
       }
       if (res?.deactivated) {
         // Book has order/transfer history, so it was hidden instead of erased.
+        setConfirmOpen(false);
         setMsg({
           type: 'ok',
           text: 'لا يمكن حذف الكتاب نهائيًا لارتباطه بطلبات سابقة — تم إلغاء تنشيطه وإخفاؤه عن الطلاب.',
@@ -71,7 +75,22 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
     });
   }
 
+  useEffect(() => {
+    if (!confirmOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeConfirm();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [confirmOpen, isDeleting]);
+
   return (
+    <>
     <form onSubmit={onSubmit} className="space-y-6 max-w-4xl">
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
 
@@ -267,7 +286,7 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
         {mode === 'edit' && (
           <button
             type="button"
-            onClick={onDelete}
+            onClick={() => { setMsg(null); setConfirmOpen(true); }}
             disabled={isPending || isDeleting}
             className="btn bg-danger text-white hover:bg-danger/90 px-8 py-3 mr-auto disabled:opacity-50"
           >
@@ -276,5 +295,76 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
         )}
       </div>
     </form>
+
+    {confirmOpen && (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-book-title"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm"
+        onClick={closeConfirm}
+      >
+        <div
+          className="card w-full max-w-md shadow-card-lg overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between p-5 bg-primary-light">
+            <h3 id="delete-book-title" className="font-bold text-primary-dark flex items-center gap-2">
+              <i className="fa-solid fa-triangle-exclamation text-danger" />
+              تأكيد حذف الكتاب
+            </h3>
+            <button
+              type="button"
+              onClick={closeConfirm}
+              disabled={isDeleting}
+              aria-label="إغلاق"
+              className="text-primary-dark/70 hover:text-primary-dark disabled:opacity-50"
+            >
+              <i className="fa-solid fa-xmark text-lg" />
+            </button>
+          </div>
+
+          <div className="p-5">
+            <p className="text-sm text-ink leading-relaxed">
+              هل أنت متأكد من حذف الكتاب{' '}
+              <span className="font-bold">«{initial?.title_ar}»</span> نهائيًا؟
+            </p>
+            <p className="text-xs text-[#666] mt-2 leading-relaxed">
+              لا يمكن التراجع عن هذا الإجراء. إذا كان الكتاب مرتبطًا بطلبات سابقة فسيتم إخفاؤه عن الطلاب بدلاً من حذفه للحفاظ على سجل الطلبات.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap-reverse justify-end gap-3 p-5 bg-bg-light/50 border-t border-bg-light">
+            <button
+              type="button"
+              onClick={closeConfirm}
+              disabled={isDeleting}
+              className="btn bg-white text-ink hover:bg-bg-light px-5 py-2 text-sm disabled:opacity-50"
+            >
+              تراجع
+            </button>
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="btn bg-danger text-white hover:bg-danger/90 px-5 py-2 text-sm font-bold disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin ml-2" />
+                  جاري الحذف…
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-trash ml-2" />
+                  حذف نهائي
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

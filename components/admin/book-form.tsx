@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { createBook, updateBook } from '@/lib/admin/book-actions';
+import { createBook, updateBook, deleteBook } from '@/lib/admin/book-actions';
 import { fallbackCover, gradeLabelAr, bookTypeLabelAr } from '@/lib/utils';
 import type { GradeLevel, BookType } from '@/lib/types';
 
@@ -29,7 +30,9 @@ interface Props {
 }
 
 export default function BookForm({ mode, initial, teachers, branches, branchStock }: Props) {
+  const router = useRouter();
   const [isPending, start] = useTransition();
+  const [isDeleting, startDelete] = useTransition();
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -39,6 +42,32 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
     start(async () => {
       const res = mode === 'new' ? await createBook(fd) : await updateBook(fd);
       setMsg(res?.error ? { type: 'err', text: res.error } : { type: 'ok', text: '✓ تم الحفظ' });
+    });
+  }
+
+  function onDelete() {
+    if (!initial?.id) return;
+    const confirmed = window.confirm(
+      'هل أنت متأكد من حذف هذا الكتاب نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.',
+    );
+    if (!confirmed) return;
+    setMsg(null);
+    startDelete(async () => {
+      const res = await deleteBook(initial.id!);
+      if (res?.error) {
+        setMsg({ type: 'err', text: res.error });
+        return;
+      }
+      if (res?.deactivated) {
+        // Book has order/transfer history, so it was hidden instead of erased.
+        setMsg({
+          type: 'ok',
+          text: 'لا يمكن حذف الكتاب نهائيًا لارتباطه بطلبات سابقة — تم إلغاء تنشيطه وإخفاؤه عن الطلاب.',
+        });
+        router.refresh();
+        return;
+      }
+      router.push('/admin/books');
     });
   }
 
@@ -230,11 +259,21 @@ export default function BookForm({ mode, initial, teachers, branches, branchStoc
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isDeleting}
           className="btn btn-primary px-10 py-3 disabled:opacity-50"
         >
           {isPending ? 'جاري الحفظ...' : mode === 'new' ? 'إضافة الكتاب' : 'حفظ التغييرات'}
         </button>
+        {mode === 'edit' && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isPending || isDeleting}
+            className="btn bg-danger text-white hover:bg-danger/90 px-8 py-3 mr-auto disabled:opacity-50"
+          >
+            {isDeleting ? 'جاري الحذف...' : 'حذف الكتاب'}
+          </button>
+        )}
       </div>
     </form>
   );

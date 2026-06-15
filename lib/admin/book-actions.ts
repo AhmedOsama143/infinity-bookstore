@@ -178,13 +178,35 @@ export async function updateBook(formData: FormData): Promise<BookActionResult> 
   redirect('/admin/books');
 }
 
-export async function deleteBook(bookId: number) {
+export interface DeleteBookResult {
+  ok?: true;        // permanently removed
+  deactivated?: true; // kept (has order/transfer history) but hidden
+  error?: string;
+}
+
+export async function deleteBook(bookId: number): Promise<DeleteBookResult> {
   await requireFullAdmin();
   const supa = await createClient();
-  const { error } = await supa.from('books').update({ is_active: false }).eq('id', bookId);
-  if (error) return { error: translateDbError(error, 'admin/books', 'delete_failed', { bookId }) };
-  revalidatePath('/admin/books');
-  return { ok: true };
+
+  // Try a permanent delete first. branch_stock, reviews, wishlist, back-in-stock
+  // and cart holds all cascade automatically. order_items and transfers do NOT
+  // cascade, so a book that appears in any order/transfer history trips a
+  // foreign-key violation (Postgres code 23503) — we catch that below.
+  const { error } = await supa.from('books').delete().eq('id', bookId);
+  if (!error) {
+    revalidatePath('/admin/books');
+    return { ok: true };
+  }
+
+  // Has history → fall back to a soft delete so order records stay intact.
+  if (error.code === '23503') {
+    const { error: deErr } = await supa.from('books').update({ is_active: false }).eq('id', bookId);
+    if (deErr) return { error: translateDbError(deErr, 'admin/books', 'delete_failed', { bookId }) };
+    revalidatePath('/admin/books');
+    return { deactivated: true };
+  }
+
+  return { error: translateDbError(error, 'admin/books', 'delete_failed', { bookId }) };
 }
 
 export interface BulkImportResult {

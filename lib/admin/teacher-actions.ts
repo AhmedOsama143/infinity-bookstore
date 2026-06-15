@@ -107,3 +107,35 @@ export async function updateTeacher(formData: FormData) {
   revalidatePath(`/teachers/${parsed.id}`);
   return { ok: true };
 }
+
+export interface DeleteTeacherResult {
+  ok?: true;        // permanently removed
+  deactivated?: true; // kept but hidden (only if a future non-cascade FK blocks delete)
+  error?: string;
+}
+
+export async function deleteTeacher(teacherId: number): Promise<DeleteTeacherResult> {
+  await requireFullAdmin();
+  const supa = await createClient();
+
+  // Try a permanent delete. The only foreign key into teachers is
+  // books.teacher_id with ON DELETE SET NULL, so this succeeds even when the
+  // teacher has books — those books are NOT deleted, they just become
+  // unassigned (teacher_id → NULL). The 23503 fallback to a soft delete is
+  // kept for safety in case a future migration adds a non-cascade reference.
+  const { error } = await supa.from('teachers').delete().eq('id', teacherId);
+  if (!error) {
+    revalidatePath('/admin/teachers');
+    revalidatePath('/admin/books');
+    return { ok: true };
+  }
+
+  if (error.code === '23503') {
+    const { error: deErr } = await supa.from('teachers').update({ is_active: false }).eq('id', teacherId);
+    if (deErr) return { error: translateDbError(deErr, 'admin/teachers', 'delete_failed', { teacherId }) };
+    revalidatePath('/admin/teachers');
+    return { deactivated: true };
+  }
+
+  return { error: translateDbError(error, 'admin/teachers', 'delete_failed', { teacherId }) };
+}

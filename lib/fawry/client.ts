@@ -54,6 +54,17 @@ export function buildChargeRequest(
     throw new Error('buildChargeRequest: items must not be empty');
   }
 
+  // returnUrl is required by Fawry and is part of the charge signature. It can
+  // come from the per-request override (the storefront passes an origin-derived
+  // URL) or the optional FAWRY_RETURN_URL. Fail loud if neither is present
+  // rather than signing with an empty string (which Fawry rejects opaquely).
+  const returnUrl = input.returnUrlOverride ?? config.returnUrl;
+  if (!returnUrl) {
+    throw new Error(
+      'buildChargeRequest: no return URL — set FAWRY_RETURN_URL or pass returnUrlOverride'
+    );
+  }
+
   const unsigned: Omit<FawryChargeRequest, 'signature'> = {
     merchantCode: config.merchantCode,
     merchantRefNum: input.order.merchantRefNumber,
@@ -64,7 +75,7 @@ export function buildChargeRequest(
     paymentExpiry: input.order.paymentExpiryMs,
     chargeItems: input.items,
     paymentMethod: input.paymentMethod,
-    returnUrl: input.returnUrlOverride ?? config.returnUrl,
+    returnUrl,
     // Per-request webhook URL override. Fawry honours this even when a
     // dashboard URL is set, so it doubles as a way to point sandbox traffic
     // at an ngrok tunnel without touching the Fawry dashboard. When the env

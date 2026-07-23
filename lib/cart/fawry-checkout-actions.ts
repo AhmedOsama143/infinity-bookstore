@@ -370,7 +370,7 @@ export async function getFawryChargePayloadAction(
   const { data: order, error: orderErr } = await admin
     .from('orders')
     .select(
-      `id, student_id, merchant_ref_number, total, payment_status, payment_method,
+      `id, student_id, merchant_ref_number, total, shipping_fee, payment_status, payment_method,
        payment_expires_at,
        student:students(full_name, phone, email),
        items:order_items(quantity, unit_price, book:books(id, title_ar, cover_url))`
@@ -440,6 +440,21 @@ export async function getFawryChargePayloadAction(
       }))
   );
 
+  // The Self-Hosted Checkout Button charges exactly the sum of chargeItems
+  // (SIGNING_REFERENCE.md §1 — there's no separate top-level amount field).
+  // order.total = subtotal + shipping_fee, so shipping must ride along as its
+  // own line item or Fawry only ever charges the book subtotal — which then
+  // permanently fails the webhook's amount-mismatch check against order.total.
+  const shippingFee = Number(order.shipping_fee ?? 0);
+  if (shippingFee > 0) {
+    chargeItems.push({
+      itemId: 'shipping',
+      description: 'رسوم الشحن',
+      quantity: 1,
+      price: shippingFee,
+    });
+  }
+
   const student = (order.student ?? null) as unknown as
     | { full_name: string | null; phone: string | null; email: string | null }
     | null;
@@ -450,9 +465,15 @@ export async function getFawryChargePayloadAction(
   const host = h.get('host') ?? h.get('x-forwarded-host') ?? 'localhost:3000';
   const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
   const origin = `${proto}://${host}`;
+  // Prefer an absolute FAWRY_RETURN_URL when configured; otherwise derive it
+  // from the request origin. Compute the query separator from the URL we
+  // actually use, not from the (possibly unset) env value.
+  const returnBase =
+    config.returnUrl && config.returnUrl.startsWith('http')
+      ? config.returnUrl
+      : `${origin}/checkout/result`;
   const returnUrlOverride =
-    `${config.returnUrl.startsWith('http') ? config.returnUrl : `${origin}/checkout/result`}` +
-    `${config.returnUrl.includes('?') ? '&' : '?'}orderId=${encodeURIComponent(order.id)}`;
+    `${returnBase}${returnBase.includes('?') ? '&' : '?'}orderId=${encodeURIComponent(order.id)}`;
 
   const payload = buildChargeRequest(
     {

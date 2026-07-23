@@ -13,8 +13,14 @@ const STAGING_PLUGIN_JS =
   'https://atfawry.fawrystaging.com/atfawry/plugin/assets/payments/js/fawrypay-payments.js';
 const PRODUCTION_PLUGIN_JS =
   'https://atfawry.com/atfawry/plugin/assets/payments/js/fawrypay-payments.js';
-const PLUGIN_CSS =
+// CSS must track the same host as the JS per environment — loading the staging
+// stylesheet in production risks version skew / availability of a host we don't
+// control. (Confirm both plugin URLs against Fawry's production docs once the
+// dashboard is provisioned; the host can differ from the API base.)
+const STAGING_PLUGIN_CSS =
   'https://atfawry.fawrystaging.com/atfawry/plugin/assets/payments/css/fawrypay-payments.css';
+const PRODUCTION_PLUGIN_CSS =
+  'https://atfawry.com/atfawry/plugin/assets/payments/css/fawrypay-payments.css';
 
 export type FawryEnv = 'staging' | 'production';
 
@@ -26,7 +32,12 @@ export interface FawryConfig {
   merchantCode: string;
   /** SECRET. Never log, never expose to the browser. */
   secureKey: string;
-  returnUrl: string;
+  /**
+   * Optional. When unset, the charge action falls back to
+   * `${origin}/checkout/result`. Only set this to pin an absolute return URL
+   * (e.g. a custom domain that differs from the request host).
+   */
+  returnUrl: string | null;
   webhookUrl: string | null;
 }
 
@@ -56,10 +67,13 @@ export function getFawryConfig(): FawryConfig {
     env,
     baseUrl: env === 'production' ? PRODUCTION_BASE : STAGING_BASE,
     pluginJsUrl: env === 'production' ? PRODUCTION_PLUGIN_JS : STAGING_PLUGIN_JS,
-    pluginCssUrl: PLUGIN_CSS,
+    pluginCssUrl: env === 'production' ? PRODUCTION_PLUGIN_CSS : STAGING_PLUGIN_CSS,
     merchantCode: readEnv('FAWRY_MERCHANT_CODE', true),
     secureKey: readEnv('FAWRY_SECURE_KEY', true),
-    returnUrl: readEnv('FAWRY_RETURN_URL', true),
+    // Optional — the charge action defaults to `${origin}/checkout/result`.
+    // Documented as optional in .env.example; making it required here was a
+    // latent blocker that failed every charge with "gateway not configured".
+    returnUrl: readEnv('FAWRY_RETURN_URL', false),
     webhookUrl: readEnv('FAWRY_WEBHOOK_URL', false),
   };
 }
@@ -85,6 +99,6 @@ export function getPublicFawryConfig(): PublicFawryConfig {
   return {
     env,
     pluginJsUrl: env === 'production' ? PRODUCTION_PLUGIN_JS : STAGING_PLUGIN_JS,
-    pluginCssUrl: PLUGIN_CSS,
+    pluginCssUrl: env === 'production' ? PRODUCTION_PLUGIN_CSS : STAGING_PLUGIN_CSS,
   };
 }

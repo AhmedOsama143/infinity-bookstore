@@ -15,7 +15,7 @@ import { checkCartAvailability, type BranchAvailability } from '@/lib/data/cart-
 import { revalidateCart } from '@/lib/stock/integrity';
 import type { ShippingAreaType } from '@/lib/types';
 import PaymentMethodPicker, { type PaymentChoice } from './payment-method-picker';
-import { useFawryScript } from '@/lib/fawry/use-fawry-script';
+import { useFawryScript, getFawryPay } from '@/lib/fawry/use-fawry-script';
 import type { FawryChargeRequest } from '@/lib/fawry/types';
 import { trackAddPaymentInfo, trackBeginCheckout } from '@/lib/analytics/gtm';
 
@@ -185,7 +185,11 @@ export default function CheckoutView({
   const selectedBranchAvail = availability.find((a) => a.branch_id === branchId);
 
   async function handleFawryCheckout(method: Extract<PaymentChoice, { kind: 'fawry' }>['method']) {
-    if (typeof window === 'undefined' || !window.FawryPay) {
+    // Resolve the plugin global up front — it is NOT on `window` (see
+    // getFawryPay), and we want to fail before creating a pending order
+    // that would hold stock with no way to pay for it.
+    const fawry = getFawryPay();
+    if (!fawry) {
       setSubmitError('فشل تحميل بوابة فوري. حدّث الصفحة وحاول مرة أخرى.');
       return;
     }
@@ -227,7 +231,7 @@ export default function CheckoutView({
     //    We deliberately don't clear the cart here — the user might cancel
     //    inside the popup, in which case we want them back on this page with
     //    items intact. The result page clears on confirmed PAID.
-    window.FawryPay.checkout(payload, { locale: 'ar', mode: 'POPUP' });
+    fawry.checkout(payload, { locale: 'ar', mode: 'POPUP' });
   }
 
   function handleSubmit() {

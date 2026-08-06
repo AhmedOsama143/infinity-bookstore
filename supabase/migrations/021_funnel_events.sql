@@ -6,8 +6,14 @@
 -- (orders placed, payments confirmed). Top-of-funnel events (view_item,
 -- add_to_cart) remain GA4-only because the server doesn't see them.
 
+-- `gen_random_uuid()` rather than `uuid_generate_v4()`: the latter is provided
+-- by uuid-ossp, which Supabase installs into the `extensions` schema. That
+-- schema is on the search_path for dashboard SQL-editor sessions but not for
+-- the connection `supabase db push` uses, so uuid_generate_v4() resolves there
+-- and fails here (42883). gen_random_uuid() is Postgres core (pg_catalog) and
+-- resolves from either connection.
 CREATE TABLE funnel_events (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_name   TEXT NOT NULL,
   user_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   order_id     UUID REFERENCES orders(id) ON DELETE SET NULL,
